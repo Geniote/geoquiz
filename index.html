@@ -118,13 +118,13 @@ body.night-mode .cf-opt.active{background:rgba(43,76,126,.3)}
 .cf-empty{padding:7px 8px;font-size:11px;color:var(--text3)}
 
 /* MAP PICKER — button in the session bar (left of the typing bar) + its modal */
-#mapPickBtn{display:flex;align-items:center;gap:6px;height:26px;padding:0 10px;font-size:12px;font-weight:600;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:var(--surface);color:var(--text2);white-space:nowrap;flex-shrink:0}
+#mapPickBtn{display:flex;align-items:center;gap:8px;height:38px;padding:0 16px;font-size:14px;font-weight:600;border:2px solid var(--border);border-radius:9px;cursor:pointer;background:var(--surface);color:var(--text2);white-space:nowrap;flex-shrink:0}
 #mapPickBtn:hover{background:var(--bg);color:var(--text)}
 /* The map button sits in a slot that is layout-transparent by default (mobile,
    and the Prefectures quiz where the typing bar is hidden). On desktop with the
    typing bar showing, see the "even spacing" rules in the floating-list block. */
 #mapPickSlot{display:contents}
-#mapPickDot{width:9px;height:9px;border-radius:50%;background:#2B4C7E;flex-shrink:0}
+#mapPickDot{width:11px;height:11px;border-radius:50%;background:#2B4C7E;flex-shrink:0}
 #mapModal{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.45);align-items:center;justify-content:center}
 #mapModal.open{display:flex}
 #mapBox{background:var(--surface);border-radius:12px;width:520px;max-width:95vw;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.22);overflow:hidden}
@@ -545,7 +545,7 @@ input[type=checkbox]{accent-color:var(--accent2);cursor:pointer;width:14px;heigh
   #cityInput{font-size:16px;padding-right:126px}
   #countryFilterBtn{width:118px;font-size:11px}
   #countryFilterPanel{width:200px;max-height:240px}
-  #mapPickBtn{height:30px;order:2}
+  #mapPickBtn{height:44px;order:2}
   #jpQuizIndicator{height:30px;order:2}
   #mapBox{width:94vw;max-height:88dvh}
   .map-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
