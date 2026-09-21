@@ -120,6 +120,10 @@ body.night-mode .cf-opt.active{background:rgba(43,76,126,.3)}
 /* MAP PICKER — button in the session bar (left of the typing bar) + its modal */
 #mapPickBtn{display:flex;align-items:center;gap:6px;height:26px;padding:0 10px;font-size:12px;font-weight:600;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:var(--surface);color:var(--text2);white-space:nowrap;flex-shrink:0}
 #mapPickBtn:hover{background:var(--bg);color:var(--text)}
+/* The map button sits in a slot that is layout-transparent by default (mobile,
+   and the Prefectures quiz where the typing bar is hidden). On desktop with the
+   typing bar showing, see the "even spacing" rules in the floating-list block. */
+#mapPickSlot{display:contents}
 #mapPickDot{width:9px;height:9px;border-radius:50%;background:#2B4C7E;flex-shrink:0}
 #mapModal{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.45);align-items:center;justify-content:center}
 #mapModal.open{display:flex}
@@ -270,6 +274,54 @@ body.night-mode .mode-toggle:has(input:checked){box-shadow:0 0 0 2px rgba(111,16
 #settingsInner{width:100%}
 #panel{width:var(--pw);height:100%;border-left:2px solid #2b4c7e;background:var(--surface);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;position:relative}
 
+/* DESKTOP: FLOATING, COLLAPSIBLE CITY LIST — the list is an overlay pinned to
+   the right edge, on top of the map. The map itself never changes size, never
+   redraws and never re-centres when the list opens or closes: it always fills
+   the full width and simply has the list laid over its right-hand side.
+   What DOES make room for the list (all sliding in sync with it, via --list-w):
+     • the two bars at the top (session/typing bar + found-cities summary),
+       which shrink so they end at the list's left edge,
+     • the map's on-screen controls (zoom buttons + the collapse tab), which
+       would otherwise be hidden underneath the list,
+     • the stats block below the map.
+   --sbw is the width of #leftCol's scrollbar (measured in JS), so the list
+   sits beside that scrollbar rather than covering it.
+   (On narrow screens the list is stacked under the map and has its own
+   Hide/Show button, so none of this applies there.) */
+#listCollapseBtn{display:none}
+@media (min-width:861px){
+  body{--list-w:var(--pw);--list-t:.38s cubic-bezier(.4,0,.2,1)}
+  body.list-collapsed{--list-w:0px}
+  #appRow{position:relative;overflow:hidden}
+  #panel{
+    position:absolute;top:0;bottom:0;height:auto;z-index:5;
+    right:calc(var(--sbw,0px) + var(--list-w) - var(--pw));
+    transition:right var(--list-t),visibility 0s;
+  }
+  body.list-collapsed #panel{visibility:hidden;transition:right var(--list-t),visibility 0s .38s}
+  #sessionBar,#statusRow{margin-right:var(--list-w);transition:margin-right var(--list-t)}
+  #bottomPanels{width:auto;margin-right:var(--list-w);transition:margin-right var(--list-t)}
+  /* Even spacing in the session bar: the free space left over when the bar is
+     wide is split equally between a slot around the map button and a slot
+     around the Sessions button, while the typing bar keeps its natural width
+     in the middle. The map button is centred in its slot, so it sits exactly
+     as far from the "Active" badge as it does from the typing bar. */
+  body:not(.jp-quiz-typing-hidden) #mapPickSlot{display:flex;flex:1 0 auto;justify-content:center}
+  body:not(.jp-quiz-typing-hidden) #sessRightSlot{flex:1 0 auto;justify-content:flex-end}
+  body:not(.jp-quiz-typing-hidden) #inputControls{flex:0 1 auto}
+  .zbtn-wrap{right:calc(12px + var(--list-w));transition:right var(--list-t)}
+  #listCollapseBtn{display:flex;align-items:center;justify-content:center;position:absolute;right:var(--list-w);top:50%;transform:translateY(-50%);width:20px;height:56px;padding:0;border:1px solid var(--border);border-right:none;border-radius:8px 0 0 8px;background:rgba(255,255,255,.9);color:var(--text2);cursor:pointer;z-index:6;box-shadow:-2px 0 8px rgba(0,0,0,.08);transition:background .15s,color .15s,width .15s,right var(--list-t)}
+  #listCollapseBtn:hover{background:var(--surface);color:var(--accent2);width:24px}
+  #listCollapseBtn:focus-visible{outline:2px solid var(--accent2);outline-offset:-2px}
+  #listCollapseBtn svg{width:9px;height:14px;display:block;pointer-events:none;transition:transform .38s cubic-bezier(.4,0,.2,1)}
+  body.list-collapsed #listCollapseBtn svg{transform:rotate(180deg)}
+  body.night-mode #listCollapseBtn{background:rgba(20,24,32,.85);color:#fff}
+  body.night-mode #listCollapseBtn:hover{background:#1a1f29;color:var(--accent2)}
+}
+@media (prefers-reduced-motion:reduce){
+  #panel,body.list-collapsed #panel,#sessionBar,#statusRow,#bottomPanels,.zbtn-wrap,#listCollapseBtn,#listCollapseBtn svg{transition-duration:0s !important;transition-delay:0s !important}
+}
+
 /* TOP SHAPES PANEL — fills the space between the settings and found-cities columns */
 #bestVisual{flex:1 1 300px;min-width:280px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:20px 24px;gap:16px;background:var(--surface)}
 #bestVisualTitle{font-size:14px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;text-align:center}
@@ -362,6 +414,13 @@ body.night-mode .mode-toggle:has(input:checked){box-shadow:0 0 0 2px rgba(111,16
    Prefectures quiz, so it's hidden for the duration of that mode — see
    setJPQuizMode. */
 body.jp-quiz-mode #bottomPanels{display:none}
+/* Cities typed in the normal Japan mode stay in memory (found[]) but are hidden
+   for the whole time the Prefectures quiz is active, then reappear as soon as
+   the quiz is left. !important so it also beats the Night-mode
+   .city-dot.force-visible rule; the night-mode glow canvas is hidden too. */
+body.jp-quiz-mode .city-dot,
+body.jp-quiz-mode .city-dot.force-visible{display:none !important}
+body.jp-quiz-mode #nightCanvas{display:none !important}
 .rm:hover{color:var(--danger);background:#ffeaea}
 
 #settings{width:100%;border-top:2px solid #2b4c7e;background:var(--surface);flex-shrink:0;position:relative}
@@ -586,9 +645,11 @@ input[type=checkbox]{accent-color:var(--accent2);cursor:pointer;width:14px;heigh
   <div id="sessionBar">
     <span id="sessionName" title="Click to rename">Untitled Session</span>
     <span id="sessBadge" class="sess-badge active">● Active</span>
-    <button type="button" id="mapPickBtn" title="Map selection — pick which map you are playing on">
+    <span id="mapPickSlot">
+      <button type="button" id="mapPickBtn" title="Map selection — pick which map you are playing on">
       <span id="mapPickDot"></span>🗺 <span id="mapPickLabel">World</span>
     </button>
+    </span>
     <span id="jpQuizIndicator" title="Prefecture quiz — find the named prefecture and click it">🗾 <span id="jpQuizIndicatorProgress"></span><button type="button" id="jpQuizIndicatorReset" title="Reset quiz progress">↺</button></span>
     <!-- The region <select> is kept (hidden) as the single source of truth for
          which maps exist; the map picker modal is generated from its options. -->
@@ -625,7 +686,7 @@ input[type=checkbox]{accent-color:var(--accent2);cursor:pointer;width:14px;heigh
       <button class="tbbtn primary" id="guessBtn">Find</button>
       <button class="tbbtn danger" id="clearBtn">🗑 Clear all</button>
     </div>
-    <span style="margin-left:auto;display:flex;gap:6px">
+    <span id="sessRightSlot" style="margin-left:auto;display:flex;gap:6px">
       <button id="sessManagerBtn">📋 Sessions</button>
     </span>
   </div>
@@ -680,6 +741,7 @@ input[type=checkbox]{accent-color:var(--accent2);cursor:pointer;width:14px;heigh
     <button type="button" id="dotAppearanceBtn" title="Dot appearance"><svg width="15" height="15" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><defs><clipPath id="ballClipBtn"><circle cx="10" cy="10" r="9"/></clipPath><radialGradient id="ballGlossBtn" cx="35%" cy="30%" r="70%"><stop offset="0%" stop-color="#fff" stop-opacity="0.6"/><stop offset="45%" stop-color="#fff" stop-opacity="0.1"/><stop offset="100%" stop-color="#000" stop-opacity="0.2"/></radialGradient></defs><g clip-path="url(#ballClipBtn)"><rect x="0" y="0" width="20" height="20" fill="#f4c531"/><path d="M10 10 L20 10 A10 10 0 0 1 10 20 Z" fill="#3fb84f"/><path d="M10 10 L10 20 A10 10 0 0 1 0 10 Z" fill="#3b82f6"/><path d="M10 10 L0 10 A10 10 0 0 1 10 0 Z" fill="#e63946"/></g><circle cx="10" cy="10" r="9" fill="url(#ballGlossBtn)"/></svg> <span class="btn-label">Dot appearance</span></button>
     <button type="button" id="mapColorsBtn" title="Map settings">🗺 <span class="btn-label">Map settings</span></button>
     <button type="button" id="panelToggleBtn" title="Hide/show the city list">▾ Hide list</button>
+    <button type="button" id="listCollapseBtn" title="Collapse city list" aria-label="Collapse city list" aria-controls="panel" aria-expanded="true"><svg viewBox="0 0 9 14" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 1.5 7 7l-5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     <div id="mapColorsPopover">
       <div class="pop-title-row"><span class="pop-title">🗺 Map Settings</span><button type="button" id="resetMapColors" class="reset-icon-btn" title="Reset map colours">↺</button></div>
       <div class="row"><span class="lbl">Land</span><input type="color" id="landColor" value="#e8e4da"/></div>
@@ -1449,6 +1511,9 @@ function setJPQuizMode(on) {
       .classed('jp-quiz-solved-yellow', false)
       .classed('jp-quiz-solved-red', false);
   }
+  // Night mode draws city lights on a canvas: clear it when entering the quiz,
+  // repaint it when leaving so the earlier cities light up again.
+  if (typeof drawNightCanvas === 'function' && projection) drawNightCanvas();
   updateJPQuizIndicator();
   // Swap the side panel between the typed-cities list and the found-
   // prefectures list (and back) to match the mode just entered/left.
@@ -3083,6 +3148,7 @@ function drawNightCanvas() {
   const [W, H] = getMapSize();
   nctx.setTransform(nightDPR, 0, 0, nightDPR, 0, 0);
   nctx.clearRect(0, 0, W, H);
+  if (jpQuizMode) return; // Prefectures quiz: previously typed cities are hidden, so draw no lights
   const t = currentTransform;
   nctx.save();
   nctx.translate(t.x, t.y);
@@ -3115,6 +3181,7 @@ function cityScreenPos(city) {
 }
 
 function findCityAtScreenPos(sx, sy) {
+  if (jpQuizMode) return null; // cities are hidden during the Prefectures quiz — nothing to hit
   let best = null, bestDist = Infinity;
   for (const city of found) {
     const pos = cityScreenPos(city);
@@ -3718,6 +3785,9 @@ function highlightCity(city) {
   const id = dotId(city);
   const targetEl = S.pinMode ? svg.select('#' + id + ' .pin-ball') : svg.select('#' + id + ' circle.main-dot');
   if (targetEl.empty()) return;
+
+  // If the desktop city list is collapsed, open it so the clicked city's row is visible.
+  if (window.expandCityList) window.expandCityList();
 
   // Clear any previous highlight
   applyDotStyles();
@@ -4900,6 +4970,43 @@ document.getElementById('missedModal').addEventListener('click', e => {
     setCollapsed(!document.body.classList.contains('panel-collapsed'));
   });
   setCollapsed(false);
+})();
+
+// ─── DESKTOP: COLLAPSE/EXPAND CITY LIST ──────────────────────────────────────
+// The list floats over the right edge of the map (see "FLOATING, COLLAPSIBLE
+// CITY LIST" in the CSS), so toggling it is just a class change — the map is
+// never resized, redrawn or re-centred. The only JS needed besides the toggle
+// is measuring #leftCol's scrollbar so the list can sit beside it.
+(function () {
+  const btn = document.getElementById('listCollapseBtn');
+  const leftCol = document.getElementById('leftCol');
+  const appRow = document.getElementById('appRow');
+
+  function syncScrollbarGap() {
+    const w = Math.max(0, leftCol.offsetWidth - leftCol.clientWidth);
+    appRow.style.setProperty('--sbw', w + 'px');
+  }
+  syncScrollbarGap();
+  window.addEventListener('resize', syncScrollbarGap);
+  if (window.ResizeObserver) new ResizeObserver(syncScrollbarGap).observe(leftCol);
+
+  function setListCollapsed(collapsed) {
+    document.body.classList.toggle('list-collapsed', collapsed);
+    btn.setAttribute('aria-expanded', String(!collapsed));
+    const label = collapsed ? 'Show city list' : 'Collapse city list';
+    btn.title = label;
+    btn.setAttribute('aria-label', label);
+  }
+
+  btn.addEventListener('click', () => {
+    setListCollapsed(!document.body.classList.contains('list-collapsed'));
+  });
+
+  // Called by highlightCity(): clicking a city on the map while the list is
+  // collapsed slides the list back open so the city's row can be seen.
+  window.expandCityList = function () {
+    if (document.body.classList.contains('list-collapsed')) setListCollapsed(false);
+  };
 })();
 </script>
 </body>
