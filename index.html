@@ -2991,6 +2991,11 @@ function getMexicanAliases(name) {
 function fold(s) {
   return s.toLowerCase()
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    // Strip apostrophes/quote marks used to represent soft signs in Slavic
+    // (and other) romanizations, e.g. "Kam'ianets'-Podil's'kyi" — without
+    // this, a plain-typed "Kamianets Podilskyi" (no apostrophes) never
+    // matches a stored alias that has them, and vice versa.
+    .replace(/['\u2019\u2018\u02BC"`]/g, '')
     .replace(/[-\s]+/g, ' ')
     .trim()
     .replace(/\bsaint\b/g, 'st')
@@ -4819,6 +4824,7 @@ const EMPTY_ALIASES_F = [];
 function fold(s) {
   return s.toLowerCase()
     .normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')
+    .replace(/['\\u2019\\u2018\\u02BC"\`]/g, '')
     .replace(/[-\\s]+/g, ' ')
     .trim()
     .replace(/\\bsaint\\b/g, 'st')
