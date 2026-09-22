@@ -135,25 +135,25 @@ body.night-mode .cf-opt.active{background:rgba(43,76,126,.3)}
 /* Hide the city-typing bar (input, country filter, Find/Clear all) while the
    Japan prefecture quiz is active — none of it is used there, since progress
    comes from clicking prefectures, not typing city names. */
-body.jp-quiz-typing-hidden #inputControls{display:none}
+body.quiz-typing-hidden #inputControls{display:none}
 /* JAPAN MODE MODAL — same look as the map-selection modal, but stacks on top
    of it (higher z-index) and shows two big choices instead of a grid. */
-#japanModeModal{display:none;position:fixed;inset:0;z-index:110;background:rgba(0,0,0,.45);align-items:center;justify-content:center}
-#japanModeModal.open{display:flex}
-#japanModeBox{background:var(--surface);border-radius:12px;width:380px;max-width:92vw;box-shadow:0 8px 40px rgba(0,0,0,.22);overflow:hidden}
-#japanModeHead{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)}
-#japanModeHead h2{font-size:15px;font-weight:700;color:var(--accent2)}
-#japanModeClose{border:none;background:transparent;font-size:18px;cursor:pointer;color:var(--text2);line-height:1;padding:2px 6px;border-radius:4px}
-#japanModeClose:hover{background:var(--bg)}
-#japanModeList{display:flex;flex-direction:column;gap:10px;padding:14px 18px 18px}
-.japan-mode-opt{display:flex;flex-direction:column;gap:3px;align-items:flex-start;padding:12px 14px;border:1px solid var(--border);border-radius:9px;background:var(--surface);cursor:pointer;text-align:left;transition:border-color .15s,box-shadow .15s}
-.japan-mode-opt:hover{border-color:var(--accent2);box-shadow:0 2px 8px rgba(43,76,126,.1)}
-.japan-mode-opt.current{border-color:var(--accent2);background:#f0f4fb}
-body.night-mode .japan-mode-opt.current{background:rgba(43,76,126,.25)}
-.japan-mode-row{display:flex;align-items:center;justify-content:space-between;width:100%}
-.japan-mode-check{color:var(--accent2);font-size:13px;font-weight:700}
-.japan-mode-title{font-size:13.5px;font-weight:700;color:var(--text)}
-.japan-mode-desc{font-size:11.5px;color:var(--text2);line-height:1.4}
+#modePickModal{display:none;position:fixed;inset:0;z-index:110;background:rgba(0,0,0,.45);align-items:center;justify-content:center}
+#modePickModal.open{display:flex}
+#modePickBox{background:var(--surface);border-radius:12px;width:380px;max-width:92vw;box-shadow:0 8px 40px rgba(0,0,0,.22);overflow:hidden}
+#modePickHead{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)}
+#modePickHead h2{font-size:15px;font-weight:700;color:var(--accent2)}
+#modePickClose{border:none;background:transparent;font-size:18px;cursor:pointer;color:var(--text2);line-height:1;padding:2px 6px;border-radius:4px}
+#modePickClose:hover{background:var(--bg)}
+#modePickList{display:flex;flex-direction:column;gap:10px;padding:14px 18px 18px}
+.modepick-opt{display:flex;flex-direction:column;gap:3px;align-items:flex-start;padding:12px 14px;border:1px solid var(--border);border-radius:9px;background:var(--surface);cursor:pointer;text-align:left;transition:border-color .15s,box-shadow .15s}
+.modepick-opt:hover{border-color:var(--accent2);box-shadow:0 2px 8px rgba(43,76,126,.1)}
+.modepick-opt.current{border-color:var(--accent2);background:#f0f4fb}
+body.night-mode .modepick-opt.current{background:rgba(43,76,126,.25)}
+.modepick-row{display:flex;align-items:center;justify-content:space-between;width:100%}
+.modepick-check{color:var(--accent2);font-size:13px;font-weight:700}
+.modepick-title{font-size:13.5px;font-weight:700;color:var(--text)}
+.modepick-desc{font-size:11.5px;color:var(--text2);line-height:1.4}
 #mapList{flex:1;overflow-y:auto;padding:12px 14px}
 .map-group-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin:4px 2px 8px}
 .map-group+.map-group{margin-top:14px}
@@ -194,12 +194,13 @@ body.night-mode #nightCanvas{display:block;mix-blend-mode:screen}
 #mapColorsBtn:hover,#dotAppearanceBtn:hover{background:var(--surface)}
 #mapColorsBtn.active,#dotAppearanceBtn.active{border-color:var(--accent2);color:var(--accent2)}
 body.night-mode #mapColorsBtn,body.night-mode #dotAppearanceBtn{background:rgba(20,24,32,.85)}
-/* Prefecture-quiz progress chip, lives in the session bar (not on the map) —
-   hidden unless Japan — Prefectures is the active mode (see setJPQuizMode). */
-#jpQuizIndicator{display:none;align-items:center;gap:4px;height:26px;padding:0 8px 0 10px;font-size:12px;font-weight:600;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text2);white-space:nowrap;flex-shrink:0}
-#jpQuizIndicator.on{display:flex}
-#jpQuizIndicatorReset{display:flex;align-items:center;justify-content:center;width:17px;height:17px;font-size:11px;border:1px solid var(--border);border-radius:4px;cursor:pointer;background:none;color:var(--text2)}
-#jpQuizIndicatorReset:hover{border-color:var(--accent2);color:var(--accent2)}
+/* Region-quiz progress chip, lives in the session bar (not on the map) —
+   hidden unless a quiz (Japan — Prefectures / United States — States) is the
+   active mode (see setQuizMode). */
+#quizIndicator{display:none;align-items:center;gap:4px;height:26px;padding:0 8px 0 10px;font-size:12px;font-weight:600;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text2);white-space:nowrap;flex-shrink:0}
+#quizIndicator.on{display:flex}
+#quizIndicatorReset{display:flex;align-items:center;justify-content:center;width:17px;height:17px;font-size:11px;border:1px solid var(--border);border-radius:4px;cursor:pointer;background:none;color:var(--text2)}
+#quizIndicatorReset:hover{border-color:var(--accent2);color:var(--accent2)}
 /* On devices with a real mouse, keep these buttons icon-only until hovered,
    then reveal the label text. Touch devices (no hover) keep the label
    always visible since there's no hover state to expand it. */
@@ -243,32 +244,34 @@ body.night-mode .mode-toggle:has(input:checked){box-shadow:0 0 0 2px rgba(111,16
    still work on touch devices once positioned by a tap). It always shows the
    prefecture the user is being asked to find, and briefly swaps to a
    correct/wrong variant to give feedback on a click before reverting. */
-.jp-quiz-tooltip{position:absolute;background:var(--accent2);color:#fff;border-radius:6px;padding:6px 12px;font-size:13px;font-weight:700;pointer-events:none;display:none;z-index:32;box-shadow:0 3px 10px rgba(0,0,0,.25);white-space:nowrap;letter-spacing:.01em;transition:background-color .15s ease}
-.jp-quiz-tooltip.correct{background:#2fa84f}
-.jp-quiz-tooltip.wrong{background:#d64550}
-.jp-quiz-tooltip.complete{background:#2fa84f}
-/* Active only while the Japan prefecture quiz is toggled on (class added to
-   #mapWrap by setJPQuizMode). */
-.jp-quiz-active #countries-g path{cursor:pointer;transition:fill .12s ease}
+.quiz-tooltip{position:absolute;background:var(--accent2);color:#fff;border-radius:6px;padding:6px 12px;font-size:13px;font-weight:700;pointer-events:none;display:none;z-index:32;box-shadow:0 3px 10px rgba(0,0,0,.25);white-space:nowrap;letter-spacing:.01em;transition:background-color .15s ease}
+.quiz-tooltip.correct{background:#2fa84f}
+.quiz-tooltip.wrong{background:#d64550}
+.quiz-tooltip.complete{background:#2fa84f}
+/* Active only while a region quiz (Japan prefectures / US states) is toggled on
+   (class added to #mapWrap by setQuizMode). */
+.quiz-active #countries-g path{cursor:pointer;transition:fill .12s ease}
+/* Shapes that are drawn but aren't part of the quiz (DC / territories on the US map). */
+.quiz-active #countries-g path.quiz-inert{cursor:default}
 /* Hover "pop" for the prefecture quiz: brightens the fill of whichever
    prefecture the mouse is over. The actual highlighted BORDER is a separate
-   overlay path (#jpQuizHoverOutline, positioned/shown from JS on
-   mouseenter/mouseleave — see jpQuizWireHoverOutline) rather than this path's
+   overlay path (#quizHoverOutline, positioned/shown from JS on
+   mouseenter/mouseleave — see quizWireHoverOutline) rather than this path's
    own stroke, because the internal prefecture-border mesh (#pref-borders) is
    drawn as its own layer on top of every prefecture path and would otherwise
    hide a plain :hover stroke change here. */
-.jp-quiz-active #countries-g path:hover{fill:var(--accent2);fill-opacity:.3}
-.jp-quiz-solved{fill:var(--accent2);fill-opacity:.55!important;transition:fill .25s ease}
+.quiz-active #countries-g path:not(.quiz-inert):hover{fill:var(--accent2);fill-opacity:.3}
+.quiz-solved{fill:var(--accent2);fill-opacity:.55!important;transition:fill .25s ease}
 /* Solved-with-mistakes tiers: one wrong guess before getting it right on this
    round shows yellow, two-or-more shows red — otherwise (errorless) it stays
    the default blue above. Compound selectors give these higher specificity
-   than the plain .jp-quiz-solved rule so they reliably win regardless of
+   than the plain .quiz-solved rule so they reliably win regardless of
    declaration order, since both use !important. */
-.jp-quiz-solved.jp-quiz-solved-yellow{fill:#e0b400!important}
-.jp-quiz-solved.jp-quiz-solved-red{fill:var(--danger)!important}
-.jp-quiz-wrong-flash{fill:#d64550!important;fill-opacity:.65!important;transition:fill .15s ease}
-#jpQuizHoverOutline{fill:none;stroke:var(--accent2);stroke-width:1;stroke-opacity:0;pointer-events:none;filter:drop-shadow(0 0 3px var(--accent2));transition:stroke-opacity .12s ease}
-#jpQuizHoverOutline.show{stroke-opacity:1}
+.quiz-solved.quiz-solved-yellow{fill:#e0b400!important}
+.quiz-solved.quiz-solved-red{fill:var(--danger)!important}
+.quiz-wrong-flash{fill:#d64550!important;fill-opacity:.65!important;transition:fill .15s ease}
+#quizHoverOutline{fill:none;stroke:var(--accent2);stroke-width:1;stroke-opacity:0;pointer-events:none;filter:drop-shadow(0 0 3px var(--accent2));transition:stroke-opacity .12s ease}
+#quizHoverOutline.show{stroke-opacity:1}
 
 /* BELOW-MAP PANEL */
 #settingsInner{width:100%}
@@ -306,9 +309,9 @@ body.night-mode .mode-toggle:has(input:checked){box-shadow:0 0 0 2px rgba(111,16
      around the Sessions button, while the typing bar keeps its natural width
      in the middle. The map button is centred in its slot, so it sits exactly
      as far from the session name as it does from the typing bar. */
-  body:not(.jp-quiz-typing-hidden) #mapPickSlot{display:flex;flex:1 0 auto;justify-content:center}
-  body:not(.jp-quiz-typing-hidden) #sessRightSlot{flex:1 0 auto;justify-content:flex-end}
-  body:not(.jp-quiz-typing-hidden) #inputControls{flex:0 1 auto}
+  body:not(.quiz-typing-hidden) #mapPickSlot{display:flex;flex:1 0 auto;justify-content:center}
+  body:not(.quiz-typing-hidden) #sessRightSlot{flex:1 0 auto;justify-content:flex-end}
+  body:not(.quiz-typing-hidden) #inputControls{flex:0 1 auto}
   .zbtn-wrap{right:calc(12px + var(--list-w));transition:right var(--list-t)}
   #listCollapseBtn{display:flex;align-items:center;justify-content:center;position:absolute;right:var(--list-w);top:50%;transform:translateY(-50%);width:20px;height:56px;padding:0;border:1px solid var(--border);border-right:none;border-radius:8px 0 0 8px;background:rgba(255,255,255,.9);color:var(--text2);cursor:pointer;z-index:6;box-shadow:-2px 0 8px rgba(0,0,0,.08);transition:background .15s,color .15s,width .15s,right var(--list-t)}
   #listCollapseBtn:hover{background:var(--surface);color:var(--accent2);width:24px}
@@ -412,15 +415,15 @@ body.night-mode .mode-toggle:has(input:checked){box-shadow:0 0 0 2px rgba(111,16
 /* The bottom stats panel (Top Countries/Prefectures silhouettes + the
    population/capitals percentage rows) doesn't apply to the click-based
    Prefectures quiz, so it's hidden for the duration of that mode — see
-   setJPQuizMode. */
-body.jp-quiz-mode #bottomPanels{display:none}
+   setQuizMode. */
+body.quiz-mode #bottomPanels{display:none}
 /* Cities typed in the normal Japan mode stay in memory (found[]) but are hidden
    for the whole time the Prefectures quiz is active, then reappear as soon as
    the quiz is left. !important so it also beats the Night-mode
    .city-dot.force-visible rule; the night-mode glow canvas is hidden too. */
-body.jp-quiz-mode .city-dot,
-body.jp-quiz-mode .city-dot.force-visible{display:none !important}
-body.jp-quiz-mode #nightCanvas{display:none !important}
+body.quiz-mode .city-dot,
+body.quiz-mode .city-dot.force-visible{display:none !important}
+body.quiz-mode #nightCanvas{display:none !important}
 .rm:hover{color:var(--danger);background:#ffeaea}
 
 #settings{width:100%;border-top:2px solid #2b4c7e;background:var(--surface);flex-shrink:0;position:relative}
@@ -546,7 +549,7 @@ input[type=checkbox]{accent-color:var(--accent2);cursor:pointer;width:14px;heigh
   #countryFilterBtn{width:118px;font-size:11px}
   #countryFilterPanel{width:200px;max-height:240px}
   #mapPickBtn{height:44px;order:2}
-  #jpQuizIndicator{height:30px;order:2}
+  #quizIndicator{height:30px;order:2}
   #mapBox{width:94vw;max-height:88dvh}
   .map-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
   #guessBtn{flex:1 1 0;height:42px;font-size:14px}
@@ -655,7 +658,7 @@ input[type=checkbox]{accent-color:var(--accent2);cursor:pointer;width:14px;heigh
       <span id="mapPickDot"></span>🗺 <span id="mapPickLabel">World</span>
     </button>
     </span>
-    <span id="jpQuizIndicator" title="Prefecture quiz — find the named prefecture and click it">🗾 <span id="jpQuizIndicatorProgress"></span><button type="button" id="jpQuizIndicatorReset" title="Reset quiz progress">↺</button></span>
+    <span id="quizIndicator" title="Prefecture quiz — find the named prefecture and click it"><span id="quizIndicatorIcon">🗾</span> <span id="quizIndicatorProgress"></span><button type="button" id="quizIndicatorReset" title="Reset quiz progress">↺</button></span>
     <!-- The region <select> is kept (hidden) as the single source of truth for
          which maps exist; the map picker modal is generated from its options. -->
     <select id="regionSelect" style="display:none" title="Region — only cities from the selected region are accepted">
@@ -778,7 +781,7 @@ input[type=checkbox]{accent-color:var(--accent2);cursor:pointer;width:14px;heigh
       </div>
     </div>
     <div class="tooltip" id="tooltip"></div>
-    <div class="jp-quiz-tooltip" id="jpQuizTooltip"></div>
+    <div class="quiz-tooltip" id="quizTooltip"></div>
   </div>
 </div><!-- end main (top screen) -->
 
@@ -837,22 +840,24 @@ input[type=checkbox]{accent-color:var(--accent2);cursor:pointer;width:14px;heigh
   </div>
 </div>
 
-<!-- JAPAN MODE MODAL — shown after picking "Japan" from the map selection
-     modal above, to choose Normal (city-finding) vs Prefectures (quiz). -->
-<div id="japanModeModal">
-  <div id="japanModeBox">
-    <div id="japanModeHead">
-      <h2>🗾 Japan — choose a mode</h2>
-      <button id="japanModeClose">✕</button>
+<!-- MODE PICKER MODAL — shown after picking a map that has a quiz mode (Japan,
+     United States) from the map selection modal above, to choose Normal
+     (city-finding) vs the find-and-click quiz. Texts are filled in from
+     QUIZ_CFG by openModePickModal. -->
+<div id="modePickModal">
+  <div id="modePickBox">
+    <div id="modePickHead">
+      <h2 id="modePickTitle">Choose a mode</h2>
+      <button id="modePickClose">✕</button>
     </div>
-    <div id="japanModeList">
-      <button type="button" class="japan-mode-opt" data-quiz="0">
-        <span class="japan-mode-row"><span class="japan-mode-title">Normal</span><span class="japan-mode-check"></span></span>
-        <span class="japan-mode-desc">Find and type Japanese cities, same as any other map.</span>
+    <div id="modePickList">
+      <button type="button" class="modepick-opt" data-quiz="0">
+        <span class="modepick-row"><span class="modepick-title">Normal</span><span class="modepick-check"></span></span>
+        <span class="modepick-desc" id="modePickNormalDesc"></span>
       </button>
-      <button type="button" class="japan-mode-opt" data-quiz="1">
-        <span class="japan-mode-row"><span class="japan-mode-title">Prefectures</span><span class="japan-mode-check"></span></span>
-        <span class="japan-mode-desc">Find and click each of the 47 prefectures by name.</span>
+      <button type="button" class="modepick-opt" data-quiz="1">
+        <span class="modepick-row"><span class="modepick-title" id="modePickQuizTitle"></span><span class="modepick-check"></span></span>
+        <span class="modepick-desc" id="modePickQuizDesc"></span>
       </button>
     </div>
   </div>
@@ -1422,26 +1427,28 @@ function clipLineByLon(coords, lonThreshold, keepEast) {
     .map(seg => seg.map(([lon, lat]) => [rewrapLon(lon), lat]));
 }
 
-// ─── JAPAN PREFECTURE QUIZ MODE ────────────────────────────────────────────
-// A Japan-only practice mode: while toggled on, a label follows the cursor
-// at all times naming a randomly-chosen prefecture the user must find and
-// click on the map. A correct click solves it (tinted permanently) and
-// immediately asks for the next one, picked at random from whatever's left,
-// until all 47 have been asked exactly once. A wrong click briefly flashes
-// red feedback without revealing where the right answer is. Progress
-// persists only while the quiz stays on — leaving it (switching to the
-// normal Japan typing mode, or to any other map) wipes progress and the
-// tinted prefectures, so the map and the city-typing bar come back exactly
-// as they were before the quiz started (see setJPQuizMode).
-let jpQuizMode = false;
-const jpQuizSolved = new Set();   // prefecture ids answered correctly so far
-const jpQuizSolvedTier = new Map(); // prefId -> 'yellow'|'red' for a solved prefecture that took extra guesses (absent = solved on the first try, plain blue)
-let jpQuizWrongCount = 0;         // wrong guesses made so far while hunting for the CURRENT target; resets each time a new target is picked
-let jpQuizHoverOutline = null;    // d3 selection of the hover-outline overlay path (see drawMap's Japan block)
-let jpQuizQueue = [];             // remaining ids still to be asked, shuffled
-let jpQuizTargetId = null;        // id currently being asked, or null if none/complete
-let jpQuizFeedbackTimer = null;   // pending revert-to-target-name timeout
-let lastPointerXY = null;         // last known {x,y} viewport coords, for positioning the label the instant quiz mode turns on
+// ─── REGION QUIZ MODE (Japan prefectures / US states) ──────────────────────
+// A find-and-click practice mode for maps that have one (see QUIZ_CFG): while
+// toggled on, a label follows the cursor at all times naming a randomly-chosen
+// region (a Japanese prefecture, or a US state) the user must find and click
+// on the map. A correct click solves it (tinted permanently) and immediately
+// asks for the next one, picked at random from whatever's left, until every
+// region has been asked exactly once. A wrong click briefly flashes red
+// feedback without revealing where the right answer is. Progress persists
+// only while the quiz stays on — leaving it (switching to the normal typing
+// mode, or to any other map) wipes progress and the tinted regions, so the
+// map and the city-typing bar come back exactly as they were before the quiz
+// started (see setQuizMode).
+let quizMode = false;
+let quizRegion = null;             // 'japan' | 'usa' while quizMode is on, else null (selects the entry in QUIZ_CFG)
+const quizSolved = new Set();      // region keys answered correctly so far (numbers for Japan, state abbreviations for the US)
+const quizSolvedTier = new Map();  // key -> 'yellow'|'red' for a solved region that took extra guesses (absent = solved on the first try, plain blue)
+let quizWrongCount = 0;            // wrong guesses made so far while hunting for the CURRENT target; resets each time a new target is picked
+let quizHoverOutline = null;       // d3 selection of the hover-outline overlay path (see drawMap)
+let quizQueue = [];                // remaining keys still to be asked, shuffled
+let quizTargetId = null;           // key currently being asked, or null if none/complete
+let quizFeedbackTimer = null;      // pending revert-to-target-name timeout
+let lastPointerXY = null;          // last known {x,y} viewport coords, for positioning the label the instant quiz mode turns on
 
 function shuffleArray(arr) {
   const a = arr.slice();
@@ -1452,118 +1459,134 @@ function shuffleArray(arr) {
   return a;
 }
 
-function updateJPQuizIndicator() {
-  const el = document.getElementById('jpQuizIndicator');
+// Config for the map the quiz is currently running on (null when it's off).
+function quizCfg() { return (quizRegion && QUIZ_CFG[quizRegion]) || null; }
+
+function updateQuizIndicator() {
+  const el = document.getElementById('quizIndicator');
   if (!el) return;
-  el.classList.toggle('on', jpQuizMode);
-  const progEl = document.getElementById('jpQuizIndicatorProgress');
-  if (progEl) progEl.textContent = `${jpQuizSolved.size}/47`;
+  el.classList.toggle('on', quizMode);
+  const cfg = quizCfg();
+  if (!cfg) return;
+  el.title = cfg.indicatorTitle;
+  const iconEl = document.getElementById('quizIndicatorIcon');
+  if (iconEl) iconEl.textContent = cfg.icon;
+  const progEl = document.getElementById('quizIndicatorProgress');
+  if (progEl) progEl.textContent = `${quizSolved.size}/${cfg.ids.length}`;
 }
 
 // Start (or resume) a round: if nothing is queued/asked yet and there's still
 // something left to solve, build a fresh shuffled order of the remaining
-// prefectures and pull the first one.
-function jpQuizEnsureTarget() {
-  if (jpQuizTargetId != null || jpQuizQueue.length) return;
-  if (jpQuizSolved.size >= 47) { jpQuizTargetId = null; return; }
-  const remaining = Object.keys(JP_PREF_NAMES).map(Number).filter(id => !jpQuizSolved.has(id));
-  jpQuizQueue = shuffleArray(remaining);
-  jpQuizTargetId = jpQuizQueue.shift();
+// regions and pull the first one.
+function quizEnsureTarget() {
+  const cfg = quizCfg();
+  if (!cfg) return;
+  if (quizTargetId != null || quizQueue.length) return;
+  if (quizSolved.size >= cfg.ids.length) { quizTargetId = null; return; }
+  quizQueue = shuffleArray(cfg.ids.filter(id => !quizSolved.has(id)));
+  quizTargetId = quizQueue.shift();
 }
 
-function jpQuizCurrentPromptText() {
-  if (jpQuizTargetId != null) return `Find: ${JP_PREF_NAMES[jpQuizTargetId] || '?'}`;
-  return jpQuizSolved.size >= 47 ? '🎉 All 47 found!' : '';
+function quizCurrentPromptText() {
+  const cfg = quizCfg();
+  if (!cfg) return '';
+  if (quizTargetId != null) return `Find: ${cfg.names[quizTargetId] || '?'}`;
+  return quizSolved.size >= cfg.ids.length ? `🎉 All ${cfg.ids.length} found!` : '';
 }
 
-// Turn the find-and-click quiz on/off. This is the single entry point for
-// entering/leaving the mode — called when the user picks "Japan —
-// Prefectures" vs plain "Japan" in the map selector (see setRegion), and
-// when leaving the Japan map entirely (see drawMap).
-function setJPQuizMode(on) {
-  jpQuizMode = on;
-  clearTimeout(jpQuizFeedbackTimer);
-  jpQuizWrongCount = 0;
+// Forget all progress and un-tint every region, leaving the quiz mode flag
+// itself alone. Shared by "leave the quiz", "switch to the other map's quiz",
+// and the indicator's reset button.
+function quizClearProgress() {
+  clearTimeout(quizFeedbackTimer);
+  quizSolved.clear();
+  quizSolvedTier.clear();
+  quizWrongCount = 0;
+  quizQueue = [];
+  quizTargetId = null;
+  d3.selectAll('#countries-g path.quiz-solved')
+    .classed('quiz-solved', false)
+    .classed('quiz-solved-yellow', false)
+    .classed('quiz-solved-red', false);
+}
+
+// Turn the find-and-click quiz on/off for map `rk` ('japan' | 'usa'). This is
+// the single entry point for entering/leaving the mode — called when the user
+// picks a map's quiz option in the map selector (see setRegion and the mode
+// picker), and when leaving that map entirely (see drawMap).
+function setQuizMode(on, rk) {
+  const prevRegion = quizRegion;
+  quizMode = !!on;
+  quizRegion = quizMode ? rk : null;
+  clearTimeout(quizFeedbackTimer);
+  quizWrongCount = 0;
+  // Progress belongs to ONE map's quiz: jumping straight from the Japan quiz
+  // to the US quiz (or vice versa) must not carry solved regions across.
+  if (quizMode && prevRegion !== rk) quizClearProgress();
   const wrap = document.getElementById('mapWrap');
-  if (wrap) wrap.classList.toggle('jp-quiz-active', jpQuizMode);
+  if (wrap) wrap.classList.toggle('quiz-active', quizMode);
   // The city-typing bar (and its Find/Clear all buttons) isn't used while
-  // hunting for prefectures by click, so hide it — toggled on <body> since
+  // hunting for regions by click, so hide it — toggled on <body> since
   // #inputControls lives in the session bar, outside #mapWrap.
-  document.body.classList.toggle('jp-quiz-typing-hidden', jpQuizMode);
-  // The bottom stats panel (Top Countries/Prefectures silhouettes + the
+  document.body.classList.toggle('quiz-typing-hidden', quizMode);
+  // The bottom stats panel (Top Countries/States/Prefectures silhouettes + the
   // population/capitals percentage rows) is all keyed off typed-and-found
   // cities, which the click-quiz never populates — so it's meaningless here
   // and gets hidden for the duration of the quiz (see #bottomPanels CSS).
-  document.body.classList.toggle('jp-quiz-mode', jpQuizMode);
-  if (jpQuizMode) {
-    jpQuizEnsureTarget();
-    const text = jpQuizCurrentPromptText();
-    if (text) showJPQuizTooltip(lastPointerXY, text, jpQuizTargetId == null ? 'complete' : '');
+  document.body.classList.toggle('quiz-mode', quizMode);
+  if (quizMode) {
+    quizEnsureTarget();
+    const text = quizCurrentPromptText();
+    if (text) showQuizTooltip(lastPointerXY, text, quizTargetId == null ? 'complete' : '');
   } else {
-    hideJPQuizTooltip();
+    hideQuizTooltip();
     // Leaving the quiz (back to the normal typing mode, or to any other
-    // map): wipe progress and un-tint every prefecture so the map looks
-    // exactly like it did before the quiz was ever turned on. Without this,
-    // jpQuizSolved/jpQuizSolvedTier would still hold the old answers and a
-    // later redraw (e.g. a window resize, see drawMap) would silently
-    // re-colour those prefectures even outside the quiz.
-    jpQuizSolved.clear();
-    jpQuizSolvedTier.clear();
-    jpQuizQueue = [];
-    jpQuizTargetId = null;
-    d3.selectAll('#countries-g path.jp-quiz-solved')
-      .classed('jp-quiz-solved', false)
-      .classed('jp-quiz-solved-yellow', false)
-      .classed('jp-quiz-solved-red', false);
+    // map): wipe progress and un-tint every region so the map looks exactly
+    // like it did before the quiz was ever turned on. Without this,
+    // quizSolved/quizSolvedTier would still hold the old answers and a later
+    // redraw (e.g. a window resize, see drawMap) would silently re-colour
+    // those regions even outside the quiz.
+    quizClearProgress();
   }
   // Night mode draws city lights on a canvas: clear it when entering the quiz,
   // repaint it when leaving so the earlier cities light up again.
   if (typeof drawNightCanvas === 'function' && projection) drawNightCanvas();
-  updateJPQuizIndicator();
-  // Swap the side panel between the typed-cities list and the found-
-  // prefectures list (and back) to match the mode just entered/left.
+  updateQuizIndicator();
+  // Swap the side panel between the typed-cities list and the found-regions
+  // list (and back) to match the mode just entered/left.
   if (typeof renderFoundGrid === 'function') renderFoundGrid();
 }
 
-function resetJPQuizProgress(e) {
+function resetQuizProgress(e) {
   if (e) e.stopPropagation();
-  clearTimeout(jpQuizFeedbackTimer);
-  jpQuizSolved.clear();
-  jpQuizSolvedTier.clear();
-  jpQuizWrongCount = 0;
-  jpQuizQueue = [];
-  jpQuizTargetId = null;
-  d3.selectAll('#countries-g path.jp-quiz-solved')
-    .classed('jp-quiz-solved', false)
-    .classed('jp-quiz-solved-yellow', false)
-    .classed('jp-quiz-solved-red', false);
-  if (jpQuizMode) {
-    jpQuizEnsureTarget();
-    showJPQuizTooltip(lastPointerXY, jpQuizCurrentPromptText());
+  quizClearProgress();
+  if (quizMode) {
+    quizEnsureTarget();
+    showQuizTooltip(lastPointerXY, quizCurrentPromptText());
   } else {
-    hideJPQuizTooltip();
+    hideQuizTooltip();
   }
-  updateJPQuizIndicator();
+  updateQuizIndicator();
   renderFoundGrid();
 }
 
 // `pos` is either a MouseEvent or a plain {clientX,clientY}-shaped object (or
 // null, in which case the label just appears centred over the map).
-function showJPQuizTooltip(pos, text, extraClass) {
-  const el = document.getElementById('jpQuizTooltip');
+function showQuizTooltip(pos, text, extraClass) {
+  const el = document.getElementById('quizTooltip');
   const mapEl = document.getElementById('map');
   if (!el || !mapEl) return;
   const rc = mapEl.getBoundingClientRect();
   const cx = pos ? pos.clientX : rc.left + rc.width / 2;
   const cy = pos ? pos.clientY : rc.top + rc.height / 2;
   el.textContent = text;
-  el.className = 'jp-quiz-tooltip' + (extraClass ? ' ' + extraClass : '');
+  el.className = 'quiz-tooltip' + (extraClass ? ' ' + extraClass : '');
   el.style.left = (cx - rc.left + 14) + 'px';
   el.style.top  = (cy - rc.top - 34) + 'px';
   el.style.display = 'block';
 }
-function moveJPQuizTooltip(event) {
-  const el = document.getElementById('jpQuizTooltip');
+function moveQuizTooltip(event) {
+  const el = document.getElementById('quizTooltip');
   const mapEl = document.getElementById('map');
   if (!el || !mapEl) return;
   const rc = mapEl.getBoundingClientRect();
@@ -1573,51 +1596,84 @@ function moveJPQuizTooltip(event) {
   // the current target (a pending correct/wrong feedback flash, if any, has
   // its own timer and will overwrite this shortly regardless).
   if (el.style.display !== 'block') {
-    const text = jpQuizCurrentPromptText();
-    if (text) { el.textContent = text; el.className = 'jp-quiz-tooltip' + (jpQuizTargetId == null ? ' complete' : ''); el.style.display = 'block'; }
+    const text = quizCurrentPromptText();
+    if (text) { el.textContent = text; el.className = 'quiz-tooltip' + (quizTargetId == null ? ' complete' : ''); el.style.display = 'block'; }
   }
 }
-function hideJPQuizTooltip() {
-  const el = document.getElementById('jpQuizTooltip');
+function hideQuizTooltip() {
+  const el = document.getElementById('quizTooltip');
   if (el) el.style.display = 'none';
 }
 
-// Called when a prefecture shape is clicked while the quiz is active.
-function jpQuizHandlePrefClick(event, prefId) {
-  if (!jpQuizMode || jpQuizTargetId == null) return;
+// Called when a region shape is clicked while the quiz is active.
+function quizHandleClick(event, key) {
+  if (!quizMode || quizTargetId == null) return;
+  const cfg = quizCfg();
+  if (!cfg) return;
   event.stopPropagation();
-  clearTimeout(jpQuizFeedbackTimer);
+  clearTimeout(quizFeedbackTimer);
   const sel = d3.select(event.currentTarget);
 
-  if (prefId === jpQuizTargetId) {
-    jpQuizSolved.add(prefId);
+  if (key === quizTargetId) {
+    quizSolved.add(key);
     // Colour reflects how many wrong guesses it took to get here this round:
-    // errorless (blue, the default "jp-quiz-solved" look) / one miss (yellow)
+    // errorless (blue, the default "quiz-solved" look) / one miss (yellow)
     // / two-or-more misses (red).
-    if (jpQuizWrongCount === 1) jpQuizSolvedTier.set(prefId, 'yellow');
-    else if (jpQuizWrongCount >= 2) jpQuizSolvedTier.set(prefId, 'red');
-    sel.classed('jp-quiz-solved', true)
-      .classed('jp-quiz-solved-yellow', jpQuizSolvedTier.get(prefId) === 'yellow')
-      .classed('jp-quiz-solved-red', jpQuizSolvedTier.get(prefId) === 'red');
-    jpQuizWrongCount = 0;
-    showJPQuizTooltip(event, `✓ ${JP_PREF_NAMES[prefId] || '?'}`, 'correct');
-    updateJPQuizIndicator();
+    if (quizWrongCount === 1) quizSolvedTier.set(key, 'yellow');
+    else if (quizWrongCount >= 2) quizSolvedTier.set(key, 'red');
+    sel.classed('quiz-solved', true)
+      .classed('quiz-solved-yellow', quizSolvedTier.get(key) === 'yellow')
+      .classed('quiz-solved-red', quizSolvedTier.get(key) === 'red');
+    quizWrongCount = 0;
+    showQuizTooltip(event, `✓ ${cfg.names[key] || '?'}`, 'correct');
+    updateQuizIndicator();
     renderFoundGrid();
-    jpQuizTargetId = jpQuizQueue.length ? jpQuizQueue.shift() : null;
-    jpQuizFeedbackTimer = setTimeout(() => {
-      const text = jpQuizCurrentPromptText();
-      if (text) showJPQuizTooltip(lastPointerXY, text, jpQuizTargetId == null ? 'complete' : '');
-      else hideJPQuizTooltip();
+    quizTargetId = quizQueue.length ? quizQueue.shift() : null;
+    quizFeedbackTimer = setTimeout(() => {
+      const text = quizCurrentPromptText();
+      if (text) showQuizTooltip(lastPointerXY, text, quizTargetId == null ? 'complete' : '');
+      else hideQuizTooltip();
     }, 700);
   } else {
-    jpQuizWrongCount++;
-    sel.classed('jp-quiz-wrong-flash', true);
-    setTimeout(() => sel.classed('jp-quiz-wrong-flash', false), 450);
-    showJPQuizTooltip(event, '✗ Try again', 'wrong');
-    jpQuizFeedbackTimer = setTimeout(() => {
-      showJPQuizTooltip(lastPointerXY, jpQuizCurrentPromptText());
+    quizWrongCount++;
+    sel.classed('quiz-wrong-flash', true);
+    setTimeout(() => sel.classed('quiz-wrong-flash', false), 450);
+    showQuizTooltip(event, '✗ Try again', 'wrong');
+    quizFeedbackTimer = setTimeout(() => {
+      showQuizTooltip(lastPointerXY, quizCurrentPromptText());
     }, 700);
   }
+}
+
+// Wires a d3 selection of region <path>s (already data-joined and given their
+// 'd') up for the quiz: re-applies the "solved" tint across redraws (e.g. on
+// resize) so progress isn't visually lost, marks shapes that aren't part of
+// the quiz as inert (e.g. DC / Puerto Rico on the US map), and hooks up the
+// find-and-click check + hover outline. The handlers only act while the quiz
+// is running on THIS map, so it's safe to attach them unconditionally.
+function attachQuizHandlers(sel, path, regionKey) {
+  const keyOf = d => QUIZ_CFG[regionKey].keyOf(d);
+  return sel
+    .classed('quiz-solved', d => quizSolved.has(keyOf(d)))
+    .classed('quiz-solved-yellow', d => quizSolvedTier.get(keyOf(d)) === 'yellow')
+    .classed('quiz-solved-red', d => quizSolvedTier.get(keyOf(d)) === 'red')
+    .classed('quiz-inert', d => keyOf(d) == null)
+    .on('click', function(event, d) {
+      if (!quizMode || quizRegion !== regionKey) return;
+      const key = keyOf(d);
+      if (key == null) return;
+      quizHandleClick(event, key);
+    })
+    // Drive the hover-outline overlay (see quizHoverOutline in drawMap,
+    // appended after the border mesh so it always draws on top of it).
+    .on('mouseenter', function(event, d) {
+      if (!quizMode || quizRegion !== regionKey || !quizHoverOutline) return;
+      if (keyOf(d) == null) return;
+      quizHoverOutline.attr('d', path(d)).classed('show', true);
+    })
+    .on('mouseleave', function() {
+      if (quizHoverOutline) quizHoverOutline.classed('show', false);
+    });
 }
 
 async function drawMap(regionKey) {
@@ -1633,16 +1689,17 @@ async function drawMap(regionKey) {
   // but not on every resize-triggered redraw while already viewing it.
   if (isJapan && prevRegion !== 'japan') showJapanLoveMessage();
 
-  // Quiz mode only makes sense on the Japan map; quietly turn it off
-  // whenever a different map is selected (the indicator chip hides itself).
-  if (!isJapan && jpQuizMode) setJPQuizMode(false);
+  // Quiz mode is tied to the one map it was started on (see QUIZ_CFG); quietly
+  // turn it off whenever a different map is drawn (the indicator chip hides itself).
+  if (quizMode && quizRegion !== regionKey) setQuizMode(false);
+  const usQuizOn = isUSA && quizMode && quizRegion === 'usa'; // US States quiz: draw clickable state shapes instead of counties
 
 
 
   const geoData = await getGeoData(res);
   // Pre-fetch US states + counties data for the USA mode
   const usStatesData   = isUSA ? await getGeoData('us-states')   : null;
-  const usCountiesData = isUSA ? await getGeoData('us-counties') : null;
+  const usCountiesData = isUSA && !usQuizOn ? await getGeoData('us-counties') : null; // the state quiz doesn't need the (large) county file
   // Pre-fetch prefecture-level Japan data for the Japan mode
   const japanPrefData  = isJapan ? await getGeoData('japan-prefs') : null;
 
@@ -1805,17 +1862,32 @@ async function drawMap(regionKey) {
     g.append('g').attr('id','countries-g');
   }
 
-  // USA mode: draw high-res county land fill + state borders using AlbersUsa projection
-  if (isUSA && usCountiesData && usStatesData) {
-    // County polygons give the most detailed coastline geometry
-    const countyFeatures = topojson.feature(usCountiesData, usCountiesData.objects.counties);
-    g.select('#countries-g').selectAll('path')
-      .data(countyFeatures.features).join('path')
-      .attr('d', path)
-      .attr('fill', S.landColor)
-      .attr('stroke', S.borderColor)
-      .attr('stroke-width', 0.1)
-      .attr('stroke-opacity', 0.35);
+  // USA mode: draw the land + state borders using the AlbersUsa projection.
+  if (isUSA && usStatesData) {
+    if (usQuizOn) {
+      // States quiz: one clickable shape per state (same 10m atlas as the
+      // counties, so the coastline is identical) instead of the county fill.
+      const stateFeatures = topojson.feature(usStatesData, usStatesData.objects.states).features;
+      attachQuizHandlers(
+        g.select('#countries-g').selectAll('path')
+          .data(stateFeatures).join('path')
+          .attr('d', path)
+          .attr('fill', S.landColor)
+          .attr('stroke', S.borderColor)
+          .attr('stroke-width', 0.15)
+          .attr('stroke-opacity', 0.4),
+        path, 'usa');
+    } else if (usCountiesData) {
+      // County polygons give the most detailed coastline geometry
+      const countyFeatures = topojson.feature(usCountiesData, usCountiesData.objects.counties);
+      g.select('#countries-g').selectAll('path')
+        .data(countyFeatures.features).join('path')
+        .attr('d', path)
+        .attr('fill', S.landColor)
+        .attr('stroke', S.borderColor)
+        .attr('stroke-width', 0.1)
+        .attr('stroke-opacity', 0.35);
+    }
 
     // State borders (internal)
     const stateMesh = topojson.mesh(usStatesData, usStatesData.objects.states, (a,b) => a !== b);
@@ -1827,6 +1899,10 @@ async function drawMap(regionKey) {
     const nationMesh = topojson.mesh(usStatesData, usStatesData.objects.states, (a,b) => a === b);
     g.append('path').attr('id','nation-border').datum(nationMesh).attr('d', path)
       .attr('fill','none').attr('stroke', S.borderColor).attr('stroke-width', 0.9);
+
+    // Hover-outline overlay for the states quiz (same idea as the Japan one
+    // below): appended last so it sits above the state-border mesh.
+    if (usQuizOn) quizHoverOutline = g.append('path').attr('id', 'quizHoverOutline');
   }
 
   // Japan mode: draw all 47 prefectures (each a MultiPolygon, so every
@@ -1834,34 +1910,15 @@ async function drawMap(regionKey) {
   // own Mercator projection
   if (isJapan && japanPrefData) {
     const prefFeatures = topojson.feature(japanPrefData, japanPrefData.objects.japan).features;
-    g.select('#countries-g').selectAll('path')
-      .data(prefFeatures).join('path')
-      .attr('d', path)
-      .attr('fill', S.landColor)
-      .attr('stroke', S.borderColor)
-      .attr('stroke-width', 0.15)
-      .attr('stroke-opacity', 0.4)
-      // Quiz mode: re-apply the "solved" tint across redraws (e.g. on resize)
-      // so progress isn't visually lost, and wire up the find-and-click check.
-      .classed('jp-quiz-solved', d => jpQuizSolved.has(Number(d.properties && d.properties.id)))
-      .classed('jp-quiz-solved-yellow', d => jpQuizSolvedTier.get(Number(d.properties && d.properties.id)) === 'yellow')
-      .classed('jp-quiz-solved-red', d => jpQuizSolvedTier.get(Number(d.properties && d.properties.id)) === 'red')
-      .on('click', function(event, d) {
-        if (!jpQuizMode) return;
-        event.stopPropagation();
-        const prefId = Number(d.properties && d.properties.id);
-        if (!Number.isFinite(prefId)) return;
-        jpQuizHandlePrefClick(event, prefId);
-      })
-      // Drive the hover-outline overlay (see jpQuizHoverOutline below, appended
-      // after the border mesh so it always draws on top of it).
-      .on('mouseenter', function(event, d) {
-        if (!jpQuizMode) return;
-        jpQuizHoverOutline.attr('d', path(d)).classed('show', true);
-      })
-      .on('mouseleave', function() {
-        jpQuizHoverOutline.classed('show', false);
-      });
+    attachQuizHandlers(
+      g.select('#countries-g').selectAll('path')
+        .data(prefFeatures).join('path')
+        .attr('d', path)
+        .attr('fill', S.landColor)
+        .attr('stroke', S.borderColor)
+        .attr('stroke-width', 0.15)
+        .attr('stroke-opacity', 0.4),
+      path, 'japan');
 
     // Prefecture borders (internal)
     const prefMesh = topojson.mesh(japanPrefData, japanPrefData.objects.japan, (a,b) => a !== b);
@@ -1879,7 +1936,7 @@ async function drawMap(regionKey) {
     // is swapped to match whichever prefecture is under the cursor (see the
     // mouseenter/mouseleave handlers on the prefecture paths above). Kept
     // invisible (stroke-opacity:0, see CSS) until then.
-    jpQuizHoverOutline = g.append('path').attr('id', 'jpQuizHoverOutline');
+    quizHoverOutline = g.append('path').attr('id', 'quizHoverOutline');
   }
 
   // For regional views, use d3's native translateExtent so the user can't drag
@@ -3095,50 +3152,38 @@ let nightHoverId = null; // dotId currently under the mouse in Night mode, so dr
 // the number of cities on screen.
 //
 // It's pre-rendered at several sizes (a small mip chain), not just one, and
-// in two gradient profiles. "Soft" is the original long, gradual falloff,
-// used for every dot-size preset. "Hard" front-loads the same colours — more
-// of the radius sits near full brightness — and is used only for the Tiny
-// preset: Tiny's footprint is so small that even a modest downscale collapses
-// the soft gradient's narrow bright core to almost nothing, so Tiny still
-// reads as noticeably dimmer than Smaller (as it should — it's a smaller
-// dot) rather than crushed to barely-visible. Picking whichever pre-rendered
-// size is closest to the actual on-screen size (see pickGlowSprite) also
-// keeps the downscale itself mild.
-function makeGlowSprite(size, hard) {
+// drawImage picks whichever is closest to the actual on-screen size (see
+// pickGlowSprite) so the downscale itself stays mild.
+//
+// Every dot-size preset uses this same soft gradient, so Tiny is genuinely a
+// smaller, dimmer point of light than Smaller — not "Smaller minus the halo".
+// (Tiny used to get a separate "hard" gradient with a wide full-bright core;
+// that made its brightest pixel as bright as Smaller's and only trimmed the
+// outer glow, so the two looked nearly identical.)
+function makeGlowSprite(size) {
   const canvas = document.createElement('canvas');
   canvas.width = canvas.height = size;
   const c = canvas.getContext('2d');
   const cx = size / 2, cy = size / 2, R = size / 2;
   const grad = c.createRadialGradient(cx, cy, 0, cx, cy, R);
-  if (hard) {
-    grad.addColorStop(0,    'rgba(255,246,217,1)');
-    grad.addColorStop(0.4,  'rgba(255,207,107,0.95)');
-    grad.addColorStop(0.7,  'rgba(255,138,60,0.5)');
-    grad.addColorStop(1,    'rgba(255,106,26,0)');
-  } else {
-    grad.addColorStop(0,    'rgba(255,246,217,1)');
-    grad.addColorStop(0.18, 'rgba(255,207,107,0.95)');
-    grad.addColorStop(0.45, 'rgba(255,138,60,0.5)');
-    grad.addColorStop(1,    'rgba(255,106,26,0)');
-  }
+  grad.addColorStop(0,    'rgba(255,246,217,1)');
+  grad.addColorStop(0.18, 'rgba(255,207,107,0.95)');
+  grad.addColorStop(0.45, 'rgba(255,138,60,0.5)');
+  grad.addColorStop(1,    'rgba(255,106,26,0)');
   c.fillStyle = grad;
   c.beginPath(); c.arc(cx, cy, R, 0, Math.PI * 2); c.fill();
   return canvas;
 }
 const GLOW_SPRITE_SIZES = [4, 8, 16, 32, 64, 128];
-const glowSprites = {}, glowSpritesHard = {};
-GLOW_SPRITE_SIZES.forEach(sz => {
-  glowSprites[sz] = makeGlowSprite(sz, false);
-  glowSpritesHard[sz] = makeGlowSprite(sz, true);
-});
+const glowSprites = {};
+GLOW_SPRITE_SIZES.forEach(sz => { glowSprites[sz] = makeGlowSprite(sz); });
 // Smallest pre-rendered sprite that's still >= the actual on-screen diameter
 // (in device pixels), so drawImage only ever has to downscale a little.
-function pickGlowSprite(targetDevicePx, hard) {
-  const table = hard ? glowSpritesHard : glowSprites;
+function pickGlowSprite(targetDevicePx) {
   for (const sz of GLOW_SPRITE_SIZES) {
-    if (sz >= targetDevicePx) return table[sz];
+    if (sz >= targetDevicePx) return glowSprites[sz];
   }
-  return table[GLOW_SPRITE_SIZES[GLOW_SPRITE_SIZES.length - 1]];
+  return glowSprites[GLOW_SPRITE_SIZES[GLOW_SPRITE_SIZES.length - 1]];
 }
 
 function resizeNightCanvas() {
@@ -3153,7 +3198,7 @@ function drawNightCanvas() {
   const [W, H] = getMapSize();
   nctx.setTransform(nightDPR, 0, 0, nightDPR, 0, 0);
   nctx.clearRect(0, 0, W, H);
-  if (jpQuizMode) return; // Prefectures quiz: previously typed cities are hidden, so draw no lights
+  if (quizMode) return; // Prefectures quiz: previously typed cities are hidden, so draw no lights
   const t = currentTransform;
   nctx.save();
   nctx.translate(t.x, t.y);
@@ -3165,13 +3210,16 @@ function drawNightCanvas() {
     const p = projection([city.lon, city.lat]);
     if (!p) continue;
     const [cx, cy] = p;
-    const glowR = dotR(city.pop) * 3.2;
+    // Glow radius as a multiple of the dot radius. Tiny gets a slightly wider
+    // multiple so that, at its very small dot radius, it stays a visible point
+    // of light (~1/3 of Smaller's total light) instead of fading out entirely.
+    const glowR = dotR(city.pop) * (S.dotSizeMode === 'tiny' ? 3.7 : 3.2);
     // Actual on-screen size in device pixels, accounting for the current
     // zoom (t.k) and pixel ratio (nightDPR) already baked into the canvas
     // transform above — this is what pickGlowSprite needs to avoid an
     // over-aggressive downscale.
     const targetDevicePx = glowR * 2 * t.k * nightDPR;
-    nctx.drawImage(pickGlowSprite(targetDevicePx, S.dotSizeMode === 'tiny'), cx - glowR, cy - glowR, glowR * 2, glowR * 2);
+    nctx.drawImage(pickGlowSprite(targetDevicePx), cx - glowR, cy - glowR, glowR * 2, glowR * 2);
   }
   nctx.restore();
 }
@@ -3186,7 +3234,7 @@ function cityScreenPos(city) {
 }
 
 function findCityAtScreenPos(sx, sy) {
-  if (jpQuizMode) return null; // cities are hidden during the Prefectures quiz — nothing to hit
+  if (quizMode) return null; // cities are hidden during the Prefectures quiz — nothing to hit
   let best = null, bestDist = Infinity;
   for (const city of found) {
     const pos = cityScreenPos(city);
@@ -3371,15 +3419,15 @@ function addFoundItem(city) {
 
 function renderFoundGrid() {
   const titleEl = document.getElementById('panelTitle');
-  if (titleEl) titleEl.textContent = (currentRegion === 'japan' && jpQuizMode) ? 'Prefectures' : 'Cities';
+  if (titleEl) titleEl.textContent = (quizMode && quizCfg()) ? quizCfg().Nouns : 'Cities';
 
   const grid = document.getElementById('foundGrid');
   grid.innerHTML = '';
 
-  // Prefectures quiz: the panel lists solved prefectures (name, capital,
-  // population) instead of typed-and-found cities — see renderJPQuizFoundGrid.
-  if (currentRegion === 'japan' && jpQuizMode) {
-    renderJPQuizFoundGrid(grid);
+  // Region quiz: the panel lists solved regions (name, capital,
+  // population) instead of typed-and-found cities — see renderQuizFoundGrid.
+  if (quizMode && quizCfg()) {
+    renderQuizFoundGrid(grid);
     return;
   }
 
@@ -3427,8 +3475,8 @@ function renderFoundGrid() {
 // Placeholder rows shown while no cities have been entered yet — same size/shape
 // and bluish background as a real "found" row, but with blank bars instead of
 // text, so the panel doesn't look like an empty white gap.
-// `isPrefMode` swaps in the Prefectures-quiz skin and a matching empty message
-// (see renderJPQuizFoundGrid) — there's no data file to load in that mode, so
+// `isPrefMode` swaps in the region-quiz skin and a matching empty message
+// (see renderQuizFoundGrid) — there's no data file to load in that mode, so
 // the "Load data file" button never applies there.
 function renderEmptyFoundGrid(grid, isPrefMode) {
   const ROWS = 14;
@@ -3441,33 +3489,35 @@ function renderEmptyFoundGrid(grid, isPrefMode) {
   const overlay = document.createElement('div');
   overlay.className = 'fi-empty-overlay';
   overlay.innerHTML = isPrefMode
-    ? `<div class="empty-load-wrap"><span class="empty-load-msg">Click a prefecture to see it here!</span></div>`
+    ? `<div class="empty-load-wrap"><span class="empty-load-msg">Click a ${(quizCfg() || {}).noun || 'region'} to see it here!</span></div>`
     : (cityDB.length
       ? `<div class="empty-load-wrap"><span class="empty-load-msg">Type a city to see it here!</span></div>`
       : `<div class="empty-load-wrap"><button type="button" id="emptyLoadFileBtn" class="empty-load-btn">📄 Load data file</button><div id="fileStatus">No file loaded</div></div>`);
   grid.appendChild(overlay);
 }
 
-// Renders the Prefectures-quiz version of the side panel: one row per
-// correctly-guessed prefecture (most-recently-solved first, or by
-// population when "Sort by population" is checked), showing the prefecture
-// name plus its capital and approximate population — in place of the
-// typed-city rows the panel normally shows (see renderFoundGrid).
-function renderJPQuizFoundGrid(grid) {
-  const solvedIds = Array.from(jpQuizSolved); // Set preserves solve order
+// Renders the quiz version of the side panel: one row per correctly-guessed
+// region (most-recently-solved first, or by population when "Sort by
+// population" is checked), showing the region's name plus its capital and
+// population — in place of the typed-city rows the panel normally shows (see
+// renderFoundGrid).
+function renderQuizFoundGrid(grid) {
+  const cfg = quizCfg();
+  if (!cfg) return;
+  const solvedIds = Array.from(quizSolved); // Set preserves solve order
   if (!solvedIds.length) {
     renderEmptyFoundGrid(grid, true);
     return;
   }
   const list = sortByPop
-    ? [...solvedIds].sort((a, b) => (JP_PREF_POPULATION[b] || 0) - (JP_PREF_POPULATION[a] || 0))
+    ? [...solvedIds].sort((a, b) => (cfg.pop[b] || 0) - (cfg.pop[a] || 0))
     : [...solvedIds].reverse();
-  list.forEach(prefId => {
+  list.forEach(id => {
     const div = document.createElement('div');
-    const guessNum = solvedIds.indexOf(prefId) + 1;
-    const name = JP_PREF_NAMES[prefId] || '?';
-    const capital = JP_PREF_CAPITAL_DISPLAY[prefId] || '?';
-    const pop = JP_PREF_POPULATION[prefId]; // whole-prefecture population, NOT the capital city's
+    const guessNum = solvedIds.indexOf(id) + 1;
+    const name = cfg.names[id] || '?';
+    const capital = cfg.capitals[id] || '—';
+    const pop = cfg.pop[id]; // whole-region population, NOT the capital city's
     div.className = 'fi fi-pref';
     div.innerHTML = `<span class="fi-num">${guessNum}.</span><div class="fi-info"><span class="fi-name">${name}</span><span class="fi-meta">Capital: ${capital}</span>${pop ? `<span class="fi-meta fi-pref-pop">Population: ${fmtPop(pop)}</span>` : ''}</div>`;
     grid.appendChild(div);
@@ -3488,6 +3538,65 @@ const JP_PREF_NAMES = {
   33:'Okayama', 34:'Hiroshima', 35:'Yamaguchi', 36:'Tokushima', 37:'Kagawa',
   38:'Ehime', 39:'Kochi', 40:'Fukuoka', 41:'Saga', 42:'Nagasaki',
   43:'Kumamoto', 44:'Oita', 45:'Miyazaki', 46:'Kagoshima', 47:'Okinawa',
+};
+
+// ─── REGION QUIZ CONFIG ──────────────────────────────────────────────────────
+// Everything the find-and-click quiz (see setQuizMode) needs to know about a
+// map that has one. To give another map a quiz: add an entry here and make
+// its shapes go through attachQuizHandlers in drawMap.
+//   ids       the keys to be asked, in any order
+//   names     key -> display name shown in the "Find: …" label
+//   capitals / pop   key -> capital / population, for the solved-list panel
+//   keyOf     feature -> key, or null for shapes that aren't part of the quiz
+//   geometryDiffers  the quiz draws different shapes than Normal mode does,
+//                    so switching modes on the same map needs a redraw
+// US: the 50 states. DC and the territories are drawn but not asked about
+// (and clicking them is ignored rather than counted as a wrong guess).
+const US_QUIZ_EXCLUDED = new Set(['DC', 'PR', 'GU', 'VI']);
+const quizTitleCase = str => str.replace(/\b\w/g, c => c.toUpperCase());
+const US_STATE_NAME_TO_ABBR = new Map(Object.entries(US_STATES).map(([abbr, name]) => [name, abbr]));
+const US_STATE_NAMES = {};            // abbr -> "New Hampshire"
+const US_STATE_CAPITAL_DISPLAY = {};  // abbr -> "Concord"
+Object.entries(US_STATES).forEach(([abbr, name]) => { if (!US_QUIZ_EXCLUDED.has(abbr)) US_STATE_NAMES[abbr] = quizTitleCase(name); });
+US_STATE_CAPITALS.forEach((abbr, city) => { if (!US_QUIZ_EXCLUDED.has(abbr)) US_STATE_CAPITAL_DISPLAY[abbr] = quizTitleCase(city); });
+// 2020 US Census resident population, by state.
+const US_STATE_POPULATION = {
+  AL:5024279, AK:733391, AZ:7151502, AR:3011524, CA:39538223, CO:5773714,
+  CT:3605944, DE:989948, FL:21538187, GA:10711908, HI:1455271, ID:1839106,
+  IL:12812508, IN:6785528, IA:3190369, KS:2937880, KY:4505836, LA:4657757,
+  ME:1362359, MD:6177224, MA:7029917, MI:10077331, MN:5706494, MS:2961279,
+  MO:6154913, MT:1084225, NE:1961504, NV:3104614, NH:1377529, NJ:9288994,
+  NM:2117522, NY:20201249, NC:10439388, ND:779094, OH:11799448, OK:3959353,
+  OR:4237256, PA:13002700, RI:1097379, SC:5118425, SD:886667, TN:6910840,
+  TX:29145505, UT:3271616, VT:643077, VA:8631393, WA:7705281, WV:1793716,
+  WI:5893718, WY:576851,
+};
+const QUIZ_CFG = {
+  japan: {
+    icon: '🗾', noun: 'prefecture', Nouns: 'Prefectures', label: 'Japan — Prefectures',
+    indicatorTitle: 'Prefecture quiz — find the named prefecture and click it',
+    modalTitle: '🗾 Japan — choose a mode',
+    normalDesc: 'Find and type Japanese cities, same as any other map.',
+    quizTitle: 'Prefectures', quizDesc: 'Find and click each of the 47 prefectures by name.',
+    names: JP_PREF_NAMES, capitals: JP_PREF_CAPITAL_DISPLAY, pop: JP_PREF_POPULATION,
+    ids: Object.keys(JP_PREF_NAMES).map(Number),
+    keyOf: d => { const n = Number(d.properties && d.properties.id); return Number.isFinite(n) && JP_PREF_NAMES[n] ? n : null; },
+    geometryDiffers: false,
+  },
+  usa: {
+    icon: '🇺🇸', noun: 'state', Nouns: 'States', label: 'United States — States',
+    indicatorTitle: 'State quiz — find the named state and click it',
+    modalTitle: '🇺🇸 United States — choose a mode',
+    normalDesc: 'Find and type American cities, same as any other map.',
+    quizTitle: 'States', quizDesc: 'Find and click each of the 50 states by name.',
+    names: US_STATE_NAMES, capitals: US_STATE_CAPITAL_DISPLAY, pop: US_STATE_POPULATION,
+    ids: Object.keys(US_STATE_NAMES),
+    keyOf: d => {
+      const abbr = US_STATE_NAME_TO_ABBR.get(String((d.properties && d.properties.name) || '').toLowerCase());
+      return abbr && !US_QUIZ_EXCLUDED.has(abbr) ? abbr : null;
+    },
+    geometryDiffers: true,
+  },
 };
 
 function renderBestCountries() {
@@ -3882,7 +3991,7 @@ function tintRegionSelect(rk) {
   const lbl = document.getElementById('mapPickLabel');
   const dot = document.getElementById('mapPickDot');
   const opt = sel.querySelector('option[value="' + rk + '"]');
-  if (lbl) lbl.textContent = rk === 'japan' && jpQuizMode ? 'Japan — Prefectures' : ((opt && opt.textContent) || (REGIONS[rk] && REGIONS[rk].label) || rk);
+  if (lbl) lbl.textContent = quizMode && quizRegion === rk && QUIZ_CFG[rk] ? QUIZ_CFG[rk].label : ((opt && opt.textContent) || (REGIONS[rk] && REGIONS[rk].label) || rk);
   if (dot) {
     if (regionFlags[rk]) {
       dot.textContent = regionFlags[rk];
@@ -3905,9 +4014,9 @@ function tintRegionSelect(rk) {
 
 // ─── MAP SELECTION MODAL ─────────────────────────────────────────────────────
 // Built from the (hidden) #regionSelect so the two can never drift apart.
-// Japan is a single entry like any other map; picking it opens a second,
-// smaller modal (#japanModeModal, wired up below) to choose Normal
-// (plain city-finding) vs Prefectures (the find-and-click quiz).
+// Japan and the USA are single entries like any other map; picking one opens a
+// second, smaller modal (#modePickModal, wired up below) to choose Normal
+// (plain city-finding) vs the region quiz (Prefectures / States).
 function buildMapList() {
   const list = document.getElementById('mapList');
   const sel = document.getElementById('regionSelect');
@@ -3930,7 +4039,7 @@ function buildMapList() {
         : `<span class="map-opt-dot" style="background:${regionColors[o.value] || '#2B4C7E'}"></span>`;
       btn.innerHTML = `${icon}<span>${o.textContent}</span><span class="map-opt-check"></span>`;
       btn.onclick = () => {
-        if (o.value === 'japan') { closeMapModal(); openJapanModeModal(); return; }
+        if (QUIZ_CFG[o.value]) { closeMapModal(); openModePickModal(o.value); return; }
         closeMapModal();
         if (o.value !== currentRegion) setRegion(o.value);
       };
@@ -3955,37 +4064,56 @@ document.getElementById('mapClose').onclick = closeMapModal;
 document.getElementById('mapModal').onclick = e => { if (e.target.id === 'mapModal') closeMapModal(); };
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMapModal(); });
 
-// ─── JAPAN MODE MODAL — Normal vs Prefectures, shown after picking "Japan" ──
-function openJapanModeModal() {
-  // Tick whichever mode is currently active (only meaningful if Japan is
-  // already the loaded map — otherwise leave both unchecked).
-  const activeQuiz = currentRegion === 'japan' ? (jpQuizMode ? '1' : '0') : null;
-  document.querySelectorAll('.japan-mode-opt').forEach(btn => {
+// ─── MODE PICKER MODAL — Normal vs region quiz, shown after picking Japan / USA ──
+let modePickRegion = null; // map ('japan' | 'usa') the open modal is choosing a mode for
+function openModePickModal(rk) {
+  modePickRegion = rk;
+  const cfg = QUIZ_CFG[rk];
+  document.getElementById('modePickTitle').textContent = cfg.modalTitle;
+  document.getElementById('modePickNormalDesc').textContent = cfg.normalDesc;
+  document.getElementById('modePickQuizTitle').textContent = cfg.quizTitle;
+  document.getElementById('modePickQuizDesc').textContent = cfg.quizDesc;
+  // Tick whichever mode is currently active (only meaningful if this map is
+  // already the loaded one — otherwise leave both unchecked).
+  const activeQuiz = currentRegion === rk ? (quizMode && quizRegion === rk ? '1' : '0') : null;
+  document.querySelectorAll('.modepick-opt').forEach(btn => {
     const isCurrent = activeQuiz !== null && btn.dataset.quiz === activeQuiz;
     btn.classList.toggle('current', isCurrent);
-    const chk = btn.querySelector('.japan-mode-check');
+    const chk = btn.querySelector('.modepick-check');
     if (chk) chk.textContent = isCurrent ? '✓' : '';
   });
-  document.getElementById('japanModeModal').classList.add('open');
+  document.getElementById('modePickModal').classList.add('open');
 }
-function closeJapanModeModal() { document.getElementById('japanModeModal').classList.remove('open'); }
-document.querySelectorAll('.japan-mode-opt').forEach(btn => {
+function closeModePickModal() { document.getElementById('modePickModal').classList.remove('open'); }
+document.querySelectorAll('.modepick-opt').forEach(btn => {
   btn.onclick = () => {
     const quiz = btn.dataset.quiz === '1';
-    closeJapanModeModal();
-    if (currentRegion === 'japan') { setJPQuizMode(quiz); tintRegionSelect('japan'); persistSession(); }
-    else setRegion('japan', quiz);
+    const rk = modePickRegion;
+    closeModePickModal();
+    if (!rk) return;
+    if (currentRegion === rk) {
+      const changed = (quizMode && quizRegion === rk) !== quiz;
+      setQuizMode(quiz, rk);
+      tintRegionSelect(rk);
+      // Japan draws the same prefecture shapes in both modes, so toggling is
+      // just a class/state change. The USA map draws counties in Normal mode
+      // but states in the quiz, so that one has to be rebuilt.
+      if (changed && QUIZ_CFG[rk].geometryDiffers) {
+        drawMap(rk).then(() => { renderFoundGrid(); renderBestCountries(); renderOtherStats(); updateSummary(); });
+      }
+      persistSession();
+    } else setRegion(rk, quiz);
   };
 });
-document.getElementById('japanModeClose').onclick = closeJapanModeModal;
-document.getElementById('japanModeModal').onclick = e => { if (e.target.id === 'japanModeModal') closeJapanModeModal(); };
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeJapanModeModal(); });
+document.getElementById('modePickClose').onclick = closeModePickModal;
+document.getElementById('modePickModal').onclick = e => { if (e.target.id === 'modePickModal') closeModePickModal(); };
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModePickModal(); });
 
-function setRegion(rk, jpQuizWanted) {
+function setRegion(rk, quizWanted) {
   // Save current region's cities before switching
   captureState._fbr[currentRegion] = found.map(c => ({...c}));
 
-  if (rk === 'japan') setJPQuizMode(!!jpQuizWanted);
+  if (QUIZ_CFG[rk]) setQuizMode(!!quizWanted, rk);
   tintRegionSelect(rk);
 
   // Load the new region's cities
@@ -4061,18 +4189,18 @@ document.addEventListener('click', () => closeMapPopovers());
 
 // ─── JAPAN PREFECTURE QUIZ — cursor-following label wiring ───────────────────
 // (The mode itself is entered/left via the map selector's "Japan" vs
-// "Japan — Prefectures" options — see setRegion/setJPQuizMode — not a
+// "Japan — Prefectures" options — see setRegion/setQuizMode — not a
 // dedicated button, so there's no on/off toggle to wire up here.)
-document.getElementById('jpQuizIndicatorReset').onclick = resetJPQuizProgress;
+document.getElementById('quizIndicatorReset').onclick = resetQuizProgress;
 // The label follows the cursor everywhere over the map at all times while
 // the quiz is active, since it's naming the prefecture to go find next
 // (not just reacting to a click).
 document.getElementById('mapWrap').addEventListener('mousemove', (ev) => {
   lastPointerXY = { clientX: ev.clientX, clientY: ev.clientY };
-  if (jpQuizMode) moveJPQuizTooltip(ev);
+  if (quizMode) moveQuizTooltip(ev);
 });
 document.getElementById('mapWrap').addEventListener('mouseleave', () => {
-  if (jpQuizMode) hideJPQuizTooltip();
+  if (quizMode) hideQuizTooltip();
 });
 
 // ─── COUNTRY FILTER (lives inside the typing bar) ────────────────────────────
@@ -4797,7 +4925,169 @@ async function idbSet(key, value) {
   } catch (e) { /* ignore cache write failures — worst case we re-download next time */ }
 }
 
+// ─── CITY DATA WORKER ─────────────────────────────────────────────────────
+// Downloading, gunzipping (pako.inflate) and parsing ~200k+ GeoNames rows
+// (each one running fold() diacritic-stripping, alias splitting, etc.) is
+// genuinely heavy CPU work — tens to hundreds of milliseconds on desktop,
+// but multiple seconds of dead-air on a mid-range phone. Doing that on the
+// main thread means the whole page — including the map itself — freezes
+// solid for the duration, since JS is single-threaded there. Running it in
+// a Web Worker moves all of it off the main thread, so the map stays
+// interactive (and the page never looks "stuck") while the data loads in
+// the background. The worker is built from an inline string via a Blob URL
+// so the game still ships as a single self-contained HTML file, and it
+// duplicates the small set of pure helper functions (fold, Mexican alias
+// generation, disputed-capital table) it needs — these have no DOM
+// dependency so they're safe to run off-thread as-is.
+const CITY_WORKER_SRC = `
+self.importScripts('https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js');
+
+const DISPUTED_CAPITALS = { 'IL':'Jerusalem','TW':'Taipei','PS':'Ramallah','CY':'Nicosia','XK':'Pristina','BO':'La Paz' };
+const EMPTY_ALIASES_F = [];
+
+function fold(s) {
+  return s.toLowerCase()
+    .normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')
+    .replace(/[-\\s]+/g, ' ')
+    .trim()
+    .replace(/\\bsaint\\b/g, 'st')
+    .replace(/\\bsainte\\b/g, 'st')
+    .replace(/\\.(?=\\s|$)/g, '');
+}
+
+function getMexicanAliases(name) {
+  const f = fold(name);
+  const extras = new Set();
+  const prefixes = [
+    'ciudad', 'heroica', 'heroico', 'villa de', 'villa', 'san luis',
+    'santiago de', 'santiago', 'victoria de', 'victoria',
+    'heroica ciudad de', 'ciudad de', 'municipio de',
+    'general', 'el', 'la', 'los', 'las',
+  ];
+  for (const pfx of prefixes) {
+    if (f.startsWith(pfx + ' ')) {
+      let rest = f.slice(pfx.length).trim();
+      rest = rest.replace(/^de(l)? /, '').replace(/^(la|las|los|el) /, '');
+      if (rest.length > 2) extras.add(rest);
+    }
+  }
+  const deMatch = f.match(/^(.+?) de .+$/);
+  if (deMatch && deMatch[1].length > 2) extras.add(deMatch[1].trim());
+  const words = f.split(' ');
+  if (words.length >= 3) {
+    const twoWord = words.slice(0, 2).join(' ');
+    if (twoWord.length > 3) extras.add(twoWord);
+  }
+  extras.delete(f);
+  return [...extras];
+}
+
+function parseTSV(text) {
+  const lines = text.split('\\n');
+  let swappedCount = 0;
+  const out = [];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (!line || line.charCodeAt(0) === 35) continue;
+    const r = line.split('\\t');
+    if (r.length < 9) continue;
+    const isSlim = r.length < 15;
+    const featureCode = (isSlim ? r[6] : r[7]).trim();
+    if (featureCode === 'PPLX') continue;
+    const name = r[1].trim();
+    if (!name) continue;
+    const asciiRaw = r[2].trim();
+    const ascii_name = asciiRaw || name;
+    const altField = r[3];
+    const aliases = altField ? altField.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean) : [];
+    const country = (isSlim ? r[7] : r[8]).trim();
+    const admin1 = ((isSlim ? r[8] : r[10]) || '').trim().toUpperCase();
+    const pop = parseInt(isSlim ? r[9] : r[14]) || 0;
+    let lat = parseFloat(r[4]);
+    let lon = parseFloat(r[5]);
+    if (isNaN(lat) || isNaN(lon)) continue;
+    const latOk = lat >= -90 && lat <= 90;
+    const lonOk = lon >= -180 && lon <= 180;
+    if (!latOk && lonOk && lon >= -90 && lon <= 90 && lat >= -180 && lat <= 180) {
+      [lat, lon] = [lon, lat]; swappedCount++;
+    } else if (!latOk || !lonOk) continue;
+    const disputedCap = DISPUTED_CAPITALS[country];
+    const isCapital = (featureCode === 'PPLC' && (!disputedCap || disputedCap === ascii_name)) || disputedCap === ascii_name;
+    const nameF = fold(name);
+    const asciiF = asciiRaw && asciiRaw !== name ? fold(ascii_name) : nameF;
+    const mxAliases = country === 'MX' && pop >= 50000 ? getMexicanAliases(name) : null;
+    const aliasesF = (aliases.length || mxAliases)
+      ? [...new Set([...aliases.map(fold), ...(mxAliases || [])])]
+      : EMPTY_ALIASES_F;
+    const geonamesId = parseInt(r[0]);
+    out.push({ name, ascii_name, nameF, asciiF, aliasesF, aliases, lat, lon, country, admin1, pop, isCapital, geonamesId });
+  }
+  return { cityDB: out, swappedCount };
+}
+
+self.onmessage = async (e) => {
+  const { cmd, id, url } = e.data;
+  try {
+    if (cmd === 'fetchGz') {
+      const res = await fetch(url);
+      if (!res.ok) { self.postMessage({ id, ok:false, notFound:true }); return; }
+      const buf = await res.arrayBuffer();
+      const text = pako.inflate(new Uint8Array(buf), { to: 'string' });
+      const { cityDB, swappedCount } = parseTSV(text);
+      self.postMessage({ id, ok:true, cityDB, swappedCount });
+    } else if (cmd === 'fetchText') {
+      const res = await fetch(url);
+      if (!res.ok) { self.postMessage({ id, ok:false, notFound:true }); return; }
+      const text = await res.text();
+      const { cityDB, swappedCount } = parseTSV(text);
+      self.postMessage({ id, ok:true, cityDB, swappedCount });
+    } else if (cmd === 'parseText') {
+      const { cityDB, swappedCount } = parseTSV(e.data.text);
+      self.postMessage({ id, ok:true, cityDB, swappedCount });
+    }
+  } catch (err) {
+    self.postMessage({ id, ok:false, error: (err && err.message) || String(err) });
+  }
+};
+`;
+
+let _cityWorker = null;
+let _cityWorkerReqId = 0;
+const _cityWorkerCallbacks = new Map();
+function getCityWorker() {
+  if (!_cityWorker) {
+    const blob = new Blob([CITY_WORKER_SRC], { type: 'application/javascript' });
+    _cityWorker = new Worker(URL.createObjectURL(blob));
+    _cityWorker.onmessage = (e) => {
+      const cb = _cityWorkerCallbacks.get(e.data.id);
+      if (cb) { _cityWorkerCallbacks.delete(e.data.id); cb(e.data); }
+    };
+    _cityWorker.onerror = (e) => {
+      // Reject every in-flight call so callers fall back gracefully instead
+      // of hanging forever if the worker itself fails to start.
+      for (const [id, cb] of _cityWorkerCallbacks) cb({ id, ok:false, error: e.message || 'worker error' });
+      _cityWorkerCallbacks.clear();
+    };
+  }
+  return _cityWorker;
+}
+function runInCityWorker(msg) {
+  return new Promise((resolve) => {
+    const worker = getCityWorker();
+    const id = ++_cityWorkerReqId;
+    _cityWorkerCallbacks.set(id, resolve);
+    worker.postMessage({ ...msg, id });
+  });
+}
+// Workers need a same-origin-ish fetchable script URL for importScripts and
+// a structured-cloneable message; both are unsupported under file:// and on
+// a few very old browsers. Detect once and fall back to the original
+// main-thread path (loadCitiesFromTSV) in that case, so nothing regresses,
+// it just loses the non-blocking benefit.
+const CITY_WORKER_SUPPORTED = (typeof Worker !== 'undefined') && (location.protocol !== 'file:');
+
 async function autoLoadCities() {
+  setMsg('Loading city data…', 'info');
   // Cheap check first: does the published data differ from what we have cached?
   let remoteVersion = null;
   try {
@@ -4823,7 +5113,45 @@ async function autoLoadCities() {
     // Try the gzip-compressed file first (fetched as bytes, then inflated
     // client-side with pako — this is what lets a ~40MB GeoNames export ship
     // as a ~13MB .gz that's small enough to push straight to GitHub), then
-    // fall back to an uncompressed txt, then xlsx.
+    // fall back to an uncompressed txt, then xlsx. The fetch + inflate +
+    // parse all happen inside a Web Worker when available (see
+    // CITY_WORKER_SUPPORTED above) so this never blocks the UI thread —
+    // the map stays pannable/zoomable the whole time instead of freezing.
+    if (CITY_WORKER_SUPPORTED) {
+      try {
+        const gz = await runInCityWorker({ cmd: 'fetchGz', url: 'data.txt.gz' });
+        if (gz.ok) {
+          cityDB = gz.cityDB;
+          finaliseCityDB(gz.swappedCount, 'txt');
+          if (remoteVersion) { idbSet('version', remoteVersion); idbSet('cityDB', cityDB); }
+          return;
+        }
+      } catch (e) { /* fall through to the uncompressed options below */ }
+
+      for (const url of ['data.txt', 'cities15000.txt', 'cities.txt']) {
+        const r = await runInCityWorker({ cmd: 'fetchText', url });
+        if (!r.ok) continue; // not found (or worker hiccup) — try the next candidate
+        cityDB = r.cityDB;
+        finaliseCityDB(r.swappedCount, 'txt');
+        if (remoteVersion) { idbSet('version', remoteVersion); idbSet('cityDB', cityDB); }
+        return;
+      }
+
+      // xlsx parsing (XLSX.js) stays on the main thread — it's only ever a
+      // last-resort fallback if none of the txt/gz files are published, so
+      // it's not worth the extra complexity of moving into the worker too.
+      const xlsxRes = await fetch('cities.xlsx');
+      if (xlsxRes.ok) {
+        const buf = await xlsxRes.arrayBuffer();
+        loadCitiesFromBuffer(buf);
+        if (remoteVersion) { idbSet('version', remoteVersion); idbSet('cityDB', cityDB); }
+        return;
+      }
+      return;
+    }
+
+    // No worker support (e.g. file:// or a very old browser) — original
+    // main-thread path, unchanged.
     try {
       const gzRes = await fetch('data.txt.gz');
       if (gzRes.ok) {
@@ -4835,7 +5163,6 @@ async function autoLoadCities() {
       }
     } catch (e) { /* fall through to the uncompressed options below */ }
 
-    // Try GeoNames txt first, then fall back to xlsx
     for (const [url, isTxt] of [['data.txt', true], ['cities15000.txt', true], ['cities.txt', true], ['cities.xlsx', false]]) {
       const res = await fetch(url);
       if (!res.ok) continue;
