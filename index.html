@@ -1735,6 +1735,47 @@ async function drawMap(regionKey) {
     // viewport before creating a path element for it — padded wide enough to
     // stay correct at scaleExtent's 0.5x zoom-out and normal panning.
     if (!isWorld) {
+      // Split France's merged overseas departments (see FRANCE_OVERSEAS_BBOX)
+      // back into their own features, tagged with their own ISO numeric id,
+      // before the strictCountries filter below ever runs — so a territory
+      // like French Guiana is then kept/dropped independently of mainland
+      // France, instead of being dropped along with it.
+      if (region.countries) {
+        const franceIdx = countryFeatures.findIndex(f => NUM_TO_ISO[Number(f.id)] === 'FR');
+        if (franceIdx !== -1) {
+          const frFeature = countryFeatures[franceIdx];
+          const wantedOverseas = Object.keys(FRANCE_OVERSEAS_BBOX).filter(iso2 => region.countries.includes(iso2));
+          if (wantedOverseas.length && frFeature.geometry.type === 'MultiPolygon') {
+            const remainingPolys = [];
+            frFeature.geometry.coordinates.forEach(poly => {
+              const [lon, lat] = poly[0][0];
+              const match = wantedOverseas.find(iso2 => {
+                const b = FRANCE_OVERSEAS_BBOX[iso2];
+                return lon >= b.lon[0] && lon <= b.lon[1] && lat >= b.lat[0] && lat <= b.lat[1];
+              });
+              if (match) {
+                countryFeatures.push({
+                  type: 'Feature',
+                  id: ISO_NUMERIC[match],
+                  properties: {},
+                  geometry: { type: 'MultiPolygon', coordinates: [poly] },
+                  // A fresh object, not shared with any geometry in
+                  // geoData.objects.countries — this territory won't
+                  // participate in the shared-border mesh built from that
+                  // original topology (see `borders` below). That's fine:
+                  // every country feature already gets its own fill+stroke
+                  // path, so the mesh is only a secondary line-up-the-edges
+                  // pass, not what actually outlines this territory.
+                  __geom: {},
+                });
+              } else {
+                remainingPolys.push(poly);
+              }
+            });
+            frFeature.geometry.coordinates = remainingPolys;
+          }
+        }
+      }
       const margin = Math.max(W, H) * 1.5;
       const lo = -margin, hiX = W + margin, hiY = H + margin;
       countryFeatures = countryFeatures.filter(f => {
@@ -2754,6 +2795,21 @@ const ISO_NUMERIC = {
 const NUM_TO_ISO = {};
 for (const iso2 in ISO_NUMERIC) NUM_TO_ISO[ISO_NUMERIC[iso2]] = iso2;
 
+// world-atlas's "countries" topojson merges these five French overseas
+// departments into France's own feature (id 250) instead of giving each its
+// own feature — invisible on the World map, but it means a regional map
+// that wants one of these without wanting mainland France (e.g. South
+// America wants French Guiana) would otherwise lose that territory's land
+// entirely when France gets filtered out. Used to split them back out into
+// their own features; see the France-splitting step in initMap().
+const FRANCE_OVERSEAS_BBOX = {
+  GF: { lon: [-56, -51], lat: [1.5, 6.5] },   // French Guiana
+  GP: { lon: [-62, -61], lat: [15.5, 17] },   // Guadeloupe
+  MQ: { lon: [-62, -60], lat: [14, 15.5] },   // Martinique
+  RE: { lon: [54, 57], lat: [-22, -20] },     // Réunion
+  YT: { lon: [44, 46], lat: [-14, -12] },     // Mayotte
+};
+
 // A handful of disputed territories (Kosovo, Northern Cyprus, ...) have no
 // standard ISO 3166-1 numeric code, so their world-atlas feature id has no
 // entry in NUM_TO_ISO above. The strictCountries filter used to treat an
@@ -3580,6 +3636,45 @@ const QUIZ_CFG = {
   },
 };
 
+// ─── URL HASH ROUTING ─────────────────────────────────────────────────────────
+// Keeps the URL fragment in sync with the current map/mode — e.g.
+// "#/south-america" or "#/japan-prefectures" for the Japan prefecture quiz —
+// so a mode is bookmarkable, shareable via link, and restorable on reload,
+// and so the browser's back/forward buttons step between modes.
+function regionQuizSlug(rk, isQuiz) {
+  const base = rk.replace(/_/g, '-');
+  return (isQuiz && QUIZ_CFG[rk]) ? `${base}-${QUIZ_CFG[rk].Nouns.toLowerCase()}` : base;
+}
+function parseHashRoute(hash) {
+  const slug = String(hash || '').replace(/^#\/?/, '').trim().toLowerCase();
+  if (!slug) return null;
+  for (const rk of Object.keys(REGIONS)) {
+    if (regionQuizSlug(rk, false) === slug) return { region: rk, quiz: false };
+    if (QUIZ_CFG[rk] && regionQuizSlug(rk, true) === slug) return { region: rk, quiz: true };
+  }
+  return null;
+}
+// Reflects the current in-memory mode into the URL. Setting location.hash to
+// the value it already holds is a no-op (fires no event), which is what
+// keeps this from looping with applyHashRoute() below.
+function syncHashFromState() {
+  const isQuiz = quizMode && quizRegion === currentRegion;
+  const hash = '#/' + regionQuizSlug(currentRegion, isQuiz);
+  if (location.hash !== hash) location.hash = hash;
+}
+// Reads the URL fragment and switches to the mode it names, e.g. after the
+// user hits back/forward or edits/pastes a link. A no-op if the URL already
+// names whatever mode is currently showing (also covers the initial page
+// load's own hash assignment via syncHashFromState triggering this).
+function applyHashRoute() {
+  const route = parseHashRoute(location.hash);
+  if (!route || !REGIONS[route.region]) return;
+  const alreadyThere = route.region === currentRegion && route.quiz === (quizMode && quizRegion === currentRegion);
+  if (alreadyThere) return;
+  setRegion(route.region, route.quiz);
+}
+window.addEventListener('hashchange', applyHashRoute);
+
 function renderBestCountries() {
   const mode = currentRegion === 'usa' ? 'usa' : currentRegion === 'japan' ? 'japan' : 'country';
   const listEl  = document.getElementById('bestList');
@@ -4083,6 +4178,7 @@ document.querySelectorAll('.modepick-opt').forEach(btn => {
         drawMap(rk).then(() => { renderFoundGrid(); renderBestCountries(); renderOtherStats(); updateSummary(); });
       }
       persistSession();
+      syncHashFromState();
     } else setRegion(rk, quiz);
   };
 });
@@ -4110,6 +4206,7 @@ function setRegion(rk, quizWanted) {
   const rname = REGIONS[rk].label;
   setMsg(`Region: ${rname}.${REGIONS[rk].countries ? ' Only cities in this region will be accepted.' : ''}`, 'info');
   persistSession();
+  syncHashFromState();
 }
 
 document.getElementById('regionSelect').onchange = e => setRegion(e.target.value);
@@ -4527,6 +4624,7 @@ async function restoreState(snap) {
   renderBestCountries();
   renderOtherStats();
   updateSummary();
+  syncHashFromState();
 }
 
 // Persist current session to localStorage
@@ -4752,8 +4850,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Restore the session via restoreState (handles foundByRegion, settings, map, etc.)
+  // A URL fragment present at load (e.g. someone opening a shared
+  // "#/japan-prefectures" link) takes priority over whatever region the
+  // session last had loaded — captured now, before restoreState() below
+  // overwrites location.hash with the (about to be superseded) session's
+  // own region.
+  const requestedRoute = parseHashRoute(location.hash);
+
   const snap = sessions[currentId].snapshot || {};
   await restoreState(snap);
+  if (requestedRoute && REGIONS[requestedRoute.region]) {
+    const already = requestedRoute.region === currentRegion && requestedRoute.quiz === (quizMode && quizRegion === currentRegion);
+    if (!already) setRegion(requestedRoute.region, requestedRoute.quiz);
+  }
+
   updateSessionBar();
   lockIfSaved();
 
