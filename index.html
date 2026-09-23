@@ -270,6 +270,14 @@ body.night-mode .mode-toggle:has(input:checked){box-shadow:0 0 0 2px rgba(111,16
 .quiz-solved.quiz-solved-yellow{fill:#e0b400!important}
 .quiz-solved.quiz-solved-red{fill:var(--danger)!important}
 .quiz-wrong-flash{fill:#d64550!important;fill-opacity:.65!important;transition:fill .15s ease}
+/* Hint after QUIZ_MAX_WRONG_ATTEMPTS misses: the correct-but-not-yet-clicked
+   region throbs between transparent and solid red so it's easy to spot, but
+   nothing is auto-solved — the user still has to click it themselves. */
+.quiz-hint-blink{animation:quizHintBlink .85s ease-in-out infinite}
+@keyframes quizHintBlink{
+  0%,100%{fill:var(--danger);fill-opacity:.15}
+  50%{fill:var(--danger);fill-opacity:.8}
+}
 #quizHoverOutline{fill:none;stroke:var(--accent2);stroke-width:1;stroke-opacity:0;pointer-events:none;filter:drop-shadow(0 0 3px var(--accent2));transition:stroke-opacity .12s ease}
 #quizHoverOutline.show{stroke-opacity:1}
 
@@ -1255,7 +1263,7 @@ function getMapSize() {
 // ─── MAP DATA (multiple resolutions) ─────────────────────────────────────────
 // 110m = lightweight, used for world view
 // 50m  = detailed coastlines, used for all regional (non-world) views
-const geoCache = { '110m': null, '50m': null, 'us-states': null, 'us-counties': null, 'japan-prefs': null };
+const geoCache = { '110m': null, '50m': null, 'us-states': null, 'us-counties': null, 'japan-prefs': null, 'spain-provs': null, 'russia-regions': null };
 
 async function getGeoData(res) {
   if (geoCache[res]) return geoCache[res];
@@ -1269,15 +1277,25 @@ async function getGeoData(res) {
     // Tsushima, Sado, etc. — is included, not just the four main islands the
     // low-res world atlas roughly traces).
     'japan-prefs':'https://cdn.jsdelivr.net/gh/dataofjapan/land@master/japan.topojson',
+    // Province-level Spain boundaries (all 52 provinces, incl. the Balearic and
+    // Canary Islands, Ceuta and Melilla), built by the Spanish National
+    // Geographic Institute's own reference data (martgnz/es-atlas).
+    'spain-provs':'https://cdn.jsdelivr.net/npm/es-atlas@0.6.0/es/provinces.json',
+    // Federal-subject-level Russia boundaries (GADM adm1 data). The exact set
+    // of shapes and their property names aren't pinned down by any package
+    // version the way the sources above are, so the drawing code below (see
+    // "Russia mode" in drawMap) resolves the topojson object name and each
+    // feature's name property defensively instead of assuming fixed keys.
+    'russia-regions':'https://cdn.jsdelivr.net/gh/zarkzork/russia-topojson@master/russia.json',
   };
   geoCache[res] = await fetch(urls[res]).then(r => r.json());
   return geoCache[res];
 }
 
-// Pre-fetch 110m immediately so world loads fast; kick off 50m + US/Japan data in background
+// Pre-fetch 110m immediately so world loads fast; kick off 50m + US/Japan/Spain/Russia data in background
 getGeoData('110m');
 setTimeout(() => getGeoData('50m'), 800);
-setTimeout(() => { getGeoData('us-states'); getGeoData('us-counties'); getGeoData('japan-prefs'); }, 1200);
+setTimeout(() => { getGeoData('us-states'); getGeoData('us-counties'); getGeoData('japan-prefs'); getGeoData('spain-provs'); getGeoData('russia-regions'); }, 1200);
 
 // A handful of tiny multi-island countries in the high-res 10m atlas (e.g. the
 // Maldives) have a few individual polygons whose ring winding is backwards.
@@ -1410,16 +1428,25 @@ function clipLineByLon(coords, lonThreshold, keepEast) {
 // on the map. A correct click solves it (tinted permanently) and immediately
 // asks for the next one, picked at random from whatever's left, until every
 // region has been asked exactly once. A wrong click briefly flashes red
-// feedback without revealing where the right answer is. Progress persists
-// only while the quiz stays on — leaving it (switching to the normal typing
-// mode, or to any other map) wipes progress and the tinted regions, so the
-// map and the city-typing bar come back exactly as they were before the quiz
-// started (see setQuizMode).
+// feedback without revealing where the right answer is — UNLESS it's the
+// QUIZ_MAX_WRONG_ATTEMPTS-th wrong guess for the current target, in which
+// case the correct region starts blinking as a hint (see .quiz-hint-blink):
+// the user still has to click it themselves to solve it, but now knows where
+// to look. Whether hinted or not, the tier a correctly-solved region ends up
+// tinted with (blue/yellow/red) is purely a function of how many wrong
+// guesses it took — so a hinted solve, which by definition took at least
+// QUIZ_MAX_WRONG_ATTEMPTS misses, always lands on the same red tier as any
+// other hard-won solve. Progress persists only while the quiz stays on —
+// leaving it (switching to the normal typing mode, or to any other map)
+// wipes progress and the tinted regions, so the map and the city-typing bar
+// come back exactly as they were before the quiz started (see setQuizMode).
 let quizMode = false;
 let quizRegion = null;             // 'japan' | 'usa' while quizMode is on, else null (selects the entry in QUIZ_CFG)
 const quizSolved = new Set();      // region keys answered correctly so far (numbers for Japan, state abbreviations for the US)
 const quizSolvedTier = new Map();  // key -> 'yellow'|'red' for a solved region that took extra guesses (absent = solved on the first try, plain blue)
+const QUIZ_MAX_WRONG_ATTEMPTS = 3; // wrong guesses allowed on a target before it starts blinking as a hint
 let quizWrongCount = 0;            // wrong guesses made so far while hunting for the CURRENT target; resets each time a new target is picked
+let quizHintActive = false;        // true once the current target has started blinking (after QUIZ_MAX_WRONG_ATTEMPTS misses); resets with quizWrongCount
 let quizHoverOutline = null;       // d3 selection of the hover-outline overlay path (see drawMap)
 let quizQueue = [];                // remaining keys still to be asked, shuffled
 let quizTargetId = null;           // key currently being asked, or null if none/complete
@@ -1478,12 +1505,14 @@ function quizClearProgress() {
   quizSolved.clear();
   quizSolvedTier.clear();
   quizWrongCount = 0;
+  quizHintActive = false;
   quizQueue = [];
   quizTargetId = null;
   d3.selectAll('#countries-g path.quiz-solved')
     .classed('quiz-solved', false)
     .classed('quiz-solved-yellow', false)
     .classed('quiz-solved-red', false);
+  d3.selectAll('#countries-g path.quiz-hint-blink').classed('quiz-hint-blink', false);
 }
 
 // Turn the find-and-click quiz on/off for map `rk` ('japan' | 'usa'). This is
@@ -1496,6 +1525,7 @@ function setQuizMode(on, rk) {
   quizRegion = quizMode ? rk : null;
   clearTimeout(quizFeedbackTimer);
   quizWrongCount = 0;
+  quizHintActive = false;
   // Progress belongs to ONE map's quiz: jumping straight from the Japan quiz
   // to the US quiz (or vice versa) must not carry solved regions across.
   if (quizMode && prevRegion !== rk) quizClearProgress();
@@ -1594,13 +1624,16 @@ function quizHandleClick(event, key) {
     quizSolved.add(key);
     // Colour reflects how many wrong guesses it took to get here this round:
     // errorless (blue, the default "quiz-solved" look) / one miss (yellow)
-    // / two-or-more misses (red).
+    // / two-or-more misses (red) — a hinted solve always falls in the red
+    // tier here, since it only ever happens after QUIZ_MAX_WRONG_ATTEMPTS+ misses.
     if (quizWrongCount === 1) quizSolvedTier.set(key, 'yellow');
     else if (quizWrongCount >= 2) quizSolvedTier.set(key, 'red');
     sel.classed('quiz-solved', true)
       .classed('quiz-solved-yellow', quizSolvedTier.get(key) === 'yellow')
-      .classed('quiz-solved-red', quizSolvedTier.get(key) === 'red');
+      .classed('quiz-solved-red', quizSolvedTier.get(key) === 'red')
+      .classed('quiz-hint-blink', false);
     quizWrongCount = 0;
+    quizHintActive = false;
     showQuizTooltip(event, `✓ ${cfg.names[key] || '?'}`, 'correct');
     updateQuizIndicator();
     renderFoundGrid();
@@ -1614,7 +1647,17 @@ function quizHandleClick(event, key) {
     quizWrongCount++;
     sel.classed('quiz-wrong-flash', true);
     setTimeout(() => sel.classed('quiz-wrong-flash', false), 450);
-    showQuizTooltip(event, '✗ Try again', 'wrong');
+    if (quizWrongCount >= QUIZ_MAX_WRONG_ATTEMPTS && !quizHintActive) {
+      // Too many misses on this target — start blinking it as a hint. The
+      // user still has to click it themselves to actually solve it.
+      quizHintActive = true;
+      d3.select('#countries-g').selectAll('path')
+        .filter(d => cfg.keyOf(d) === quizTargetId)
+        .classed('quiz-hint-blink', true);
+      showQuizTooltip(event, '✗ Look for the blinking region', 'wrong');
+    } else {
+      showQuizTooltip(event, '✗ Try again', 'wrong');
+    }
     quizFeedbackTimer = setTimeout(() => {
       showQuizTooltip(lastPointerXY, quizCurrentPromptText());
     }, 700);
@@ -1633,6 +1676,7 @@ function attachQuizHandlers(sel, path, regionKey) {
     .classed('quiz-solved', d => quizSolved.has(keyOf(d)))
     .classed('quiz-solved-yellow', d => quizSolvedTier.get(keyOf(d)) === 'yellow')
     .classed('quiz-solved-red', d => quizSolvedTier.get(keyOf(d)) === 'red')
+    .classed('quiz-hint-blink', d => quizHintActive && keyOf(d) === quizTargetId)
     .classed('quiz-inert', d => keyOf(d) == null)
     .on('click', function(event, d) {
       if (!quizMode || quizRegion !== regionKey) return;
@@ -1659,6 +1703,8 @@ async function drawMap(regionKey) {
   const isWorld = regionKey === 'world';
   const isUSA = regionKey === 'usa';
   const isJapan = regionKey === 'japan';
+  const isSpain = regionKey === 'spain';
+  const isRussia = regionKey === 'russia';
   const res = isWorld ? '110m' : '50m';
 
   // Show the "I LOVE YOU NASTYA" banner whenever the Japan map is (re)loaded —
@@ -1678,6 +1724,10 @@ async function drawMap(regionKey) {
   const usCountiesData = isUSA && !usQuizOn ? await getGeoData('us-counties') : null; // the state quiz doesn't need the (large) county file
   // Pre-fetch prefecture-level Japan data for the Japan mode
   const japanPrefData  = isJapan ? await getGeoData('japan-prefs') : null;
+  // Pre-fetch province-level Spain data for the Spain mode
+  const spainProvData  = isSpain ? await getGeoData('spain-provs') : null;
+  // Pre-fetch federal-subject-level Russia data for the Russia mode
+  const russiaRegData  = isRussia ? await getGeoData('russia-regions') : null;
 
   const [W, H] = getMapSize();
   svg.attr('viewBox', `0 0 ${W} ${H}`);
@@ -1709,8 +1759,8 @@ async function drawMap(regionKey) {
       .attr('fill', S.seaColor);
   }
 
-  // Land + borders — skip world-atlas land for USA/Japan (use their own high-res shapes instead)
-  if (!isUSA && !isJapan) {
+  // Land + borders — skip world-atlas land for USA/Japan/Spain/Russia (use their own high-res shapes instead)
+  if (!isUSA && !isJapan && !isSpain && !isRussia) {
     let countryFeatures = topojson.feature(geoData, geoData.objects.countries).features;
     countryFeatures.forEach(fixInvertedWinding);
     // Several disputed territories (Kosovo, Northern Cyprus, Somaliland...)
@@ -1953,6 +2003,85 @@ async function drawMap(regionKey) {
     // is swapped to match whichever prefecture is under the cursor (see the
     // mouseenter/mouseleave handlers on the prefecture paths above). Kept
     // invisible (stroke-opacity:0, see CSS) until then.
+    quizHoverOutline = g.append('path').attr('id', 'quizHoverOutline');
+  }
+
+  // Spain mode: draw all 52 provinces (incl. the Balearic/Canary Islands,
+  // Ceuta and Melilla) + province borders, same idea as the Japan block above.
+  if (isSpain && spainProvData) {
+    const provFeatures = topojson.feature(spainProvData, spainProvData.objects.provinces).features;
+    attachQuizHandlers(
+      g.select('#countries-g').selectAll('path')
+        .data(provFeatures).join('path')
+        .attr('d', path)
+        .attr('fill', S.landColor)
+        .attr('stroke', S.borderColor)
+        .attr('stroke-width', 0.15)
+        .attr('stroke-opacity', 0.4),
+      path, 'spain');
+
+    // Province borders (internal)
+    const provMesh = topojson.mesh(spainProvData, spainProvData.objects.provinces, (a,b) => a !== b);
+    g.append('path').attr('id','prov-borders-es').datum(provMesh).attr('d', path)
+      .attr('fill','none').attr('stroke', S.borderColor).attr('stroke-width', 0.5)
+      .attr('stroke-opacity', 0.8);
+
+    // Outer national border (slightly bolder)
+    const esNationMesh = topojson.mesh(spainProvData, spainProvData.objects.provinces, (a,b) => a === b);
+    g.append('path').attr('id','nation-border-es').datum(esNationMesh).attr('d', path)
+      .attr('fill','none').attr('stroke', S.borderColor).attr('stroke-width', 0.9);
+
+    // Hover-outline overlay for the province quiz (see the Japan block above
+    // for how this gets driven).
+    quizHoverOutline = g.append('path').attr('id', 'quizHoverOutline');
+  }
+
+  // Russia mode: draw all federal subjects (republics, krais, oblasts, the two
+  // federal cities, the autonomous oblast and the autonomous okrugs) + their
+  // borders, same idea as the Japan/Spain blocks above. Unlike those two
+  // sources, this boundary file's exact object name and feature property
+  // names aren't pinned to a known package version, so both are resolved
+  // defensively here rather than assumed (see getRussiaFeatures/populateRussiaRegionInfo).
+  if (isRussia && russiaRegData) {
+    const ruFeatures = getRussiaFeatures(russiaRegData);
+    populateRussiaRegionInfo(ruFeatures);
+    // Unlike the other three quizzes, Russia's id list is only known after
+    // this fetch resolves — so if the quiz was requested before that (e.g.
+    // picking "Federal Subjects" straight from the map picker on a region
+    // that's never been loaded this session), the very first quizEnsureTarget()
+    // call in setQuizMode ran against an empty id list and left the quiz
+    // looking "already complete". Re-run it now that the real list exists;
+    // it's a no-op once a target/queue is already in place.
+    if (quizMode && quizRegion === 'russia') {
+      quizEnsureTarget();
+      const text = quizCurrentPromptText();
+      if (text) showQuizTooltip(lastPointerXY, text, quizTargetId == null ? 'complete' : '');
+      updateQuizIndicator();
+    }
+    attachQuizHandlers(
+      g.select('#countries-g').selectAll('path')
+        .data(ruFeatures).join('path')
+        .attr('d', path)
+        .attr('fill', S.landColor)
+        .attr('stroke', S.borderColor)
+        .attr('stroke-width', 0.15)
+        .attr('stroke-opacity', 0.4),
+      path, 'russia');
+
+    // Subject borders (internal)
+    const ruObjKey = russiaObjectKey(russiaRegData);
+    const subjMesh = topojson.mesh(russiaRegData, russiaRegData.objects[ruObjKey], (a,b) => a !== b);
+    g.append('path').attr('id','subj-borders-ru').datum(subjMesh).attr('d', path)
+      .attr('fill','none').attr('stroke', S.borderColor).attr('stroke-width', 0.5)
+      .attr('stroke-opacity', 0.8);
+
+    // Outer national border (slightly bolder)
+    const ruNationMesh = topojson.mesh(russiaRegData, russiaRegData.objects[ruObjKey], (a,b) => a === b);
+    g.append('path').attr('id','nation-border-ru').datum(ruNationMesh).attr('d', path)
+      .attr('fill','none').attr('stroke', S.borderColor).attr('stroke-width', 0.9);
+
+    // Hover-outline overlay for the federal-subject quiz (see the Japan block
+    // above for how this gets driven).
     quizHoverOutline = g.append('path').attr('id', 'quizHoverOutline');
   }
 
@@ -3577,6 +3706,244 @@ const JP_PREF_NAMES = {
   43:'Kumamoto', 44:'Oita', 45:'Miyazaki', 46:'Kagoshima', 47:'Okinawa',
 };
 
+// The 52 Spanish provinces, keyed by their official INE province code
+// (01–52, as used by the es-atlas boundary data below) — used for the
+// "Spain — Provinces" quiz, the same way JP_PREF_NAMES is used for Japan.
+const SPAIN_PROV_NAMES = {
+  '01':'Álava', '02':'Albacete', '03':'Alicante', '04':'Almería', '05':'Ávila',
+  '06':'Badajoz', '07':'Baleares', '08':'Barcelona', '09':'Burgos', '10':'Cáceres',
+  '11':'Cádiz', '12':'Castellón', '13':'Ciudad Real', '14':'Córdoba', '15':'A Coruña',
+  '16':'Cuenca', '17':'Girona', '18':'Granada', '19':'Guadalajara', '20':'Gipuzkoa',
+  '21':'Huelva', '22':'Huesca', '23':'Jaén', '24':'León', '25':'Lleida',
+  '26':'La Rioja', '27':'Lugo', '28':'Madrid', '29':'Málaga', '30':'Murcia',
+  '31':'Navarra', '32':'Ourense', '33':'Asturias', '34':'Palencia', '35':'Las Palmas',
+  '36':'Pontevedra', '37':'Salamanca', '38':'Santa Cruz de Tenerife', '39':'Cantabria',
+  '40':'Segovia', '41':'Sevilla', '42':'Soria', '43':'Tarragona', '44':'Teruel',
+  '45':'Toledo', '46':'Valencia', '47':'Valladolid', '48':'Bizkaia', '49':'Zamora',
+  '50':'Zaragoza', '51':'Ceuta', '52':'Melilla',
+};
+// Provincial capital (or, for Ceuta/Melilla, the city itself), same keys as above.
+const SPAIN_PROV_CAPITALS = {
+  '01':'Vitoria-Gasteiz', '02':'Albacete', '03':'Alicante', '04':'Almería', '05':'Ávila',
+  '06':'Badajoz', '07':'Palma', '08':'Barcelona', '09':'Burgos', '10':'Cáceres',
+  '11':'Cádiz', '12':'Castellón de la Plana', '13':'Ciudad Real', '14':'Córdoba', '15':'A Coruña',
+  '16':'Cuenca', '17':'Girona', '18':'Granada', '19':'Guadalajara', '20':'San Sebastián',
+  '21':'Huelva', '22':'Huesca', '23':'Jaén', '24':'León', '25':'Lleida',
+  '26':'Logroño', '27':'Lugo', '28':'Madrid', '29':'Málaga', '30':'Murcia',
+  '31':'Pamplona', '32':'Ourense', '33':'Oviedo', '34':'Palencia', '35':'Las Palmas de Gran Canaria',
+  '36':'Pontevedra', '37':'Salamanca', '38':'Santa Cruz de Tenerife', '39':'Santander',
+  '40':'Segovia', '41':'Sevilla', '42':'Soria', '43':'Tarragona', '44':'Teruel',
+  '45':'Toledo', '46':'Valencia', '47':'Valladolid', '48':'Bilbao', '49':'Zamora',
+  '50':'Zaragoza', '51':'Ceuta', '52':'Melilla',
+};
+// Approximate province population (2023 INE estimate, rounded), same keys.
+const SPAIN_PROV_POPULATION = {
+  '01':333626, '02':386464, '03':1888047, '04':731559, '05':158178,
+  '06':666559, '07':1231822, '08':5714730, '09':354491, '10':385746,
+  '11':1245222, '12':579319, '13':195516, '14':775558, '15':1112310,
+  '16':194936, '17':775640, '18':912931, '19':261209, '20':726168,
+  '21':526508, '22':223892, '23':611891, '24':436983, '25':438929,
+  '26':319914, '27':318955, '28':6779888, '29':1720617, '30':1518486,
+  '31':662870, '32':301997, '33':1006060, '34':155987, '35':1128190,
+  '36':938574, '37':326074, '38':928604, '39':584579, '40':153205,
+  '41':1949300, '42':88489, '43':833333, '44':134176, '45':709461,
+  '46':2632025, '47':384054, '48':1163278, '49':161154, '50':973328,
+  '51':83517, '52':86261,
+};
+
+// The federal subjects of Russia, for the "Russia — Federal subjects" quiz.
+// Unlike JP_PREF_NAMES/SPAIN_PROV_NAMES above, this isn't a fixed table keyed
+// by a known boundary-source id: the russia-topojson boundary file (see
+// getGeoData('russia-regions')) is built from an older GADM extract whose
+// exact feature count/spelling isn't guaranteed (a few pre-2008-merger
+// autonomous okrugs may still appear as their own shapes). So these three
+// dicts start empty and are filled in at runtime, keyed by each feature's own
+// raw name property, the first time the Russia map is drawn (see
+// populateRussiaRegionInfo) — RUSSIA_SUBJECT_INFO below supplies the known
+// English display name/capital/population for whichever modern subjects
+// (and legacy okrugs) actually turn up.
+const RUSSIA_REGION_NAMES = {};
+const RUSSIA_REGION_CAPITALS = {};
+const RUSSIA_REGION_POPULATION = {};
+
+// [display name, capital, ~2021 census population], keyed by every normalized
+// spelling (see normalizeRuKey) the boundary source's name property is
+// plausibly using for that subject — GADM-style transliterations included.
+const RUSSIA_SUBJECT_INFO = {
+  adygey:['Adygea','Maykop',496000], adygea:['Adygea','Maykop',496000],
+  altay:['Altai Republic','Gorno-Altaysk',210000], altairepublic:['Altai Republic','Gorno-Altaysk',210000], gornyaltay:['Altai Republic','Gorno-Altaysk',210000],
+  bashkortostan:['Bashkortostan','Ufa',4014000],
+  buryatiya:['Buryatia','Ulan-Ude',978000], buryatia:['Buryatia','Ulan-Ude',978000],
+  chechnya:['Chechnya','Grozny',1510000], chechenrespublic:['Chechnya','Grozny',1510000],
+  chuvash:['Chuvashia','Cheboksary',1182000], chuvashia:['Chuvashia','Cheboksary',1182000],
+  dagestan:['Dagestan','Makhachkala',3132000],
+  ingushetiya:['Ingushetia','Magas',508000], ingushetia:['Ingushetia','Magas',508000],
+  kabardinbalkar:['Kabardino-Balkaria','Nalchik',869000], kabardinobalkariya:['Kabardino-Balkaria','Nalchik',869000], kabardinobalkaria:['Kabardino-Balkaria','Nalchik',869000],
+  kalmykiya:['Kalmykia','Elista',268000], kalmykia:['Kalmykia','Elista',268000],
+  karachaycherkess:['Karachay-Cherkessia','Cherkessk',466000], karachayocherkessiya:['Karachay-Cherkessia','Cherkessk',466000],
+  karelia:['Karelia','Petrozavodsk',614000], kareliya:['Karelia','Petrozavodsk',614000],
+  khakass:['Khakassia','Abakan',532000], khakassiya:['Khakassia','Abakan',532000], khakassia:['Khakassia','Abakan',532000],
+  komi:['Komi','Syktyvkar',780000],
+  mariyel:['Mari El','Yoshkar-Ola',676000], mariel:['Mari El','Yoshkar-Ola',676000],
+  mordoviya:['Mordovia','Saransk',778000], mordovia:['Mordovia','Saransk',778000],
+  northossetia:['North Ossetia-Alania','Vladikavkaz',687000], severnayaosetiya:['North Ossetia-Alania','Vladikavkaz',687000], alania:['North Ossetia-Alania','Vladikavkaz',687000],
+  sakhayakutiya:['Sakha (Yakutia)','Yakutsk',997000], sakha:['Sakha (Yakutia)','Yakutsk',997000], yakutiya:['Sakha (Yakutia)','Yakutsk',997000], yakutia:['Sakha (Yakutia)','Yakutsk',997000],
+  tatarstan:['Tatarstan','Kazan',4004000],
+  tyva:['Tuva','Kyzyl',336000], tuva:['Tuva','Kyzyl',336000],
+  udmurtiya:['Udmurtia','Izhevsk',1485000], udmurtia:['Udmurtia','Izhevsk',1485000],
+
+  altayskiy:['Altai Krai','Barnaul',2151000], altaykray:['Altai Krai','Barnaul',2151000],
+  kamchatka:['Kamchatka Krai','Petropavlovsk-Kamchatsky',291000], kamchatskiy:['Kamchatka Krai','Petropavlovsk-Kamchatsky',291000],
+  khabarovsk:['Khabarovsk Krai','Khabarovsk',1282000], khabarovskiy:['Khabarovsk Krai','Khabarovsk',1282000],
+  krasnodar:['Krasnodar Krai','Krasnodar',5838000], krasnodarskiy:['Krasnodar Krai','Krasnodar',5838000],
+  krasnoyarsk:['Krasnoyarsk Krai','Krasnoyarsk',2847000], krasnoyarskiy:['Krasnoyarsk Krai','Krasnoyarsk',2847000],
+  perm:['Perm Krai','Perm',2542000], permskiy:['Perm Krai','Perm',2542000],
+  primorye:['Primorsky Krai','Vladivostok',1878000], primorskiy:['Primorsky Krai','Vladivostok',1878000],
+  stavropol:['Stavropol Krai','Stavropol',2879000], stavropolskiy:['Stavropol Krai','Stavropol',2879000],
+  chita:['Zabaykalsky Krai (formerly Chita Oblast)','Chita',1004000], zabaykalskiy:['Zabaykalsky Krai','Chita',1004000], zabaykalye:['Zabaykalsky Krai','Chita',1004000],
+  aginskiyburyatskiy:['Aginsky Buryat (former okrug, now part of Zabaykalsky Krai)','Aginskoye',null],
+
+  amur:['Amur Oblast','Blagoveshchensk',750000],
+  arkhangelsk:['Arkhangelsk Oblast','Arkhangelsk',1010000],
+  astrakhan:['Astrakhan Oblast','Astrakhan',970000],
+  belgorod:['Belgorod Oblast','Belgorod',1531000],
+  bryansk:['Bryansk Oblast','Bryansk',1168000],
+  chelyabinsk:['Chelyabinsk Oblast','Chelyabinsk',3394000],
+  irkutsk:['Irkutsk Oblast','Irkutsk',2319000],
+  ivanovo:['Ivanovo Oblast','Ivanovo',962000],
+  kaliningrad:['Kaliningrad Oblast','Kaliningrad',1027000],
+  kaluga:['Kaluga Oblast','Kaluga',1000000],
+  kemerovo:['Kemerovo Oblast','Kemerovo',2584000],
+  kirov:['Kirov Oblast','Kirov',1150000],
+  kostroma:['Kostroma Oblast','Kostroma',580000],
+  kurgan:['Kurgan Oblast','Kurgan',785000],
+  kursk:['Kursk Oblast','Kursk',1095000],
+  leningrad:['Leningrad Oblast','Gatchina',1879000], leningradskaya:['Leningrad Oblast','Gatchina',1879000],
+  lipetsk:['Lipetsk Oblast','Lipetsk',1131000],
+  magadan:['Magadan Oblast','Magadan',133000],
+  moskva:['Moscow Oblast','Moscow',8525000], moskovskaya:['Moscow Oblast','Moscow',8525000],
+  murmansk:['Murmansk Oblast','Murmansk',646000],
+  nizhegorod:['Nizhny Novgorod Oblast','Nizhny Novgorod',3143000], nizhniynovgorod:['Nizhny Novgorod Oblast','Nizhny Novgorod',3143000],
+  novgorod:['Novgorod Oblast','Veliky Novgorod',578000],
+  novosibirsk:['Novosibirsk Oblast','Novosibirsk',2798000],
+  omsk:['Omsk Oblast','Omsk',1884000],
+  orenburg:['Orenburg Oblast','Orenburg',1845000],
+  orel:['Oryol Oblast','Oryol',703000], oryol:['Oryol Oblast','Oryol',703000], orlovskaya:['Oryol Oblast','Oryol',703000],
+  penza:['Penza Oblast','Penza',1268000],
+  pskov:['Pskov Oblast','Pskov',604000],
+  rostov:['Rostov Oblast','Rostov-on-Don',4168000],
+  ryazan:['Ryazan Oblast','Ryazan',1032000],
+  sakhalin:['Sakhalin Oblast','Yuzhno-Sakhalinsk',466000],
+  samara:['Samara Oblast','Samara',3151000],
+  saratov:['Saratov Oblast','Saratov',2411000],
+  smolensk:['Smolensk Oblast','Smolensk',866000],
+  sverdlovsk:['Sverdlovsk Oblast','Yekaterinburg',4265000],
+  tambov:['Tambov Oblast','Tambov',997000],
+  tomsk:['Tomsk Oblast','Tomsk',1050000],
+  tula:['Tula Oblast','Tula',1467000],
+  tver:['Tver Oblast','Tver',1220000],
+  tyumen:['Tyumen Oblast','Tyumen',1542000],
+  ulyanovsk:['Ulyanovsk Oblast','Ulyanovsk',1178000],
+  vladimir:['Vladimir Oblast','Vladimir',1326000],
+  volgograd:['Volgograd Oblast','Volgograd',2477000],
+  vologda:['Vologda Oblast','Vologda',1144000],
+  voronezh:['Voronezh Oblast','Voronezh',2286000],
+  yaroslavl:['Yaroslavl Oblast','Yaroslavl',1231000],
+
+  moscow:['Moscow','Moscow',13010000], moscowcity:['Moscow','Moscow',13010000], gorodmoskva:['Moscow','Moscow',13010000],
+  saintpetersburg:['Saint Petersburg','Saint Petersburg',5601000], stpetersburg:['Saint Petersburg','Saint Petersburg',5601000], sanktpeterburg:['Saint Petersburg','Saint Petersburg',5601000], sanktpeterburgcity:['Saint Petersburg','Saint Petersburg',5601000],
+
+  yevrey:['Jewish Autonomous Oblast','Birobidzhan',155000], jewishautonomous:['Jewish Autonomous Oblast','Birobidzhan',155000], evreyskaya:['Jewish Autonomous Oblast','Birobidzhan',155000],
+
+  nenets:['Nenets Autonomous Okrug','Naryan-Mar',42000],
+  khantymansiy:['Khanty-Mansi Autonomous Okrug (Yugra)','Khanty-Mansiysk',1712000], khantymansiyskiy:['Khanty-Mansi Autonomous Okrug (Yugra)','Khanty-Mansiysk',1712000], yugra:['Khanty-Mansi Autonomous Okrug (Yugra)','Khanty-Mansiysk',1712000],
+  yamalnenets:['Yamalo-Nenets Autonomous Okrug','Salekhard',511000], yamaloneretskiy:['Yamalo-Nenets Autonomous Okrug','Salekhard',511000],
+  chukotka:['Chukotka Autonomous Okrug','Anadyr',47000], chukotskiy:['Chukotka Autonomous Okrug','Anadyr',47000],
+
+  // Pre-2007/2008-merger autonomous okrugs that may still appear as their own
+  // shapes in this older boundary source; kept so they still display a
+  // sensible name even without a modern capital/population figure.
+  komipermyak:['Komi-Permyak (former okrug, now part of Perm Krai)','Kudymkar',null],
+  koryak:['Koryak (former okrug, now part of Kamchatka Krai)','Palana',null],
+  taymyriya:['Taymyr (former okrug, now part of Krasnoyarsk Krai)','Dudinka',null], dolgansknenets:['Taymyr (former okrug, now part of Krasnoyarsk Krai)','Dudinka',null],
+  evenkiya:['Evenk (former okrug, now part of Krasnoyarsk Krai)','Tura',null],
+  ustordaburyatiya:['Ust-Orda Buryat (former okrug, now part of Irkutsk Oblast)','Ust-Ordynsky',null],
+};
+
+// Strip everything but letters and lowercase, so "Perm'", "perm", "PERM" and
+// "Permskiy" all reduce to keys that can be looked up above regardless of the
+// exact transliteration/punctuation the boundary source happens to use.
+function normalizeRuKey(s) {
+  return String(s || '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[^a-z]/g, '');
+}
+
+// The boundary source's topojson object name isn't pinned to a known package
+// version (see getGeoData('russia-regions')) — resolve it defensively: prefer
+// "subunits" (what this particular build script produces), else fall back to
+// whatever single object the file actually has.
+function russiaObjectKey(data) {
+  if (data && data.objects && data.objects.subunits) return 'subunits';
+  return data && data.objects ? Object.keys(data.objects)[0] : null;
+}
+function getRussiaFeatures(data) {
+  const key = russiaObjectKey(data);
+  return key ? topojson.feature(data, data.objects[key]).features : [];
+}
+// IMPORTANT: in the current boundary source, NAME_1 (and ID_1/NAME_2/ID_2/PID
+// alongside it) is NOT actually per-feature — it's frozen to the same value
+// ("Yevrey"/89) on every single one of the 89 shapes, a join/build bug in the
+// upstream file (confirmed by inspecting the raw properties: TYPE_1/ENGTYPE_1
+// vary correctly per feature, but NAME_1 doesn't). VARNAME_1 — a "|"-separated
+// list of name variants — is the one field that's still genuinely per-feature,
+// so it's used as the actual source of truth for "which federal subject is
+// this shape", both when building the name table below AND when mapping a
+// click back to a key (see QUIZ_CFG.russia.keyOf). The two MUST stay in sync
+// (same resolution logic), or a click will match the wrong/no region. NAME_1
+// etc. are kept only as a last-resort fallback for a differently-built mirror
+// of this file that doesn't have the bug.
+function russiaRawName(properties) {
+  const p = properties || {};
+  if (p.VARNAME_1) {
+    const first = String(p.VARNAME_1).split('|')[0].trim();
+    if (first) return first;
+  }
+  const fallback = p.NAME_1 || p.name_1 || p.NAME || p.name || p.NAME_2 || p.name_2
+    || p.NL_NAME_1 || p.shapeName || p.region || p.subregion;
+  return fallback ? String(fallback) : null;
+}
+// Fills in RUSSIA_REGION_NAMES/CAPITALS/POPULATION the first time each
+// feature is seen, keyed by russiaRawName(). For the English display name /
+// capital / population, every "|"-separated variant in VARNAME_1 is tried
+// against RUSSIA_SUBJECT_INFO (not just the first), since the table's key
+// might match the 2nd or 3rd transliteration rather than the 1st.
+function populateRussiaRegionInfo(features) {
+  features.forEach(f => {
+    const p = (f && f.properties) || {};
+    const raw = russiaRawName(p);
+    if (!raw) return;
+    const key = String(raw);
+    if (RUSSIA_REGION_NAMES[key]) return;
+    const candidates = p.VARNAME_1
+      ? String(p.VARNAME_1).split('|').map(s => s.trim()).filter(Boolean)
+      : [];
+    if (!candidates.includes(key)) candidates.unshift(key);
+    let info = null;
+    for (const c of candidates) {
+      info = RUSSIA_SUBJECT_INFO[normalizeRuKey(c)];
+      if (info) break;
+    }
+    if (info) {
+      RUSSIA_REGION_NAMES[key] = info[0];
+      RUSSIA_REGION_CAPITALS[key] = info[1];
+      if (info[2] != null) RUSSIA_REGION_POPULATION[key] = info[2];
+    } else {
+      RUSSIA_REGION_NAMES[key] = key.replace(/\b\w/g, c => c.toUpperCase());
+    }
+  });
+}
+
 // ─── REGION QUIZ CONFIG ──────────────────────────────────────────────────────
 // Everything the find-and-click quiz (see setQuizMode) needs to know about a
 // map that has one. To give another map a quiz: add an entry here and make
@@ -3634,6 +4001,42 @@ const QUIZ_CFG = {
     },
     geometryDiffers: true,
   },
+  spain: {
+    icon: '🇪🇸', noun: 'province', Nouns: 'Provinces', label: 'Spain — Provinces',
+    indicatorTitle: 'Province quiz — find the named province and click it',
+    modalTitle: '🇪🇸 Spain — choose a mode',
+    normalDesc: 'Find and type Spanish cities, same as any other map.',
+    quizTitle: 'Provinces', quizDesc: 'Find and click each of the 52 provinces by name.',
+    names: SPAIN_PROV_NAMES, capitals: SPAIN_PROV_CAPITALS, pop: SPAIN_PROV_POPULATION,
+    ids: Object.keys(SPAIN_PROV_NAMES),
+    // es-atlas features carry their INE province code either as the
+    // top-level topojson `id` or under `properties.id`, and either as a
+    // string ("08") or a bare number (8) — normalize both before matching.
+    keyOf: d => {
+      const raw = (d.id !== undefined && d.id !== null) ? d.id : (d.properties && d.properties.id);
+      if (raw == null) return null;
+      const key = String(raw).padStart(2, '0');
+      return SPAIN_PROV_NAMES[key] ? key : null;
+    },
+    geometryDiffers: false,
+  },
+  russia: {
+    icon: '🇷🇺', noun: 'federal subject', Nouns: 'Federal Subjects', label: 'Russia — Federal Subjects',
+    indicatorTitle: 'Federal subject quiz — find the named region and click it',
+    modalTitle: '🇷🇺 Russia — choose a mode',
+    normalDesc: 'Find and type Russian cities, same as any other map.',
+    quizTitle: 'Federal Subjects', quizDesc: 'Find and click each republic, krai, oblast and okrug by name.',
+    names: RUSSIA_REGION_NAMES, capitals: RUSSIA_REGION_CAPITALS, pop: RUSSIA_REGION_POPULATION,
+    // names/capitals/pop are filled in at runtime (see populateRussiaRegionInfo),
+    // so — unlike the static id lists above — this has to read the live keys
+    // rather than snapshot them once at parse time, before any data has loaded.
+    get ids() { return Object.keys(RUSSIA_REGION_NAMES); },
+    // Must use the exact same resolution as populateRussiaRegionInfo (see
+    // russiaRawName) — otherwise a click resolves to a different key than the
+    // one the shape was registered under, and never matches the target.
+    keyOf: d => russiaRawName(d && d.properties),
+    geometryDiffers: false,
+  },
 };
 
 // ─── URL HASH ROUTING ─────────────────────────────────────────────────────────
@@ -3643,7 +4046,7 @@ const QUIZ_CFG = {
 // and so the browser's back/forward buttons step between modes.
 function regionQuizSlug(rk, isQuiz) {
   const base = rk.replace(/_/g, '-');
-  return (isQuiz && QUIZ_CFG[rk]) ? `${base}-${QUIZ_CFG[rk].Nouns.toLowerCase()}` : base;
+  return (isQuiz && QUIZ_CFG[rk]) ? `${base}-${QUIZ_CFG[rk].Nouns.toLowerCase().replace(/\s+/g, '-')}` : base;
 }
 function parseHashRoute(hash) {
   const slug = String(hash || '').replace(/^#\/?/, '').trim().toLowerCase();
