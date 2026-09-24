@@ -4619,7 +4619,8 @@ function syncCountryFilterUI() {
 // Type-to-select: opening the panel focuses a hidden input, so the user can just
 // start typing with no visible box. The full list stays as it is; the best match
 // for what's typed is highlighted and scrolled into view, and Enter picks it
-// (Up/Down move the highlight). The typed text clears itself after a short pause.
+// (Up/Down move the highlight). If typing stops for CF_AUTO_PICK_MS the highlighted
+// match is chosen automatically — no click or Enter needed.
 const cfPanel = document.getElementById('countryFilterPanel');
 const cfSearch = document.getElementById('cfSearch');
 let cfKbOpt = null;   // option currently highlighted for Enter
@@ -4661,7 +4662,23 @@ function cfApplyFilter() {
   });
   cfSetKb(best);
 }
+const CF_AUTO_PICK_MS = 1500;
 let cfClearTimer = null;
+// (Re)start the "no more typing" countdown; when it runs out the highlighted
+// option (if any) becomes the country filter and focus goes back to the city box.
+function cfStartAutoPick() {
+  clearTimeout(cfClearTimer);
+  cfClearTimer = setTimeout(() => {
+    cfClearTimer = null;
+    if (!cfPanel.classList.contains('open')) return;
+    if (cfKbOpt) {
+      selectCountryFilterValue(cfKbOpt.dataset.val);
+      document.getElementById('cityInput').focus();
+    } else {
+      cfSearch.value = '';   // nothing matched: just forget the typed text
+    }
+  }, CF_AUTO_PICK_MS);
+}
 function panelOpts() { return Array.from(cfPanel.querySelectorAll('.cf-opt')); }
 
 function selectCountryFilterValue(v) {
@@ -4675,7 +4692,7 @@ function selectCountryFilterValue(v) {
 function closeCountryFilterPanel() {
   cfPanel.classList.remove('open');
   // Reset the typed text and highlight so the next opening starts fresh.
-  clearTimeout(cfClearTimer);
+  clearTimeout(cfClearTimer); cfClearTimer = null;
   if (cfSearch.value) cfSearch.value = '';
   cfApplyFilter();
 }
@@ -4692,8 +4709,7 @@ document.getElementById('countryFilterBtn').onclick = e => {
 
 cfSearch.addEventListener('input', () => {
   cfApplyFilter();
-  clearTimeout(cfClearTimer);
-  cfClearTimer = setTimeout(() => { cfSearch.value = ''; }, 1500);
+  cfStartAutoPick();
 });
 cfSearch.addEventListener('keydown', e => {
   if (e.key === 'Enter') {
@@ -4709,6 +4725,7 @@ cfSearch.addEventListener('keydown', e => {
     let i = vis.indexOf(cfKbOpt);
     i = e.key === 'ArrowDown' ? (i + 1) % vis.length : (i <= 0 ? vis.length - 1 : i - 1);
     cfSetKb(vis[i]);
+    if (cfClearTimer) cfStartAutoPick();
   } else if (e.key === 'Escape') {
     closeCountryFilterPanel();
     document.getElementById('cityInput').focus();
