@@ -2140,35 +2140,24 @@ async function drawMap(regionKey) {
   }
 
   // Poland quiz: one clickable shape per voivodeship, drawn in place of the
-  // plain country outline used in Normal mode. The source is plain GeoJSON, so
-  // a shared-border topology is built from it to draw the borders the same way
-  // as the Spain quiz (thin internal borders + a bolder outer outline).
+  // plain country outline used in Normal mode. The source is plain GeoJSON with
+  // no shared-border topology, and building one at runtime (topojson.topology)
+  // takes ~20 s on a file this size and freezes the page — so each shape simply
+  // carries its own outline stroke instead.
   if (polandQuizOn && polandRegionData) {
     const plFeatures = polandRegionData.features;
     plFeatures.forEach(fixInvertedWinding);
-    if (!polandRegionData._topo) polandRegionData._topo = topojson.topology({ voivodeships: polandRegionData });
-    const plTopo = polandRegionData._topo, plObj = plTopo.objects.voivodeships;
     attachQuizHandlers(
       g.select('#countries-g').selectAll('path')
         .data(plFeatures).join('path')
         .attr('d', path)
         .attr('fill', S.landColor)
         .attr('stroke', S.borderColor)
-        .attr('stroke-width', 0.15)
-        .attr('stroke-opacity', 0.4),
+        .attr('stroke-width', 0.6)
+        .attr('stroke-opacity', 0.8)
+        .attr('stroke-linejoin', 'round'),
       path, 'poland');
     attachQuizHitTargets(g, plFeatures, path, 'poland');
-
-    // Voivodeship borders (internal, thin)
-    const plMesh = topojson.mesh(plTopo, plObj, (a, b) => a !== b);
-    g.append('path').attr('id', 'poland-borders').datum(plMesh).attr('d', path)
-      .attr('fill', 'none').attr('stroke', S.borderColor).attr('stroke-width', 0.4)
-      .attr('stroke-opacity', 0.7);
-    // Outer coastline / national border
-    const plOuter = topojson.mesh(plTopo, plObj, (a, b) => a === b);
-    g.append('path').attr('id', 'nation-border-pl').datum(plOuter).attr('d', path)
-      .attr('fill', 'none').attr('stroke', S.borderColor).attr('stroke-width', 0.9);
-
     // Hover-outline overlay (same idea as the Japan / US / Spain quizzes)
     quizHoverOutline = g.append('path').attr('id', 'quizHoverOutline');
   }
