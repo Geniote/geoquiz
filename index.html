@@ -4694,6 +4694,7 @@ function selectCountryFilterValue(v) {
 
 function closeCountryFilterPanel() {
   cfPanel.classList.remove('open');
+  cfPanel.scrollTop = 0;   // always back to the top (Any / Every country), never where it was left
   // Reset the typed text and highlight so the next opening starts fresh.
   clearTimeout(cfClearTimer); cfClearTimer = null;
   if (cfSearch.value) cfSearch.value = '';
@@ -4706,8 +4707,7 @@ document.getElementById('countryFilterBtn').onclick = e => {
   if (!opening) { closeCountryFilterPanel(); return; }
   cfPanel.classList.add('open');
   cfPrevChoice = { mode: S.countryMode, country: S.specificCountry };
-  // Scroll the current choice into view when opening the (deliberately short) list
-  const act = cfPanel.querySelector('.cf-opt.active'); if (act) act.scrollIntoView({block:'nearest'});
+  cfPanel.scrollTop = 0;   // opens at the beginning (Any country / Every country) every time
   cfSearch.focus({ preventScroll: true });   // ready to type straight away
 };
 
