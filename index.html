@@ -4617,10 +4617,12 @@ function syncCountryFilterUI() {
 }
 
 // Type-to-select: opening the panel focuses a hidden input, so the user can just
-// start typing with no visible box. The full list stays as it is; the best match
-// for what's typed is highlighted and scrolled into view, and Enter picks it
-// (Up/Down move the highlight). If typing stops for CF_AUTO_PICK_MS the highlighted
-// match is chosen automatically — no click or Enter needed.
+// start typing with no visible box. The full list stays as it is; on EVERY keystroke
+// the closest match is highlighted, scrolled into view and chosen straight away (the
+// button label and the filter change instantly — no waiting, no Enter). Up/Down move
+// the highlight and choose too. The list then tidies itself away after a short pause
+// in typing (purely cosmetic: the choice is already made); Enter closes it at once and
+// Escape closes it and restores whatever was selected before it was opened.
 const cfPanel = document.getElementById('countryFilterPanel');
 const cfSearch = document.getElementById('cfSearch');
 let cfKbOpt = null;   // option currently highlighted for Enter
@@ -4661,32 +4663,33 @@ function cfApplyFilter() {
     if (sc > bestScore) { best = o; bestScore = sc; }   // first of the top score wins
   });
   cfSetKb(best);
+  if (best) applyCountryFilterValue(best.dataset.val);   // choose it immediately
 }
-const CF_AUTO_PICK_MS = 1500;
+const CF_AUTO_CLOSE_MS = 1000;
 let cfClearTimer = null;
-// (Re)start the "no more typing" countdown; when it runs out the highlighted
-// option (if any) becomes the country filter and focus goes back to the city box.
-function cfStartAutoPick() {
+let cfPrevChoice = null;   // selection at the moment the list was opened (for Escape)
+// (Re)start the "typing stopped" countdown; when it runs out the list closes (the
+// choice itself was already applied) and focus goes back to the city box.
+function cfStartAutoClose() {
   clearTimeout(cfClearTimer);
   cfClearTimer = setTimeout(() => {
     cfClearTimer = null;
     if (!cfPanel.classList.contains('open')) return;
-    if (cfKbOpt) {
-      selectCountryFilterValue(cfKbOpt.dataset.val);
-      document.getElementById('cityInput').focus();
-    } else {
-      cfSearch.value = '';   // nothing matched: just forget the typed text
-    }
-  }, CF_AUTO_PICK_MS);
+    closeCountryFilterPanel();
+    document.getElementById('cityInput').focus();
+  }, CF_AUTO_CLOSE_MS);
 }
 function panelOpts() { return Array.from(cfPanel.querySelectorAll('.cf-opt')); }
 
-function selectCountryFilterValue(v) {
+function applyCountryFilterValue(v) {
   if (v.startsWith('c:')) { S.countryMode = 'specific'; S.specificCountry = v.slice(2); }
   else { S.countryMode = v; }
-  closeCountryFilterPanel();
   syncCountryFilterUI();
   persistSession();
+}
+function selectCountryFilterValue(v) {
+  applyCountryFilterValue(v);
+  closeCountryFilterPanel();
 }
 
 function closeCountryFilterPanel() {
@@ -4702,6 +4705,7 @@ document.getElementById('countryFilterBtn').onclick = e => {
   const opening = !cfPanel.classList.contains('open');
   if (!opening) { closeCountryFilterPanel(); return; }
   cfPanel.classList.add('open');
+  cfPrevChoice = { mode: S.countryMode, country: S.specificCountry };
   // Scroll the current choice into view when opening the (deliberately short) list
   const act = cfPanel.querySelector('.cf-opt.active'); if (act) act.scrollIntoView({block:'nearest'});
   cfSearch.focus({ preventScroll: true });   // ready to type straight away
@@ -4709,15 +4713,13 @@ document.getElementById('countryFilterBtn').onclick = e => {
 
 cfSearch.addEventListener('input', () => {
   cfApplyFilter();
-  cfStartAutoPick();
+  cfStartAutoClose();
 });
 cfSearch.addEventListener('keydown', e => {
   if (e.key === 'Enter') {
     e.preventDefault();
-    if (cfKbOpt) {
-      selectCountryFilterValue(cfKbOpt.dataset.val);
-      document.getElementById('cityInput').focus();   // straight back to guessing
-    }
+    closeCountryFilterPanel();                         // the choice is already applied
+    document.getElementById('cityInput').focus();      // straight back to guessing
   } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
     e.preventDefault();
     const vis = panelOpts();
@@ -4725,8 +4727,14 @@ cfSearch.addEventListener('keydown', e => {
     let i = vis.indexOf(cfKbOpt);
     i = e.key === 'ArrowDown' ? (i + 1) % vis.length : (i <= 0 ? vis.length - 1 : i - 1);
     cfSetKb(vis[i]);
-    if (cfClearTimer) cfStartAutoPick();
+    applyCountryFilterValue(vis[i].dataset.val);       // highlight = choice
+    cfStartAutoClose();
   } else if (e.key === 'Escape') {
+    // Undo whatever typing chose, then close.
+    if (cfPrevChoice) {
+      S.countryMode = cfPrevChoice.mode; S.specificCountry = cfPrevChoice.country;
+      syncCountryFilterUI(); persistSession();
+    }
     closeCountryFilterPanel();
     document.getElementById('cityInput').focus();
   }
