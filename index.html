@@ -659,6 +659,7 @@ input[type=checkbox]{accent-color:var(--accent2);cursor:pointer;width:14px;heigh
       <optgroup label="Countries">
         <option value="usa">United States</option>
         <option value="japan">Japan</option>
+        <option value="poland">Poland</option>
         <option value="russia">Russia</option>
         <option value="spain">Spain</option>
       </optgroup>
@@ -951,10 +952,34 @@ const REGIONS = {
   japan: {
     label:'Japan', color:'#AD1457',
     makeProj: (W,H) => d3.geoMercator().center([138, 37]).scale(Math.min(W,H)*2.6).translate([W/2, H/2]),
-    clip: [122, 24, 154, 46],
+    // Widened on both the west and east sides (originally 122–154°E) so the map
+    // can be panned well beyond the islands sideways.
+    clip: [108, 24, 168, 46],
+    // Pan limit is the same distance from the screen centre (the spot the map
+    // opens on) in all four directions — see the translateExtent code below.
+    symmetricPan: true,
     countries: ['JP'],
     // Restrict rendered land to Japan itself, so no neighbouring coastline
     // (Korea, Russia's Far East, Taiwan) bleeds in at the clip box's edges.
+    strictCountries: true,
+  },
+  poland: {
+    label:'Poland', color:'#DC143C',
+    // Poland spans roughly 14.1–24.2°E and 49.0–54.8°N. The centre is the
+    // midpoint of that box in Mercator terms, and the scale makes the country
+    // fill about 70% of the shorter screen side on load.
+    makeProj: (W,H) => d3.geoMercator().center([19.1, 52.05]).scale(Math.min(W,H)*4.2).translate([W/2, H/2]),
+    // Same panning setup as Japan/Spain: a clip box centred on the opening view,
+    // with the same pan distance in all four directions. Poland is a much
+    // smaller area in degrees, so the box is sized to give the same amount of
+    // pan room on screen (about 1.8 screen-heights each way, in between
+    // Japan's 1.7 and Spain's 1.9) rather than the same lon/lat numbers.
+    clip: [-0.9, 42, 39.1, 62],
+    symmetricPan: true,
+    countries: ['PL'],
+    // Restrict rendered land to Poland itself, so no neighbouring coastline
+    // (Germany, Czechia, Slovakia, Ukraine, Belarus, Lithuania, Russia's
+    // Kaliningrad exclave) bleeds in at the edges.
     strictCountries: true,
   },
   russia: {
@@ -983,7 +1008,13 @@ const REGIONS = {
     // far enough to also reach the Canary Islands (roughly 27.6–29.5°N,
     // -18.5– -13.4°E) so the user can pan/zoom down to them instead of
     // being stopped right at the mainland's edge.
-    clip: [-19, 27, 4.5, 44],
+    // (Extra room on the west and east sides — beyond the Canaries and past the
+    // Balearics/Catalan coast — so the map can be panned a bit further sideways.)
+    // Widened on both the west and east sides (originally -23–8°E).
+    clip: [-37, 27, 22, 44],
+    // Pan limit is the same distance from the screen centre (the spot the map
+    // opens on) in all four directions — see the translateExtent code below.
+    symmetricPan: true,
     countries: ['ES'],
     // Restrict rendered land to Spain itself, so no neighbouring coastline
     // (Portugal, France, Morocco, Andorra) bleeds in at the clip box's edges.
@@ -1277,15 +1308,36 @@ async function getGeoData(res) {
     // Tsushima, Sado, etc. — is included, not just the four main islands the
     // low-res world atlas roughly traces).
     'japan-prefs':'https://cdn.jsdelivr.net/gh/dataofjapan/land@master/japan.topojson',
+    // Spain's provinces (+ Ceuta and Melilla), with the autonomous-community
+    // outlines in the same file, from the IGN via the es-atlas package.
+    // Real lon/lat coordinates, so the Canary Islands sit where they really are.
+    'es-provinces': [
+      'https://cdn.jsdelivr.net/npm/es-atlas@0.6.0/es/provinces.json',
+      'https://unpkg.com/es-atlas@0.6.0/es/provinces.json',
+    ],
+    // Poland's 16 voivodeships (GeoJSON, real lon/lat, ~1.3 MB, one feature per
+    // voivodeship with its Polish name in properties.nazwa) from ppatrzyk/polska-geojson.
+    'pl-voivodeships': [
+      'https://cdn.jsdelivr.net/gh/ppatrzyk/polska-geojson@master/wojewodztwa/wojewodztwa-medium.geojson',
+      'https://raw.githubusercontent.com/ppatrzyk/polska-geojson/master/wojewodztwa/wojewodztwa-medium.geojson',
+    ],
   };
-  geoCache[res] = await fetch(urls[res]).then(r => r.json());
-  return geoCache[res];
+  let lastErr;
+  for (const url of [].concat(urls[res])) {
+    try {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(`HTTP ${r.status} for ${url}`);
+      geoCache[res] = await r.json();
+      return geoCache[res];
+    } catch (err) { lastErr = err; }
+  }
+  throw lastErr;
 }
 
 // Pre-fetch 110m immediately so world loads fast; kick off 50m + US/Japan data in background
 getGeoData('110m');
 setTimeout(() => getGeoData('50m'), 800);
-setTimeout(() => { getGeoData('us-states'); getGeoData('us-counties'); getGeoData('japan-prefs'); }, 1200);
+setTimeout(() => { getGeoData('us-states'); getGeoData('us-counties'); getGeoData('japan-prefs'); getGeoData('es-provinces').catch(() => {}); getGeoData('pl-voivodeships').catch(() => {}); }, 1200);
 
 // A handful of tiny multi-island countries in the high-res 10m atlas (e.g. the
 // Maldives) have a few individual polygons whose ring winding is backwards.
@@ -1424,7 +1476,7 @@ function clipLineByLon(coords, lonThreshold, keepEast) {
 // map and the city-typing bar come back exactly as they were before the quiz
 // started (see setQuizMode).
 let quizMode = false;
-let quizRegion = null;             // 'japan' | 'usa' while quizMode is on, else null (selects the entry in QUIZ_CFG)
+let quizRegion = null;             // 'japan' | 'usa' | 'spain' | 'poland' while quizMode is on, else null (selects the entry in QUIZ_CFG)
 const quizSolved = new Set();      // region keys answered correctly so far (numbers for Japan, state abbreviations for the US)
 const quizSolvedTier = new Map();  // key -> 'yellow'|'red' for a solved region that took extra guesses (absent = solved on the first try, plain blue)
 let quizWrongCount = 0;            // wrong guesses made so far while hunting for the CURRENT target; resets each time a new target is picked
@@ -1756,6 +1808,8 @@ async function drawMap(regionKey) {
   const isWorld = regionKey === 'world';
   const isUSA = regionKey === 'usa';
   const isJapan = regionKey === 'japan';
+  const isSpain = regionKey === 'spain';
+  const isPoland = regionKey === 'poland';
   const res = isWorld ? '110m' : '50m';
 
   // Show the "I LOVE YOU NASTYA" banner whenever the Japan map is (re)loaded —
@@ -1766,6 +1820,8 @@ async function drawMap(regionKey) {
   // turn it off whenever a different map is drawn (the indicator chip hides itself).
   if (quizMode && quizRegion !== regionKey) setQuizMode(false);
   const usQuizOn = isUSA && quizMode && quizRegion === 'usa'; // US States quiz: draw clickable state shapes instead of counties
+  const spainQuizOn = isSpain && quizMode && quizRegion === 'spain'; // Spain quiz: draw clickable province shapes instead of the country outline
+  const polandQuizOn = isPoland && quizMode && quizRegion === 'poland'; // Poland quiz: draw clickable voivodeship shapes instead of the country outline
 
 
 
@@ -1775,6 +1831,10 @@ async function drawMap(regionKey) {
   const usCountiesData = isUSA && !usQuizOn ? await getGeoData('us-counties') : null; // the state quiz doesn't need the (large) county file
   // Pre-fetch prefecture-level Japan data for the Japan mode
   const japanPrefData  = isJapan ? await getGeoData('japan-prefs') : null;
+  // Province shapes for the Spain quiz
+  const spainRegionData = spainQuizOn ? await getGeoData('es-provinces') : null;
+  // Voivodeship shapes for the Poland quiz
+  const polandRegionData = polandQuizOn ? await getGeoData('pl-voivodeships') : null;
 
   const [W, H] = getMapSize();
   svg.attr('viewBox', `0 0 ${W} ${H}`);
@@ -1807,7 +1867,7 @@ async function drawMap(regionKey) {
   }
 
   // Land + borders — skip world-atlas land for USA/Japan (use their own high-res shapes instead)
-  if (!isUSA && !isJapan) {
+  if (!isUSA && !isJapan && !spainQuizOn && !polandQuizOn) {
     let countryFeatures = topojson.feature(geoData, geoData.objects.countries).features;
     countryFeatures.forEach(fixInvertedWinding);
     // Several disputed territories (Kosovo, Northern Cyprus, Somaliland...)
@@ -1820,6 +1880,33 @@ async function drawMap(regionKey) {
     // by identity instead.
     const countryGeoms = geoData.objects.countries.geometries;
     countryFeatures.forEach((f, i) => { f.__geom = countryGeoms[i]; });
+
+    // The world-atlas dataset folds French Guiana into France's MultiPolygon
+    // (there is no separate feature for it), so region filtering by country
+    // dropped it from the South America map along with the rest of France.
+    // Pull its polygon(s) out into their own feature with French Guiana's
+    // ISO numeric id (254 -> 'GF'), leaving the rest of France untouched.
+    // Visually nothing changes on maps that draw both (e.g. the world map).
+    (function splitFrenchGuiana() {
+      const GF_ID = 254, FR_ID = 250;
+      const fr = countryFeatures.find(f => Number(f.id) === FR_ID);
+      if (!fr || !fr.geometry || fr.geometry.type !== 'MultiPolygon') return;
+      if (countryFeatures.some(f => Number(f.id) === GF_ID)) return; // already separate in this dataset
+      const inGuiana = poly => {
+        const c = d3.geoCentroid({ type: 'Polygon', coordinates: poly });
+        return c[0] > -60 && c[0] < -49 && c[1] > 0 && c[1] < 7;
+      };
+      const gfPolys = fr.geometry.coordinates.filter(inGuiana);
+      if (!gfPolys.length) return;
+      fr.geometry = { ...fr.geometry, coordinates: fr.geometry.coordinates.filter(poly => !inGuiana(poly)) };
+      countryFeatures.push({
+        type: 'Feature',
+        id: GF_ID,
+        properties: { ...(fr.properties || {}), name: 'French Guiana' },
+        geometry: { type: 'MultiPolygon', coordinates: gfPolys },
+        __geom: {},
+      });
+    })();
 
     // Regional views load the full 50m worldwide dataset (needed for sharp
     // coastlines in the area you're looking at) but until now rendered EVERY
@@ -2014,6 +2101,78 @@ async function drawMap(regionKey) {
     quizHoverOutline = g.append('path').attr('id', 'quizHoverOutline');
   }
 
+  // Spain quiz: one clickable shape per province / autonomous city, drawn in
+  // place of the plain country outline used in Normal mode.
+  if (spainQuizOn && spainRegionData) {
+    const esProv = spainRegionData.objects.provinces;
+    const esComm = spainRegionData.objects.autonomous_regions; // may be absent
+    const esFeatures = topojson.feature(spainRegionData, esProv).features;
+    attachQuizHandlers(
+      g.select('#countries-g').selectAll('path')
+        .data(esFeatures).join('path')
+        .attr('d', path)
+        .attr('fill', S.landColor)
+        .attr('stroke', S.borderColor)
+        .attr('stroke-width', 0.15)
+        .attr('stroke-opacity', 0.4),
+      path, 'spain');
+    attachQuizHitTargets(g, esFeatures, path, 'spain');
+
+    // Province borders (internal, thin)
+    const esMesh = topojson.mesh(spainRegionData, esProv, (a, b) => a !== b);
+    g.append('path').attr('id', 'spain-borders').datum(esMesh).attr('d', path)
+      .attr('fill', 'none').attr('stroke', S.borderColor).attr('stroke-width', 0.4)
+      .attr('stroke-opacity', 0.7);
+    // Autonomous-community borders on top, slightly bolder, for orientation
+    if (esComm) {
+      const commMesh = topojson.mesh(spainRegionData, esComm, (a, b) => a !== b);
+      g.append('path').attr('id', 'spain-community-borders').datum(commMesh).attr('d', path)
+        .attr('fill', 'none').attr('stroke', S.borderColor).attr('stroke-width', 0.8)
+        .attr('stroke-opacity', 0.9).style('pointer-events', 'none');
+    }
+    // Outer coastline / national border
+    const esOuter = topojson.mesh(spainRegionData, esProv, (a, b) => a === b);
+    g.append('path').attr('id', 'nation-border-es').datum(esOuter).attr('d', path)
+      .attr('fill', 'none').attr('stroke', S.borderColor).attr('stroke-width', 0.9);
+
+    // Hover-outline overlay (same idea as the Japan / US quizzes)
+    quizHoverOutline = g.append('path').attr('id', 'quizHoverOutline');
+  }
+
+  // Poland quiz: one clickable shape per voivodeship, drawn in place of the
+  // plain country outline used in Normal mode. The source is plain GeoJSON, so
+  // a shared-border topology is built from it to draw the borders the same way
+  // as the Spain quiz (thin internal borders + a bolder outer outline).
+  if (polandQuizOn && polandRegionData) {
+    const plFeatures = polandRegionData.features;
+    plFeatures.forEach(fixInvertedWinding);
+    if (!polandRegionData._topo) polandRegionData._topo = topojson.topology({ voivodeships: polandRegionData });
+    const plTopo = polandRegionData._topo, plObj = plTopo.objects.voivodeships;
+    attachQuizHandlers(
+      g.select('#countries-g').selectAll('path')
+        .data(plFeatures).join('path')
+        .attr('d', path)
+        .attr('fill', S.landColor)
+        .attr('stroke', S.borderColor)
+        .attr('stroke-width', 0.15)
+        .attr('stroke-opacity', 0.4),
+      path, 'poland');
+    attachQuizHitTargets(g, plFeatures, path, 'poland');
+
+    // Voivodeship borders (internal, thin)
+    const plMesh = topojson.mesh(plTopo, plObj, (a, b) => a !== b);
+    g.append('path').attr('id', 'poland-borders').datum(plMesh).attr('d', path)
+      .attr('fill', 'none').attr('stroke', S.borderColor).attr('stroke-width', 0.4)
+      .attr('stroke-opacity', 0.7);
+    // Outer coastline / national border
+    const plOuter = topojson.mesh(plTopo, plObj, (a, b) => a === b);
+    g.append('path').attr('id', 'nation-border-pl').datum(plOuter).attr('d', path)
+      .attr('fill', 'none').attr('stroke', S.borderColor).attr('stroke-width', 0.9);
+
+    // Hover-outline overlay (same idea as the Japan / US / Spain quizzes)
+    quizHoverOutline = g.append('path').attr('id', 'quizHoverOutline');
+  }
+
   // For regional views, use d3's native translateExtent so the user can't drag
   // the region's bounding box out of view (the world map and USA, which use a
   // different projection with no lon/lat clip box, remain freely pannable).
@@ -2033,10 +2192,18 @@ async function drawMap(regionKey) {
       // (e.g. the Canary Islands south of mainland Europe) stay comfortably
       // reachable instead of being stranded right at the edge of the screen.
       const pad = Math.min(W, H) * 0.3;
-      zoomBehavior.translateExtent([
-        [Math.min(...xs) - pad, Math.min(...ys) - pad],
-        [Math.max(...xs) + pad, Math.max(...ys) + pad],
-      ]);
+      const x0 = Math.min(...xs) - pad, x1 = Math.max(...xs) + pad;
+      const y0 = Math.min(...ys) - pad, y1 = Math.max(...ys) + pad;
+      if (region.symmetricPan) {
+        // Treat the screen centre (where the map first appears) as 0 and allow
+        // the same panning distance up, down, left and right. The distance is
+        // the largest of the four edge distances, so no side gets any smaller.
+        const cx = W / 2, cy = H / 2;
+        const r = Math.max(cx - x0, x1 - cx, cy - y0, y1 - cy);
+        zoomBehavior.translateExtent([[cx - r, cy - r], [cx + r, cy + r]]);
+      } else {
+        zoomBehavior.translateExtent([[x0, y0], [x1, y1]]);
+      }
     } else {
       zoomBehavior.translateExtent([[-Infinity,-Infinity],[Infinity,Infinity]]);
     }
@@ -3649,6 +3816,103 @@ const US_STATE_POPULATION = {
   TX:29145505, UT:3271616, VT:643077, VA:8631393, WA:7705281, WV:1793716,
   WI:5893718, WY:576851,
 };
+// Spain: the 50 provinces + the 2 autonomous cities (Ceuta, Melilla), keyed by
+// their INE province code as used in the es-atlas boundary data.
+const ES_REGION_NAMES = {
+  '01':'Álava', '02':'Albacete', '03':'Alicante', '04':'Almería', '05':'Ávila',
+  '06':'Badajoz', '07':'Balearic Islands', '08':'Barcelona', '09':'Burgos',
+  '10':'Cáceres', '11':'Cádiz', '12':'Castellón', '13':'Ciudad Real',
+  '14':'Córdoba', '15':'A Coruña', '16':'Cuenca', '17':'Girona', '18':'Granada',
+  '19':'Guadalajara', '20':'Gipuzkoa', '21':'Huelva', '22':'Huesca', '23':'Jaén',
+  '24':'León', '25':'Lleida', '26':'La Rioja', '27':'Lugo', '28':'Madrid',
+  '29':'Málaga', '30':'Murcia', '31':'Navarre', '32':'Ourense', '33':'Asturias',
+  '34':'Palencia', '35':'Las Palmas', '36':'Pontevedra', '37':'Salamanca',
+  '38':'Santa Cruz de Tenerife', '39':'Cantabria', '40':'Segovia', '41':'Seville',
+  '42':'Soria', '43':'Tarragona', '44':'Teruel', '45':'Toledo', '46':'Valencia',
+  '47':'Valladolid', '48':'Biscay (Bizkaia)', '49':'Zamora', '50':'Zaragoza',
+  '51':'Ceuta', '52':'Melilla',
+};
+const ES_REGION_CAPITALS = {
+  '01':'Vitoria-Gasteiz', '02':'Albacete', '03':'Alicante', '04':'Almería', '05':'Ávila',
+  '06':'Badajoz', '07':'Palma', '08':'Barcelona', '09':'Burgos',
+  '10':'Cáceres', '11':'Cádiz', '12':'Castelló de la Plana', '13':'Ciudad Real',
+  '14':'Córdoba', '15':'A Coruña', '16':'Cuenca', '17':'Girona', '18':'Granada',
+  '19':'Guadalajara', '20':'San Sebastián', '21':'Huelva', '22':'Huesca', '23':'Jaén',
+  '24':'León', '25':'Lleida', '26':'Logroño', '27':'Lugo', '28':'Madrid',
+  '29':'Málaga', '30':'Murcia', '31':'Pamplona', '32':'Ourense', '33':'Oviedo',
+  '34':'Palencia', '35':'Las Palmas de Gran Canaria', '36':'Pontevedra', '37':'Salamanca',
+  '38':'Santa Cruz de Tenerife', '39':'Santander', '40':'Segovia', '41':'Seville',
+  '42':'Soria', '43':'Tarragona', '44':'Teruel', '45':'Toledo', '46':'Valencia',
+  '47':'Valladolid', '48':'Bilbao', '49':'Zamora', '50':'Zaragoza',
+  '51':'Ceuta', '52':'Melilla',
+};
+// Resident population, approx. INE figures (1 January 2021).
+const ES_REGION_POPULATION = {
+  '01':333626, '02':386464, '03':1881762, '04':731792, '05':158498,
+  '06':669943, '07':1173008, '08':5714730, '09':356958,
+  '10':389558, '11':1245960, '12':587064, '13':492115,
+  '14':780953, '15':1119596, '16':196329, '17':786596, '18':921338,
+  '19':265588, '20':725296, '21':524278, '22':224264, '23':626801,
+  '24':451706, '25':439727, '26':319796, '27':326013, '28':6751251,
+  '29':1695651, '30':1518486, '31':661197, '32':306650, '33':1011792,
+  '34':159123, '35':1128539, '36':943236, '37':328897,
+  '38':1044405, '39':584507, '40':153663, '41':1942389,
+  '42':88747, '43':816772, '44':134545, '45':703772, '46':2589312,
+  '47':519546, '48':1154334, '49':168725, '50':967452,
+  '51':83517, '52':86261,
+};
+// Name fallbacks (accent/case-insensitive) in case a feature's id isn't the
+// 2-digit INE code — matched against the feature's own name property.
+const ES_NAME_ALIASES = (() => {
+  const strip = t => String(t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z]+/g, ' ').trim();
+  const m = new Map();
+  Object.entries(ES_REGION_NAMES).forEach(([id, n]) => m.set(strip(n), id));
+  const extra = {
+    '01':['araba alava','alava','araba'], '03':['alacant alicante','alacant'], '07':['illes balears','baleares'],
+    '12':['castello castellon','castello','castellon castello'], '15':['a coruna','la coruna','coruna'],
+    '17':['girona','gerona'], '20':['gipuzkoa','guipuzcoa'], '25':['lleida','lerida'],
+    '31':['comunidad foral de navarra','navarra'], '32':['ourense','orense'],
+    '33':['principado de asturias','asturias'], '35':['las palmas'], '38':['santa cruz de tenerife'],
+    '41':['sevilla'], '46':['valencia valencia','valencia'], '48':['bizkaia','vizcaya','biscay bizkaia'],
+    '26':['la rioja'], '28':['madrid','comunidad de madrid'], '30':['murcia','region de murcia'],
+    '51':['ceuta','ciudad autonoma de ceuta'], '52':['melilla','ciudad autonoma de melilla'],
+  };
+  Object.entries(extra).forEach(([id, list]) => list.forEach(n => m.set(strip(n), id)));
+  return { map: m, strip };
+})();
+// Poland: the 16 voivodeships (provinces). Keys are the ids used in the
+// polska-geojson boundary data; features are matched by their Polish name
+// first (properties.nazwa), falling back to the id.
+const PL_VOIVODESHIP_NAZWA = {
+  1:'śląskie', 2:'opolskie', 3:'wielkopolskie', 4:'zachodniopomorskie',
+  5:'świętokrzyskie', 6:'kujawsko-pomorskie', 7:'podlaskie', 8:'dolnośląskie',
+  9:'podkarpackie', 10:'małopolskie', 11:'pomorskie', 12:'warmińsko-mazurskie',
+  13:'łódzkie', 14:'mazowieckie', 15:'lubelskie', 16:'lubuskie',
+};
+const PL_VOIVODESHIP_NAMES = {
+  1:'Śląskie (Silesian)', 2:'Opolskie (Opole)', 3:'Wielkopolskie (Greater Poland)',
+  4:'Zachodniopomorskie (West Pomeranian)', 5:'Świętokrzyskie (Holy Cross)',
+  6:'Kujawsko-Pomorskie (Kuyavian-Pomeranian)', 7:'Podlaskie (Podlachian)',
+  8:'Dolnośląskie (Lower Silesian)', 9:'Podkarpackie (Subcarpathian)',
+  10:'Małopolskie (Lesser Poland)', 11:'Pomorskie (Pomeranian)',
+  12:'Warmińsko-Mazurskie (Warmian-Masurian)', 13:'Łódzkie (Łódź)',
+  14:'Mazowieckie (Masovian)', 15:'Lubelskie (Lublin)', 16:'Lubuskie (Lubusz)',
+};
+// Seat(s) of the voivode / regional parliament. Kuyavian-Pomeranian and Lubusz
+// each split the two roles between two cities.
+const PL_VOIVODESHIP_CAPITALS = {
+  1:'Katowice', 2:'Opole', 3:'Poznań', 4:'Szczecin', 5:'Kielce',
+  6:'Bydgoszcz / Toruń', 7:'Białystok', 8:'Wrocław', 9:'Rzeszów', 10:'Kraków',
+  11:'Gdańsk', 12:'Olsztyn', 13:'Łódź', 14:'Warsaw', 15:'Lublin',
+  16:'Gorzów Wielkopolski / Zielona Góra',
+};
+// Resident population, approximate recent figures rounded to the nearest 10,000.
+const PL_VOIVODESHIP_POPULATION = {
+  1:4400000, 2:970000, 3:3490000, 4:1680000, 5:1180000, 6:2020000, 7:1150000,
+  8:2900000, 9:2090000, 10:3430000, 11:2370000, 12:1390000, 13:2340000,
+  14:5510000, 15:2050000, 16:970000,
+};
+const PL_NAME_TO_ID = new Map(Object.entries(PL_VOIVODESHIP_NAZWA).map(([id, n]) => [n, Number(id)]));
 const QUIZ_CFG = {
   japan: {
     icon: '🗾', noun: 'prefecture', Nouns: 'Prefectures', label: 'Japan — Prefectures',
@@ -3672,6 +3936,41 @@ const QUIZ_CFG = {
     keyOf: d => {
       const abbr = US_STATE_NAME_TO_ABBR.get(String((d.properties && d.properties.name) || '').toLowerCase());
       return abbr && !US_QUIZ_EXCLUDED.has(abbr) ? abbr : null;
+    },
+    geometryDiffers: true,
+  },
+  spain: {
+    icon: '🇪🇸', noun: 'province', Nouns: 'Provinces', label: 'Spain — Provinces',
+    indicatorTitle: 'Province quiz — find the named province and click it',
+    modalTitle: '🇪🇸 Spain — choose a mode',
+    normalDesc: 'Find and type Spanish cities, same as any other map.',
+    quizTitle: 'Provinces', quizDesc: 'Find and click each of the 50 provinces and 2 autonomous cities by name.',
+    names: ES_REGION_NAMES, capitals: ES_REGION_CAPITALS, pop: ES_REGION_POPULATION,
+    ids: Object.keys(ES_REGION_NAMES),
+    // Anything in the boundary data that isn't one of the 52 (e.g. Gibraltar)
+    // is drawn but never asked about (clicking it is ignored).
+    keyOf: d => {
+      const byId = String(d.id == null ? '' : d.id).padStart(2, '0');
+      if (ES_REGION_NAMES[byId]) return byId;
+      const nm = d.properties && d.properties.name;
+      return (nm && ES_NAME_ALIASES.map.get(ES_NAME_ALIASES.strip(nm))) || null;
+    },
+    geometryDiffers: true,
+  },
+  poland: {
+    icon: '🇵🇱', noun: 'voivodeship', Nouns: 'Voivodeships', label: 'Poland — Voivodeships',
+    indicatorTitle: 'Voivodeship quiz — find the named voivodeship and click it',
+    modalTitle: '🇵🇱 Poland — choose a mode',
+    normalDesc: 'Find and type Polish cities, same as any other map.',
+    quizTitle: 'Voivodeships', quizDesc: 'Find and click each of the 16 voivodeships by name.',
+    names: PL_VOIVODESHIP_NAMES, capitals: PL_VOIVODESHIP_CAPITALS, pop: PL_VOIVODESHIP_POPULATION,
+    ids: Object.keys(PL_VOIVODESHIP_NAMES).map(Number),
+    keyOf: d => {
+      const p = (d && d.properties) || {};
+      const byName = PL_NAME_TO_ID.get(String(p.nazwa || '').trim().toLowerCase());
+      if (byName != null) return byName;
+      const n = Number(p.id);
+      return Number.isFinite(n) && PL_VOIVODESHIP_NAMES[n] ? n : null;
     },
     geometryDiffers: true,
   },
@@ -4057,9 +4356,9 @@ function highlightCity(city) {
 }
 
 // ─── REGION BUTTONS ──────────────────────────────────────────────────────────
-const regionColors = { world:'#2B4C7E', europe:'#1565C0', north_america:'#6A1B9A', usa:'#B71C1C', japan:'#AD1457', russia:'#3949AB', spain:'#F9A825', south_america:'#2E7D32', africa:'#BF360C', asia:'#E65100', oceania:'#00695C' };
+const regionColors = { world:'#2B4C7E', europe:'#1565C0', north_america:'#6A1B9A', usa:'#B71C1C', japan:'#AD1457', poland:'#DC143C', russia:'#3949AB', spain:'#F9A825', south_america:'#2E7D32', africa:'#BF360C', asia:'#E65100', oceania:'#00695C' };
 // Single-country maps get a flag emoji in the picker instead of the plain colour dot.
-const regionFlags = { usa:'🇺🇸', japan:'🇯🇵', russia:'🇷🇺', spain:'🇪🇸' };
+const regionFlags = { usa:'🇺🇸', japan:'🇯🇵', poland:'🇵🇱', russia:'🇷🇺', spain:'🇪🇸' };
 
 function tintRegionSelect(rk) {
   const sel = document.getElementById('regionSelect');
