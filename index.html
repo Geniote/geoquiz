@@ -110,6 +110,10 @@ body.night-mode .tbbtn.danger{background:#a85850;border-color:#a85850}
 #cfCaret{flex-shrink:0;border-left:3.5px solid transparent;border-right:3.5px solid transparent;border-top:4px solid currentColor}
 #countryFilterPanel{display:none;position:absolute;right:0;top:calc(100% + 5px);width:190px;max-height:216px;overflow-y:auto;overscroll-behavior:contain;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 6px 22px rgba(0,0,0,.18);z-index:60;padding:4px}
 #countryFilterPanel.open{display:block}
+.cf-search-wrap{position:absolute;left:0;top:0;width:1px;height:1px;margin:0;padding:0;overflow:hidden;opacity:0;pointer-events:none}
+#cfSearch{display:block;width:1px;height:1px;box-sizing:border-box;margin:0;padding:0;border:0;background:transparent;color:transparent;caret-color:transparent;font-size:11.5px;outline:none}
+.cf-opt.kb{background:#f0f4fb;color:var(--accent2);box-shadow:inset 2px 0 0 var(--accent2)}
+body.night-mode .cf-opt.kb{background:rgba(43,76,126,.3)}
 .cf-opt{display:block;width:100%;padding:5px 8px;border:none;border-radius:5px;background:none;font-size:11.5px;font-weight:600;color:var(--text);text-align:left;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
 .cf-opt:hover{background:var(--bg)}
 .cf-opt.active{background:#f0f4fb;color:var(--accent2)}
@@ -535,6 +539,7 @@ input[type=checkbox]{accent-color:var(--accent2);cursor:pointer;width:14px;heigh
   #cityInput{font-size:16px;padding-right:126px}
   #countryFilterBtn{width:118px;font-size:11px}
   #countryFilterPanel{width:200px;max-height:240px}
+  #cfSearch{font-size:16px} /* stops iOS zooming in on focus */
   #mapPickBtn{height:44px;order:2}
   #quizIndicator{height:30px;order:2}
   #mapBox{width:94vw;max-height:88dvh}
@@ -671,6 +676,7 @@ input[type=checkbox]{accent-color:var(--accent2);cursor:pointer;width:14px;heigh
           <span id="cfBtnLabel">Any country</span><span id="cfCaret"></span>
         </button>
         <div id="countryFilterPanel">
+          <div class="cf-search-wrap"><input type="text" id="cfSearch" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search countries"/></div>
           <button type="button" class="cf-opt" data-val="any">Any country</button>
           <button type="button" class="cf-opt" data-val="every">Every country</button>
           <div class="cf-sep">Specific country</div>
@@ -4608,29 +4614,110 @@ function syncCountryFilterUI() {
   btn.classList.toggle('filtering', val !== 'any');
 }
 
-function closeCountryFilterPanel() {
-  document.getElementById('countryFilterPanel').classList.remove('open');
+// Type-to-select: opening the panel focuses a hidden input, so the user can just
+// start typing with no visible box. The full list stays as it is; the best match
+// for what's typed is highlighted and scrolled into view, and Enter picks it
+// (Up/Down move the highlight). The typed text clears itself after a short pause.
+const cfPanel = document.getElementById('countryFilterPanel');
+const cfSearch = document.getElementById('cfSearch');
+let cfKbOpt = null;   // option currently highlighted for Enter
+
+// How well option `o` matches the folded query `q` (0 = not at all).
+function cfScore(o, q) {
+  const v = o.dataset.val || '';
+  const label = fold(o.textContent);
+  const cands = [label];
+  if (v === 'any') cands.push('any');
+  else if (v === 'every') cands.push('every', 'all');
+  else if (v.startsWith('c:')) {
+    const code = v.slice(2);
+    cands.push(code.toLowerCase());
+    (ISO_ALIASES[code] || []).forEach(a => cands.push(fold(a)));
+  }
+  let best = 0;
+  cands.forEach(c => {
+    if (c === q) best = Math.max(best, 4);
+    else if (c.startsWith(q)) best = Math.max(best, 3);
+    else if (c.split(' ').some(w => w.startsWith(q))) best = Math.max(best, 2);
+    else if (q.length > 1 && c.includes(q)) best = Math.max(best, 1);
+  });
+  return best;
 }
 
-document.getElementById('countryFilterBtn').onclick = e => {
-  e.stopPropagation();
-  const panel = document.getElementById('countryFilterPanel');
-  const opening = !panel.classList.contains('open');
-  panel.classList.toggle('open', opening);
-  // Scroll the current choice into view when opening the (deliberately short) list
-  if (opening) { const act = panel.querySelector('.cf-opt.active'); if (act) act.scrollIntoView({block:'nearest'}); }
-};
+function cfSetKb(o) {
+  if (cfKbOpt) cfKbOpt.classList.remove('kb');
+  cfKbOpt = o || null;
+  if (cfKbOpt) { cfKbOpt.classList.add('kb'); cfKbOpt.scrollIntoView({ block: 'nearest' }); }
+}
 
-document.getElementById('countryFilterPanel').onclick = e => {
-  e.stopPropagation();
-  const opt = e.target.closest('.cf-opt');
-  if (!opt) return;
-  const v = opt.dataset.val;
+function cfApplyFilter() {
+  const q = fold(cfSearch.value);
+  let best = null, bestScore = 0;
+  if (q) panelOpts().forEach(o => {
+    const sc = cfScore(o, q);
+    if (sc > bestScore) { best = o; bestScore = sc; }   // first of the top score wins
+  });
+  cfSetKb(best);
+}
+let cfClearTimer = null;
+function panelOpts() { return Array.from(cfPanel.querySelectorAll('.cf-opt')); }
+
+function selectCountryFilterValue(v) {
   if (v.startsWith('c:')) { S.countryMode = 'specific'; S.specificCountry = v.slice(2); }
   else { S.countryMode = v; }
   closeCountryFilterPanel();
   syncCountryFilterUI();
   persistSession();
+}
+
+function closeCountryFilterPanel() {
+  cfPanel.classList.remove('open');
+  // Reset the typed text and highlight so the next opening starts fresh.
+  clearTimeout(cfClearTimer);
+  if (cfSearch.value) cfSearch.value = '';
+  cfApplyFilter();
+}
+
+document.getElementById('countryFilterBtn').onclick = e => {
+  e.stopPropagation();
+  const opening = !cfPanel.classList.contains('open');
+  if (!opening) { closeCountryFilterPanel(); return; }
+  cfPanel.classList.add('open');
+  // Scroll the current choice into view when opening the (deliberately short) list
+  const act = cfPanel.querySelector('.cf-opt.active'); if (act) act.scrollIntoView({block:'nearest'});
+  cfSearch.focus({ preventScroll: true });   // ready to type straight away
+};
+
+cfSearch.addEventListener('input', () => {
+  cfApplyFilter();
+  clearTimeout(cfClearTimer);
+  cfClearTimer = setTimeout(() => { cfSearch.value = ''; }, 1500);
+});
+cfSearch.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (cfKbOpt) {
+      selectCountryFilterValue(cfKbOpt.dataset.val);
+      document.getElementById('cityInput').focus();   // straight back to guessing
+    }
+  } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    const vis = panelOpts();
+    if (!vis.length) return;
+    let i = vis.indexOf(cfKbOpt);
+    i = e.key === 'ArrowDown' ? (i + 1) % vis.length : (i <= 0 ? vis.length - 1 : i - 1);
+    cfSetKb(vis[i]);
+  } else if (e.key === 'Escape') {
+    closeCountryFilterPanel();
+    document.getElementById('cityInput').focus();
+  }
+});
+
+cfPanel.onclick = e => {
+  e.stopPropagation();
+  const opt = e.target.closest('.cf-opt');
+  if (!opt) return;
+  selectCountryFilterValue(opt.dataset.val);
 };
 
 document.addEventListener('click', closeCountryFilterPanel);
