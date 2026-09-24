@@ -253,6 +253,19 @@ body.night-mode .mode-toggle:has(input:checked){box-shadow:0 0 0 2px rgba(111,16
 .quiz-active #countries-g path{cursor:pointer;transition:fill .12s ease}
 /* Shapes that are drawn but aren't part of the quiz (DC / territories on the US map). */
 .quiz-active #countries-g path.quiz-inert{cursor:default}
+/* Region borders are drawn as separate stroke-only meshes on top of the shapes;
+   during a quiz they must not swallow clicks (on tiny regions, or along a
+   coastline, the border line can be most of the click target). */
+.quiz-active #map-g path[id*="border"]{pointer-events:none}
+/* Tiny-region assist (see setupTinyRegionAssist): a ring drawn over any region
+   that's too small to click comfortably at the current zoom. Kept BEFORE the
+   .quiz-solved / -yellow / -red / -wrong-flash / -hint-blink rules on purpose:
+   those classes get copied onto the ring so it mirrors the region's state, and
+   equal-specificity rules further down the sheet need to win over this base look. */
+#tiny-g{display:none}
+.quiz-active #tiny-g{display:block}
+.tiny-marker{fill:var(--surface);fill-opacity:.35;stroke:var(--accent2);stroke-opacity:.95;cursor:pointer;pointer-events:all;transition:fill-opacity .12s ease}
+.tiny-marker:hover,.tiny-marker.hover{fill:var(--accent2);fill-opacity:.4}
 /* Hover "pop" for the prefecture quiz: brightens the fill of whichever
    prefecture the mouse is over. The actual highlighted BORDER is a separate
    overlay path (#quizHoverOutline, positioned/shown from JS on
@@ -661,6 +674,7 @@ input[type=checkbox]{accent-color:var(--accent2);cursor:pointer;width:14px;heigh
         <option value="japan">Japan</option>
         <option value="russia">Russia</option>
         <option value="spain">Spain</option>
+        <option value="poland">Poland</option>
       </optgroup>
     </select>
     <div id="inputControls">
@@ -989,6 +1003,19 @@ const REGIONS = {
     // (Portugal, France, Morocco, Andorra) bleeds in at the clip box's edges.
     strictCountries: true,
   },
+  poland: {
+    label:'Poland', color:'#DC143C',
+    // On desktop the city list floats over the map's right edge without resizing
+    // it, so centre Poland in the part of the map that stays visible.
+    makeProj: (W,H) => {
+      const panel = document.getElementById('panel');
+      const listW = (window.innerWidth > 860 && panel && !document.body.classList.contains('list-collapsed')) ? panel.offsetWidth : 0;
+      return d3.geoMercator().center([19.13, 52.26]).scale(Math.min(W - listW, H)*5.2).translate([(W - listW)/2, H/2]);
+    },
+    clip: [13.5, 48.5, 25, 55.5],
+    countries: ['PL'],
+    strictCountries: true,
+  },
 };
 
 // A city counts as "in" a region if its country is on the region's country
@@ -1230,6 +1257,7 @@ function applyZoomFrame() {
   const mapGNode = document.getElementById('map-g');
   if (mapGNode) mapGNode.style.transform = `translate(${t.x}px,${t.y}px) scale(${t.k})`;
   document.getElementById('zoomLbl').textContent = Math.round(t.k * 100) + '%';
+  updateTinyMarkers();
   drawNightCanvas();
   // The satellite raster lives in an untransformed layer (see renderPhysicalBasemap)
   // so it stays sharp instead of being stretched by this transform — but that means
@@ -1263,7 +1291,7 @@ function getMapSize() {
 // ─── MAP DATA (multiple resolutions) ─────────────────────────────────────────
 // 110m = lightweight, used for world view
 // 50m  = detailed coastlines, used for all regional (non-world) views
-const geoCache = { '110m': null, '50m': null, 'us-states': null, 'us-counties': null, 'japan-prefs': null, 'spain-provs': null, 'russia-regions': null };
+const geoCache = { '110m': null, '50m': null, 'us-states': null, 'us-counties': null, 'japan-prefs': null, 'spain-provs': null, 'poland-voivs': null, 'russia-regions': null };
 
 async function getGeoData(res) {
   if (geoCache[res]) return geoCache[res];
@@ -1281,6 +1309,13 @@ async function getGeoData(res) {
     // Canary Islands, Ceuta and Melilla), built by the Spanish National
     // Geographic Institute's own reference data (martgnz/es-atlas).
     'spain-provs':'https://cdn.jsdelivr.net/npm/es-atlas@0.6.0/es/provinces.json',
+    // Voivodeship-level (province) Poland boundaries, all 16 (GeoJSON, feature
+    // property `nazwa`); converted to a TopoJSON topology after loading so the
+    // shared borders can be meshed like the other maps. Two mirrors, tried in order.
+    'poland-voivs':[
+      'https://cdn.jsdelivr.net/gh/ppatrzyk/polska-geojson@master/wojewodztwa/wojewodztwa-medium.geojson',
+      'https://raw.githubusercontent.com/ppatrzyk/polska-geojson/master/wojewodztwa/wojewodztwa-medium.geojson',
+    ],
     // Federal-subject-level Russia boundaries (GADM adm1 data). The exact set
     // of shapes and their property names aren't pinned down by any package
     // version the way the sources above are, so the drawing code below (see
@@ -1288,14 +1323,30 @@ async function getGeoData(res) {
     // feature's name property defensively instead of assuming fixed keys.
     'russia-regions':'https://cdn.jsdelivr.net/gh/zarkzork/russia-topojson@master/russia.json',
   };
-  geoCache[res] = await fetch(urls[res]).then(r => r.json());
+  const src = urls[res];
+  let data = null, lastErr = null;
+  for (const u of (Array.isArray(src) ? src : [src])) {
+    try { const r = await fetch(u); if (!r.ok) throw new Error('HTTP ' + r.status); data = await r.json(); break; }
+    catch (e) { lastErr = e; }
+  }
+  if (!data) throw lastErr;
+  geoCache[res] = res === 'poland-voivs' ? polandToTopology(data) : data;
   return geoCache[res];
+}
+
+// Poland's boundary source is plain GeoJSON. Turning it into a topology gives
+// shared (deduplicated) borders, so topojson.mesh works exactly as for Spain.
+// If the topojson server bundle isn't available, fall back to bare features.
+function polandToTopology(gj) {
+  gj.features.forEach(fixInvertedWinding);
+  if (typeof topojson.topology === 'function') return topojson.topology({ voivodeships: gj });
+  return { noTopo: true, features: gj.features };
 }
 
 // Pre-fetch 110m immediately so world loads fast; kick off 50m + US/Japan/Spain/Russia data in background
 getGeoData('110m');
 setTimeout(() => getGeoData('50m'), 800);
-setTimeout(() => { getGeoData('us-states'); getGeoData('us-counties'); getGeoData('japan-prefs'); getGeoData('spain-provs'); getGeoData('russia-regions'); }, 1200);
+setTimeout(() => { getGeoData('us-states'); getGeoData('us-counties'); getGeoData('japan-prefs'); getGeoData('spain-provs'); getGeoData('poland-voivs'); getGeoData('russia-regions'); }, 1200);
 
 // A handful of tiny multi-island countries in the high-res 10m atlas (e.g. the
 // Maldives) have a few individual polygons whose ring winding is backwards.
@@ -1643,6 +1694,13 @@ function quizHandleClick(event, key) {
       if (text) showQuizTooltip(lastPointerXY, text, quizTargetId == null ? 'complete' : '');
       else hideQuizTooltip();
     }, 700);
+  } else if (quizSolved.has(key)) {
+    // Already-solved region clicked again — not a real mistake, so don't
+    // flash it red or count it against quizWrongCount. Just a quiet nudge.
+    showQuizTooltip(event, `✓ Already found — ${cfg.names[key] || '?'}`, 'correct');
+    quizFeedbackTimer = setTimeout(() => {
+      showQuizTooltip(lastPointerXY, quizCurrentPromptText());
+    }, 700);
   } else {
     quizWrongCount++;
     sel.classed('quiz-wrong-flash', true);
@@ -1696,6 +1754,179 @@ function attachQuizHandlers(sel, path, regionKey) {
     });
 }
 
+// ─── TINY-REGION ASSIST (region quizzes) ───────────────────────────────────
+// Some regions (Ceuta, Melilla, Moscow, Sevastopol, Rhode Island...) are only a
+// few pixels across at normal zoom, so they're nearly impossible to hit. While a
+// region quiz is running, each such region gets:
+//   1. a visible ring ("marker") around it, so it stands out and you can see
+//      there's something to click there. The ring is also the click target, and
+//      mirrors the region's state (solved tint, wrong-guess flash, hint blink);
+//   2. an invisible extra reach in EMPTY space only (open sea): pointing near a
+//      ring counts as pointing at it, with the cursor and ring reacting on hover.
+// Neither can steal a click from another region:
+//   - rings are shrunk so no two ever overlap each other;
+//   - the extra reach applies only where nothing else is under the cursor, and
+//     if two reaches meet the nearer ring wins, so they never overlap either;
+//   - rings are recomputed on every zoom step and disappear once the region is
+//     big enough to click directly (zoom in far enough and they're gone).
+const TINY_MAX_PX  = 14;  // on-screen size (px, longest side of the bounding box) under which a region counts as tiny
+const TINY_R_MIN   = 6;   // ring radius range, screen px (bigger on touch screens, see updateTinyMarkers)
+const TINY_R_MAX   = 10;
+const TINY_R_FLOOR = 2;   // rings only shrink this far when crowded by a neighbour's ring
+const TINY_REACH   = 18;  // extra invisible reach in empty space beyond the ring's edge, screen px
+const TINY_STATE_CLASSES = ['quiz-solved', 'quiz-solved-yellow', 'quiz-solved-red', 'quiz-wrong-flash', 'quiz-hint-blink'];
+let tinyState = null;      // { items, hover, regionKey } for the map currently drawn, or null
+let tinyObserver = null;   // MutationObserver copying region state classes onto their rings
+
+function tinyIsCoarse() {
+  try { return window.matchMedia('(pointer: coarse)').matches; } catch (e) { return false; }
+}
+function tinyActive() {
+  return !!(tinyState && quizMode && quizRegion === tinyState.regionKey);
+}
+// "Empty space" = the sea background (or the bare svg / satellite layer), i.e.
+// anywhere a click currently lands on nothing at all.
+function tinyIsDead(el) {
+  if (!el) return false;
+  if (el === svg.node() || el.id === 'sphere') return true;
+  return !!(el.closest && el.closest('#physical-g'));
+}
+// Nearest visible ring to the pointer whose edge is within `reach` px, or null.
+function tinyPick(event) {
+  const st = tinyState;
+  if (!st) return null;
+  const [px, py] = d3.pointer(event, svg.node());
+  const t = currentTransform;
+  const reach = tinyIsCoarse() ? TINY_REACH * 1.6 : TINY_REACH;
+  let best = null, bestD = Infinity;
+  for (const it of st.items) {
+    if (!it.sr) continue;
+    const d = Math.hypot(t.x + t.k * it.cx - px, t.y + t.k * it.cy - py) - it.sr;
+    if (d <= reach && d < bestD) { best = it; bestD = d; }
+  }
+  return best;
+}
+function tinySetHover(it) {
+  const st = tinyState;
+  if (!st || st.hover === it) return;
+  if (st.hover) st.hover.el.classList.remove('hover');
+  st.hover = it;
+  if (it) it.el.classList.add('hover');
+  svg.node().style.cursor = it ? 'pointer' : '';
+}
+// Route a click on a ring (or on its invisible reach) to the real region shape,
+// so the normal quiz logic (right/wrong, tiers, hint) runs completely unchanged.
+function tinyActivate(it, event) {
+  it.node.dispatchEvent(new MouseEvent('click', {
+    bubbles: true, cancelable: true, view: window,
+    clientX: event.clientX, clientY: event.clientY,
+  }));
+}
+function tinySyncState(it) {
+  TINY_STATE_CLASSES.forEach(c => it.el.classList.toggle(c, it.node.classList.contains(c)));
+}
+
+// Called once per drawMap. `enabled` is false for maps that aren't showing quiz
+// shapes (e.g. the US map in typing mode, which draws counties), in which case
+// this just tears everything down.
+function setupTinyRegionAssist(g, path, regionKey, enabled) {
+  if (tinyObserver) { tinyObserver.disconnect(); tinyObserver = null; }
+  tinyState = null;
+  svg.on('mousemove.tiny', null).on('mouseleave.tiny', null).on('click.tiny', null);
+  svg.node().style.cursor = '';
+  const cfg = QUIZ_CFG[regionKey];
+  if (!enabled || !cfg) return;
+
+  const layer = g.append('g').attr('id', 'tiny-g');
+  const items = [];
+  const byNode = new Map();
+  g.select('#countries-g').selectAll('path').each(function (d) {
+    if (!d) return;
+    const key = cfg.keyOf(d);
+    if (key == null) return; // not part of the quiz (e.g. DC)
+    const [[x0, y0], [x1, y1]] = path.bounds(d);
+    const w = x1 - x0, h = y1 - y0;
+    if (!isFinite(w) || !isFinite(h)) return;
+    // Zoom bottoms out at 0.5x, so anything 2x TINY_MAX_PX or bigger can never be tiny.
+    if (Math.max(w, h) >= TINY_MAX_PX / 0.5) return;
+    const it = { key, node: this, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, w, h, sr: 0, el: null };
+    const marker = layer.append('circle')
+      .attr('class', 'tiny-marker')
+      .attr('cx', it.cx).attr('cy', it.cy).attr('r', 0)
+      .style('display', 'none')
+      .on('click', function (event) {
+        if (!tinyActive()) return;
+        event.stopPropagation();
+        tinyActivate(it, event);
+      });
+    it.el = marker.node();
+    items.push(it);
+    byNode.set(this, it);
+  });
+  tinyState = { items, hover: null, regionKey };
+
+  // Keep each ring's look in step with its region (solved / wrong / hint blink).
+  tinyObserver = new MutationObserver(muts => {
+    for (const m of muts) { const it = byNode.get(m.target); if (it) tinySyncState(it); }
+  });
+  tinyObserver.observe(g.select('#countries-g').node(), { subtree: true, attributes: true, attributeFilter: ['class'] });
+  items.forEach(tinySyncState);
+
+  // Invisible reach in empty space: hover feedback + click forwarding.
+  svg.on('mousemove.tiny', event => {
+    if (!tinyActive() || event.buttons) return tinySetHover(null); // buttons held = dragging to pan
+    tinySetHover(tinyIsDead(event.target) ? tinyPick(event) : null);
+  }).on('mouseleave.tiny', () => tinySetHover(null))
+    .on('click.tiny', event => {
+      if (!tinyActive() || !tinyIsDead(event.target)) return;
+      const it = tinyPick(event);
+      if (it) { event.stopPropagation(); tinyActivate(it, event); }
+    });
+
+  updateTinyMarkers();
+}
+
+// Re-evaluates which regions are currently tiny and re-sizes their rings.
+// Runs after setup and on every zoom frame (rings are constant size ON SCREEN,
+// so their radius in map units is divided by the zoom factor).
+function updateTinyMarkers() {
+  const st = tinyState;
+  if (!st || !st.items.length) return;
+  const k = currentTransform.k;
+  const coarse = tinyIsCoarse();
+  const rMin = coarse ? TINY_R_MIN + 3 : TINY_R_MIN;
+  const rMax = coarse ? TINY_R_MAX + 4 : TINY_R_MAX;
+  const vis = [];
+  for (const it of st.items) {
+    const m = Math.max(it.w, it.h) * k;
+    if (m < TINY_MAX_PX) { it.sr = Math.min(rMax, Math.max(rMin, m / 2 + 3.5)); vis.push(it); }
+    else it.sr = 0;
+  }
+  // Rings never overlap: crowded neighbours both shrink until they just touch.
+  for (let i = 0; i < vis.length; i++) {
+    for (let j = i + 1; j < vis.length; j++) {
+      const a = vis[i], b = vis[j];
+      const d = Math.hypot((a.cx - b.cx) * k, (a.cy - b.cy) * k);
+      const sum = a.sr + b.sr;
+      if (d < sum) {
+        const s = Math.max(0, d - 1) / sum;
+        a.sr = Math.max(TINY_R_FLOOR, a.sr * s);
+        b.sr = Math.max(TINY_R_FLOOR, b.sr * s);
+      }
+    }
+  }
+  for (const it of st.items) {
+    if (it.sr > 0) {
+      it.el.style.display = '';
+      it.el.setAttribute('r', (it.sr / k).toFixed(4));
+      it.el.setAttribute('stroke-width', (1.6 / k).toFixed(4));
+    } else {
+      it.el.style.display = 'none';
+    }
+  }
+  if (st.hover && !st.hover.sr) tinySetHover(null); // hovered ring vanished (zoomed in)
+}
+
 async function drawMap(regionKey) {
   const prevRegion = currentRegion;
   currentRegion = regionKey;
@@ -1704,6 +1935,7 @@ async function drawMap(regionKey) {
   const isUSA = regionKey === 'usa';
   const isJapan = regionKey === 'japan';
   const isSpain = regionKey === 'spain';
+  const isPoland = regionKey === 'poland';
   const isRussia = regionKey === 'russia';
   const res = isWorld ? '110m' : '50m';
 
@@ -1726,6 +1958,7 @@ async function drawMap(regionKey) {
   const japanPrefData  = isJapan ? await getGeoData('japan-prefs') : null;
   // Pre-fetch province-level Spain data for the Spain mode
   const spainProvData  = isSpain ? await getGeoData('spain-provs') : null;
+  const polandData     = isPoland ? await getGeoData('poland-voivs') : null;
   // Pre-fetch federal-subject-level Russia data for the Russia mode
   const russiaRegData  = isRussia ? await getGeoData('russia-regions') : null;
 
@@ -1760,7 +1993,7 @@ async function drawMap(regionKey) {
   }
 
   // Land + borders — skip world-atlas land for USA/Japan/Spain/Russia (use their own high-res shapes instead)
-  if (!isUSA && !isJapan && !isSpain && !isRussia) {
+  if (!isUSA && !isJapan && !isSpain && !isPoland && !isRussia) {
     let countryFeatures = topojson.feature(geoData, geoData.objects.countries).features;
     countryFeatures.forEach(fixInvertedWinding);
     // Several disputed territories (Kosovo, Northern Cyprus, Somaliland...)
@@ -2036,6 +2269,38 @@ async function drawMap(regionKey) {
     quizHoverOutline = g.append('path').attr('id', 'quizHoverOutline');
   }
 
+  // Poland mode: draw all 16 voivodeships (provinces) + borders, same idea as
+  // the Spain block above.
+  if (isPoland && polandData) {
+    const voivFeatures = polandData.noTopo ? polandData.features
+      : topojson.feature(polandData, polandData.objects.voivodeships).features;
+    attachQuizHandlers(
+      g.select('#countries-g').selectAll('path')
+        .data(voivFeatures).join('path')
+        .attr('d', path)
+        .attr('fill', S.landColor)
+        .attr('stroke', S.borderColor)
+        .attr('stroke-width', polandData.noTopo ? 0.5 : 0.15)
+        .attr('stroke-opacity', polandData.noTopo ? 0.8 : 0.4),
+      path, 'poland');
+
+    if (!polandData.noTopo) {
+      // Voivodeship borders (internal)
+      const voivMesh = topojson.mesh(polandData, polandData.objects.voivodeships, (a,b) => a !== b);
+      g.append('path').attr('id','voiv-borders-pl').datum(voivMesh).attr('d', path)
+        .attr('fill','none').attr('stroke', S.borderColor).attr('stroke-width', 0.5)
+        .attr('stroke-opacity', 0.8);
+
+      // Outer national border (slightly bolder)
+      const plNationMesh = topojson.mesh(polandData, polandData.objects.voivodeships, (a,b) => a === b);
+      g.append('path').attr('id','nation-border-pl').datum(plNationMesh).attr('d', path)
+        .attr('fill','none').attr('stroke', S.borderColor).attr('stroke-width', 0.9);
+    }
+
+    // Hover-outline overlay for the voivodeship quiz (see the Japan block above).
+    quizHoverOutline = g.append('path').attr('id', 'quizHoverOutline');
+  }
+
   // Russia mode: draw all federal subjects (republics, krais, oblasts, the two
   // federal cities, the autonomous oblast and the autonomous okrugs) + their
   // borders, same idea as the Japan/Spain blocks above. Unlike those two
@@ -2085,6 +2350,11 @@ async function drawMap(regionKey) {
     quizHoverOutline = g.append('path').attr('id', 'quizHoverOutline');
   }
 
+  // Tiny-region assist: rings + extra reach for regions too small to click at the
+  // current zoom (see the TINY-REGION ASSIST section above). Quiz shapes only — the
+  // US map draws them just when its states quiz is on; the other three always do.
+  setupTinyRegionAssist(g, path, regionKey, isJapan || isSpain || isPoland || isRussia || usQuizOn);
+
   // For regional views, use d3's native translateExtent so the user can't drag
   // the region's bounding box out of view (the world map and USA, which use a
   // different projection with no lon/lat clip box, remain freely pannable).
@@ -2104,9 +2374,14 @@ async function drawMap(regionKey) {
       // (e.g. the Canary Islands south of mainland Europe) stay comfortably
       // reachable instead of being stranded right at the edge of the screen.
       const pad = Math.min(W, H) * 0.3;
+      // Poland is small next to the screen, so with the default padding the
+      // allowed area is narrower than the view and d3 re-centres it on the
+      // whole screen at the first click/drag/zoom (undoing the offset for the
+      // city list). Extra horizontal room keeps the view where it starts.
+      const padX = isPoland ? Math.max(pad, W * 0.5) : pad;
       zoomBehavior.translateExtent([
-        [Math.min(...xs) - pad, Math.min(...ys) - pad],
-        [Math.max(...xs) + pad, Math.max(...ys) + pad],
+        [Math.min(...xs) - padX, Math.min(...ys) - pad],
+        [Math.max(...xs) + padX, Math.max(...ys) + pad],
       ]);
     } else {
       zoomBehavior.translateExtent([[-Infinity,-Infinity],[Infinity,Infinity]]);
@@ -3254,7 +3529,13 @@ function lookupCity(raw) {
     else if (c.nameF === cityQuery || c.asciiF === cityQuery) tier = 2;
     else if (c.aliasesF.some(a => a === cityQuery)) tier = 1;
     else tier = 0; // prefix
-    return tier + (c.isCapital ? 1 : 0);
+    // The capital bonus only applies to capitals of UN-recognised sovereign
+    // states, not territories/dependencies — e.g. Hamilton, Bermuda is
+    // Bermuda's capital, but Bermuda is a UK territory rather than a
+    // country, so it shouldn't outrank Hamilton, Ontario (Canada) on a
+    // bare "hamilton" guess just for being a capital.
+    const capitalBonus = (c.isCapital && UN_COUNTRIES.has(c.country)) ? 1 : 0;
+    return tier + capitalBonus;
   }
   matches.sort((a,b) => matchScore(b) - matchScore(a) || b.pop - a.pop);
 
@@ -3751,6 +4032,37 @@ const SPAIN_PROV_POPULATION = {
   '51':83517, '52':86261,
 };
 
+// The 16 Polish voivodeships (provinces), for the "Poland — Voivodeships" quiz.
+// Keyed by an ASCII slug of the Polish name (e.g. "Łódzkie" -> "lodzkie"), which
+// is also how the boundary data's `nazwa` property is matched (see plSlug).
+// Populations: GUS, 31 Dec 2023. Capitals are the voivode's seat, plus the
+// sejmik's seat where the two differ (Kujawsko-pomorskie, Lubuskie).
+const plSlug = s => String(s == null ? '' : s).toLowerCase().normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '').replace(/ł/g, 'l').replace(/^wojewodztwo\s+/, '').replace(/[^a-z]/g, '');
+const POLAND_VOIV_DATA = [
+  ['Dolnośląskie', 'Wrocław', 2879271],
+  ['Kujawsko-pomorskie', 'Bydgoszcz / Toruń', 1996003],
+  ['Lubelskie', 'Lublin', 2011047],
+  ['Lubuskie', 'Gorzów Wielkopolski / Zielona Góra', 975023],
+  ['Łódzkie', 'Łódź', 2362519],
+  ['Małopolskie', 'Kraków', 3429632],
+  ['Mazowieckie', 'Warszawa', 5510527],
+  ['Opolskie', 'Opole', 936725],
+  ['Podkarpackie', 'Rzeszów', 2071676],
+  ['Podlaskie', 'Białystok', 1138216],
+  ['Pomorskie', 'Gdańsk', 2359573],
+  ['Śląskie', 'Katowice', 4320130],
+  ['Świętokrzyskie', 'Kielce', 1168499],
+  ['Warmińsko-mazurskie', 'Olsztyn', 1357910],
+  ['Wielkopolskie', 'Poznań', 3487973],
+  ['Zachodniopomorskie', 'Szczecin', 1631784],
+];
+const POLAND_VOIV_NAMES = {}, POLAND_VOIV_CAPITALS = {}, POLAND_VOIV_POPULATION = {};
+POLAND_VOIV_DATA.forEach(([name, capital, pop]) => {
+  const k = plSlug(name);
+  POLAND_VOIV_NAMES[k] = name; POLAND_VOIV_CAPITALS[k] = capital; POLAND_VOIV_POPULATION[k] = pop;
+});
+
 // The federal subjects of Russia, for the "Russia — Federal subjects" quiz.
 // Unlike JP_PREF_NAMES/SPAIN_PROV_NAMES above, this isn't a fixed table keyed
 // by a known boundary-source id: the russia-topojson boundary file (see
@@ -4017,6 +4329,25 @@ const QUIZ_CFG = {
       if (raw == null) return null;
       const key = String(raw).padStart(2, '0');
       return SPAIN_PROV_NAMES[key] ? key : null;
+    },
+    geometryDiffers: false,
+  },
+  poland: {
+    icon: '🇵🇱', noun: 'voivodeship', Nouns: 'Voivodeships', label: 'Poland — Voivodeships',
+    indicatorTitle: 'Voivodeship quiz — find the named voivodeship and click it',
+    modalTitle: '🇵🇱 Poland — choose a mode',
+    normalDesc: 'Find and type Polish cities, same as any other map.',
+    quizTitle: 'Voivodeships', quizDesc: 'Find and click each of the 16 voivodeships (provinces) by name.',
+    names: POLAND_VOIV_NAMES, capitals: POLAND_VOIV_CAPITALS, pop: POLAND_VOIV_POPULATION,
+    ids: Object.keys(POLAND_VOIV_NAMES),
+    // The boundary data names each shape in `nazwa` (e.g. "śląskie"); normalize
+    // it the same way the keys above were built.
+    keyOf: d => {
+      const p = (d && d.properties) || {};
+      const raw = p.nazwa || p.name || p.NAME || p.JPT_NAZWA_;
+      if (!raw) return null;
+      const key = plSlug(raw);
+      return POLAND_VOIV_NAMES[key] ? key : null;
     },
     geometryDiffers: false,
   },
@@ -4458,9 +4789,9 @@ function highlightCity(city) {
 }
 
 // ─── REGION BUTTONS ──────────────────────────────────────────────────────────
-const regionColors = { world:'#2B4C7E', europe:'#1565C0', north_america:'#6A1B9A', usa:'#B71C1C', japan:'#AD1457', russia:'#3949AB', spain:'#F9A825', south_america:'#2E7D32', africa:'#BF360C', asia:'#E65100', oceania:'#00695C' };
+const regionColors = { world:'#2B4C7E', europe:'#1565C0', north_america:'#6A1B9A', usa:'#B71C1C', japan:'#AD1457', russia:'#3949AB', spain:'#F9A825', poland:'#DC143C', south_america:'#2E7D32', africa:'#BF360C', asia:'#E65100', oceania:'#00695C' };
 // Single-country maps get a flag emoji in the picker instead of the plain colour dot.
-const regionFlags = { usa:'🇺🇸', japan:'🇯🇵', russia:'🇷🇺', spain:'🇪🇸' };
+const regionFlags = { usa:'🇺🇸', japan:'🇯🇵', russia:'🇷🇺', spain:'🇪🇸', poland:'🇵🇱' };
 
 function tintRegionSelect(rk) {
   const sel = document.getElementById('regionSelect');
