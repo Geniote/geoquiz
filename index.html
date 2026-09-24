@@ -3264,6 +3264,9 @@ function lookupCity(raw) {
   const stateCode = hint ? matchesUSState(hint) : null;
 
   function inScope(c) {
+    // A city with no population figure (it would show up in the list without one)
+    // can't be guessed.
+    if (!(Number(c.pop) > 0)) return false;
     if (!cityInRegion(c, region)) return false;
     if (S.countryMode === 'specific' && !hint && c.country !== S.specificCountry) return false;
     if (hint) {
