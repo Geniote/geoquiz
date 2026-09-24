@@ -110,8 +110,7 @@ body.night-mode .tbbtn.danger{background:#a85850;border-color:#a85850}
 #cfCaret{flex-shrink:0;border-left:3.5px solid transparent;border-right:3.5px solid transparent;border-top:4px solid currentColor}
 #countryFilterPanel{display:none;position:absolute;right:0;top:calc(100% + 5px);width:190px;max-height:216px;overflow-y:auto;overscroll-behavior:contain;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 6px 22px rgba(0,0,0,.18);z-index:60;padding:4px}
 #countryFilterPanel.open{display:block}
-.cf-search-wrap{position:absolute;left:0;top:0;width:1px;height:1px;margin:0;padding:0;overflow:hidden;opacity:0;pointer-events:none}
-#cfSearch{display:block;width:1px;height:1px;box-sizing:border-box;margin:0;padding:0;border:0;background:transparent;color:transparent;caret-color:transparent;font-size:11.5px;outline:none}
+#cfSearch{position:absolute;right:3px;top:3px;width:1px;height:1px;box-sizing:border-box;margin:0;padding:0;border:0;background:transparent;color:transparent;caret-color:transparent;font-size:11.5px;opacity:0;pointer-events:none;outline:none}
 .cf-opt.kb{background:#f0f4fb;color:var(--accent2);box-shadow:inset 2px 0 0 var(--accent2)}
 body.night-mode .cf-opt.kb{background:rgba(43,76,126,.3)}
 .cf-opt{display:block;width:100%;padding:5px 8px;border:none;border-radius:5px;background:none;font-size:11.5px;font-weight:600;color:var(--text);text-align:left;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
@@ -676,12 +675,15 @@ input[type=checkbox]{accent-color:var(--accent2);cursor:pointer;width:14px;heigh
           <span id="cfBtnLabel">Any country</span><span id="cfCaret"></span>
         </button>
         <div id="countryFilterPanel">
-          <div class="cf-search-wrap"><input type="text" id="cfSearch" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search countries"/></div>
           <button type="button" class="cf-opt" data-val="any">Any country</button>
           <button type="button" class="cf-opt" data-val="every">Every country</button>
           <div class="cf-sep">Specific country</div>
           <div id="cfCountryList"><div class="cf-empty">— load data first —</div></div>
         </div>
+        <!-- Invisible type-ahead input for the country list. It lives OUTSIDE the scrolling
+             panel on purpose: typing into a focused input makes the browser scroll it into
+             view, which would keep snapping the panel back to the top. -->
+        <input type="text" id="cfSearch" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search countries"/>
       </div>
       <button class="tbbtn primary" id="guessBtn">Find</button>
       <button class="tbbtn danger" id="clearBtn">🗑 Clear all</button>
@@ -4647,7 +4649,7 @@ function cfScore(o, q) {
 function cfSetKb(o) {
   if (cfKbOpt) cfKbOpt.classList.remove('kb');
   cfKbOpt = o || null;
-  if (cfKbOpt) { cfKbOpt.classList.add('kb'); cfKbOpt.scrollIntoView({ block: 'nearest' }); }
+  if (cfKbOpt) { cfKbOpt.classList.add('kb'); cfKbOpt.scrollIntoView({ block: 'center' }); }
 }
 
 function cfApplyFilter() {
