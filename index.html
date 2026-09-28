@@ -3301,6 +3301,7 @@ const PREFERRED_NICKNAMES = {
   'bombay':          { names: ['Mumbai'], country: 'IN' },
   'madras':          { names: ['Chennai'], country: 'IN' },
   'calcutta':        { names: ['Kolkata'], country: 'IN' },
+  'bethlehem':       { names: ['Bethlehem', 'Bayt Lahm', 'Beit Lahm'], country: 'PS' }, // not Bethlehem, PA
 };
 // True if `query` is a curated nickname for c, or one of the Mexican short forms
 // generated for big Mexican cities (Juárez, Matamoros, Durango, Victoria…).
@@ -3379,9 +3380,9 @@ function lookupCity(raw) {
     (c.nameF === cityQuery || c.asciiF === cityQuery) ? Math.max(m, Number(c.pop) || 0) : m, 0);
   function matchScore(c) {
     let tier, realName = false;
+    if (PREFERRED_NICKNAMES[cityQuery] && isPreferredShortName(c, cityQuery)) return 3; // curated pick (Rio, Bethlehem…): always wins
     if (c.name.toLowerCase() === cityQuery || c.ascii_name.toLowerCase() === cityQuery) { tier = 2; realName = true; }
     else if (c.nameF === cityQuery || c.asciiF === cityQuery) { tier = 2; realName = true; }
-    else if (PREFERRED_NICKNAMES[cityQuery] && isPreferredShortName(c, cityQuery)) return 3; // curated nickname (Rio…): always wins
     else if (isPreferredShortName(c, cityQuery)) {
       // Mexican short form (Durango, Victoria, Juarez…): only beats places that are
       // really named that if it's the bigger city — otherwise Lagos de Moreno would
