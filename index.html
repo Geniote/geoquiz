@@ -324,7 +324,7 @@ body.night-mode .mode-toggle:has(input:checked){box-shadow:0 0 0 2px rgba(111,16
   body:not(.quiz-typing-hidden) #sessRightSlot{flex:1 0 auto;justify-content:flex-end}
   body:not(.quiz-typing-hidden) #inputControls{flex:0 1 auto}
   .zbtn-wrap{right:calc(12px + var(--list-w));transition:right var(--list-t)}
-  #listCollapseBtn{display:flex;align-items:center;justify-content:center;position:absolute;right:var(--list-w);top:50%;transform:translateY(-50%);width:20px;height:56px;padding:0;border:1px solid var(--border);border-right:none;border-radius:8px 0 0 8px;background:rgba(255,255,255,.9);color:var(--text2);cursor:pointer;z-index:6;box-shadow:-2px 0 8px rgba(0,0,0,.08);transition:background .15s,color .15s,width .15s,right var(--list-t)}
+  #listCollapseBtn{display:flex;align-items:center;justify-content:center;position:absolute;right:calc(var(--sbw,0px) + var(--list-w));top:50%;transform:translateY(-50%);width:20px;height:56px;padding:0;border:1px solid var(--border);border-right:none;border-radius:8px 0 0 8px;background:rgba(255,255,255,.9);color:var(--text2);cursor:pointer;z-index:6;box-shadow:-2px 0 8px rgba(0,0,0,.08);transition:background .15s,color .15s,width .15s,right var(--list-t)}
   #listCollapseBtn:hover{background:var(--surface);color:var(--accent2);width:24px}
   #listCollapseBtn:focus-visible{outline:2px solid var(--accent2);outline-offset:-2px}
   #listCollapseBtn svg{width:9px;height:14px;display:block;pointer-events:none;transition:transform .38s cubic-bezier(.4,0,.2,1)}
@@ -352,7 +352,8 @@ body.night-mode .mode-toggle:has(input:checked){box-shadow:0 0 0 2px rgba(111,16
 #panelTitle{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em}
 #sortLabel{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);cursor:pointer;white-space:nowrap}
 #sortLabel input{accent-color:var(--accent2);cursor:pointer}
-#foundGrid{display:flex;flex-direction:column;gap:0;position:relative;flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden}
+#foundGrid{display:flex;flex-direction:column;gap:0;position:relative;flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;-ms-overflow-style:none}
+#foundGrid::-webkit-scrollbar{display:none}
 #missedBtn{width:100%;padding:8px;font-size:13px;font-weight:600;background:var(--accent2);color:#fff;border:none;border-radius:8px;cursor:pointer;letter-spacing:.02em}
 #missedBtn:hover{background:#1e3a66}
 .missed-section{display:block}
@@ -719,7 +720,6 @@ input[type=checkbox]{accent-color:var(--accent2);cursor:pointer;width:14px;heigh
     <button type="button" id="dotAppearanceBtn" title="Dot appearance"><svg width="15" height="15" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><defs><clipPath id="ballClipBtn"><circle cx="10" cy="10" r="9"/></clipPath><radialGradient id="ballGlossBtn" cx="35%" cy="30%" r="70%"><stop offset="0%" stop-color="#fff" stop-opacity="0.6"/><stop offset="45%" stop-color="#fff" stop-opacity="0.1"/><stop offset="100%" stop-color="#000" stop-opacity="0.2"/></radialGradient></defs><g clip-path="url(#ballClipBtn)"><rect x="0" y="0" width="20" height="20" fill="#f4c531"/><path d="M10 10 L20 10 A10 10 0 0 1 10 20 Z" fill="#3fb84f"/><path d="M10 10 L10 20 A10 10 0 0 1 0 10 Z" fill="#3b82f6"/><path d="M10 10 L0 10 A10 10 0 0 1 10 0 Z" fill="#e63946"/></g><circle cx="10" cy="10" r="9" fill="url(#ballGlossBtn)"/></svg> <span class="btn-label">Dot appearance</span></button>
     <button type="button" id="mapColorsBtn" title="Map settings">🗺 <span class="btn-label">Map settings</span></button>
     <button type="button" id="panelToggleBtn" title="Hide/show the city list">▾ Hide list</button>
-    <button type="button" id="listCollapseBtn" title="Collapse city list" aria-label="Collapse city list" aria-controls="panel" aria-expanded="true"><svg viewBox="0 0 9 14" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 1.5 7 7l-5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     <div id="mapColorsPopover">
       <div class="pop-title-row"><span class="pop-title">🗺 Map Settings</span><button type="button" id="resetMapColors" class="reset-icon-btn" title="Reset map colours">↺</button></div>
       <div class="row"><span class="lbl">Land</span><input type="color" id="landColor" value="#e8e4da"/></div>
@@ -797,6 +797,9 @@ input[type=checkbox]{accent-color:var(--accent2);cursor:pointer;width:14px;heigh
 
     <!-- The country filter that used to live here now sits inside the typing bar. -->
   </div>
+  <!-- Lives in #appRow (not #main) so it shares a containing block with #panel and
+       stays glued to the list's edge even when the left column scrolls. -->
+    <button type="button" id="listCollapseBtn" title="Collapse city list" aria-label="Collapse city list" aria-controls="panel" aria-expanded="true"><svg viewBox="0 0 9 14" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 1.5 7 7l-5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
 </div><!-- end appRow -->
 
 <!-- MAP SELECTION MODAL -->
