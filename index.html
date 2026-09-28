@@ -3325,12 +3325,21 @@ function isPreferredShortName(c, query) {
   return !!n && c.country === n.country && n.names.includes(c.name);
 }
 
+// Country names that must never be accepted as a city guess. "Poland" is a
+// country, but GeoNames also has small US places literally named Poland, which
+// used to be accepted as an entry. (Folded form; add more country names here.)
+const NOT_A_CITY_QUERIES = new Set(['poland', 'polska']);
+
 function lookupCity(raw) {
   if (!cityDB.length) return [];
   const q = fold(raw.trim());
   let hint = null, cityQuery = q;
   const ci = q.lastIndexOf(',');
   if (ci > 0) { cityQuery = q.slice(0,ci).trim(); hint = q.slice(ci+1).trim(); }
+
+  // A bare country name is not a city. (An explicit hint such as "Poland, OH"
+  // is still allowed, since that clearly asks for the US place.)
+  if (!hint && NOT_A_CITY_QUERIES.has(cityQuery)) return [];
 
   const region = REGIONS[currentRegion];
   const stateCode = hint ? matchesUSState(hint) : null;
