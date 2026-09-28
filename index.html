@@ -77,6 +77,7 @@ body.night-mode .sess-card.current{background:#182233}
 body.night-mode .rm:hover{background:#3a1f1f}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex;flex-direction:column}
 #appRow{display:flex;flex-direction:row;flex:1;min-height:0}
+#siteFooter{width:100%;text-align:center;font-size:11px;letter-spacing:.3px;color:var(--text2);opacity:.65;margin-top:14px;padding-bottom:6px;user-select:none}
 #leftCol{display:flex;flex-direction:column;flex:1;min-width:0;height:100%;overflow-y:auto;overflow-x:hidden}
 #content{display:flex;flex:1;flex-direction:column;min-height:0}
 
@@ -603,31 +604,6 @@ input[type=checkbox]{accent-color:var(--accent2);cursor:pointer;width:14px;heigh
   .shape-card{flex:1 1 40%}
 }
 
-/* JAPAN LOVE MESSAGE — big centered banner shown briefly when the Japan map loads */
-#japanLoveMsg{
-  position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:10px;pointer-events:none;padding:20px;text-align:center;
-}
-#japanLoveMsg .jlm-text{
-  font-size:clamp(28px,7vw,72px);font-weight:800;
-  background:linear-gradient(90deg,#d85a30,#ff8a5c);
-  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
-  -webkit-text-stroke:3px #fff;paint-order:stroke fill;
-  text-shadow:0 2px 4px rgba(0,0,0,.35);
-  animation:japanLoveFade 5s ease forwards;
-}
-#japanLoveMsg .jlm-heart{
-  font-size:clamp(40px,10vw,96px);line-height:1;
-  color:#ff4d6d;-webkit-text-stroke:3px #fff;paint-order:stroke fill;
-  filter:drop-shadow(0 2px 4px rgba(0,0,0,.35));
-  animation:japanLoveFade 5s ease forwards;
-}
-@keyframes japanLoveFade{
-  0%{opacity:0;transform:scale(.85)}
-  8%{opacity:1;transform:scale(1)}
-  85%{opacity:1;transform:scale(1)}
-  100%{opacity:0;transform:scale(1.05)}
-}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
@@ -806,6 +782,7 @@ input[type=checkbox]{accent-color:var(--accent2);cursor:pointer;width:14px;heigh
     <div id="missedBtnWrap" style="display:none;width:100%;max-width:520px;margin-top:6px">
       <button id="missedBtn">🔍 What did I miss?</button>
     </div>
+    <div id="siteFooter">GeoQuiz by Eisman 2026</div>
   </div>
   </div><!-- end bottomPanels -->
 </div><!-- end leftCol -->
@@ -1819,10 +1796,6 @@ async function drawMap(regionKey) {
   const isSpain = regionKey === 'spain';
   const isPoland = regionKey === 'poland';
   const res = isWorld ? '110m' : '50m';
-
-  // Show the "I LOVE YOU NASTYA" banner whenever the Japan map is (re)loaded —
-  // but not on every resize-triggered redraw while already viewing it.
-  if (isJapan && prevRegion !== 'japan') showJapanLoveMessage();
 
   // Quiz mode is tied to the one map it was started on (see QUIZ_CFG); quietly
   // turn it off whenever a different map is drawn (the indicator chip hides itself).
@@ -4922,18 +4895,6 @@ const ADMIN1_NAMES = {"AD.06":"Sant Julià de Loria","AD.05":"Ordino","AD.04":"L
 const ISO_TO_NAME = {"AF": "Afghanistan", "AL": "Albania", "DZ": "Algeria", "AO": "Angola", "AR": "Argentina", "AM": "Armenia", "AU": "Australia", "AT": "Austria", "AZ": "Azerbaijan", "BS": "Bahamas", "BH": "Bahrain", "BD": "Bangladesh", "BY": "Belarus", "BE": "Belgium", "BZ": "Belize", "BJ": "Benin", "BO": "Bolivia", "BA": "Bosnia and Herzegovina", "BW": "Botswana", "BR": "Brazil", "BG": "Bulgaria", "BF": "Burkina Faso", "KH": "Cambodia", "CM": "Cameroon", "CA": "Canada", "CF": "Central African Republic", "TD": "Chad", "CL": "Chile", "CN": "China", "CO": "Colombia", "CG": "Republic of the Congo", "CD": "Democratic Republic of the Congo", "CR": "Costa Rica", "HR": "Croatia", "CU": "Cuba", "CY": "Cyprus", "CZ": "Czech Republic", "DK": "Denmark", "DO": "Dominican Republic", "EC": "Ecuador", "EG": "Egypt", "SV": "El Salvador", "ER": "Eritrea", "EE": "Estonia", "ET": "Ethiopia", "FI": "Finland", "FR": "France", "GA": "Gabon", "GE": "Georgia", "DE": "Germany", "GH": "Ghana", "GR": "Greece", "GT": "Guatemala", "GN": "Guinea", "HT": "Haiti", "HN": "Honduras", "HU": "Hungary", "IS": "Iceland", "IN": "India", "ID": "Indonesia", "IR": "Iran", "IQ": "Iraq", "IE": "Ireland", "IL": "Israel", "IT": "Italy", "CI": "Ivory Coast", "JM": "Jamaica", "JP": "Japan", "JO": "Jordan", "KZ": "Kazakhstan", "KE": "Kenya", "KW": "Kuwait", "KG": "Kyrgyzstan", "LA": "Laos", "LV": "Latvia", "LB": "Lebanon", "LY": "Libya", "LT": "Lithuania", "LU": "Luxembourg", "MG": "Madagascar", "MW": "Malawi", "MY": "Malaysia", "ML": "Mali", "MT": "Malta", "MR": "Mauritania", "MX": "Mexico", "MD": "Moldova", "MN": "Mongolia", "MA": "Morocco", "MZ": "Mozambique", "MM": "Myanmar", "NA": "Namibia", "NP": "Nepal", "NL": "Netherlands", "NZ": "New Zealand", "NI": "Nicaragua", "NE": "Niger", "NG": "Nigeria", "NO": "Norway", "OM": "Oman", "PK": "Pakistan", "PA": "Panama", "PY": "Paraguay", "PE": "Peru", "PH": "Philippines", "PL": "Poland", "PT": "Portugal", "QA": "Qatar", "RO": "Romania", "RU": "Russia", "RW": "Rwanda", "SA": "Saudi Arabia", "SN": "Senegal", "RS": "Serbia", "SL": "Sierra Leone", "SG": "Singapore", "SK": "Slovakia", "SI": "Slovenia", "SO": "Somalia", "ZA": "South Africa", "SS": "South Sudan", "ES": "Spain", "LK": "Sri Lanka", "SD": "Sudan", "SE": "Sweden", "CH": "Switzerland", "SY": "Syria", "TW": "Taiwan", "TJ": "Tajikistan", "TZ": "Tanzania", "TH": "Thailand", "TG": "Togo", "TN": "Tunisia", "TR": "Turkey", "TM": "Turkmenistan", "UG": "Uganda", "UA": "Ukraine", "AE": "United Arab Emirates", "GB": "United Kingdom", "US": "United States", "UY": "Uruguay", "UZ": "Uzbekistan", "VE": "Venezuela", "VN": "Vietnam", "YE": "Yemen", "ZM": "Zambia", "ZW": "Zimbabwe", "FJ": "Fiji", "FM": "Micronesia", "PW": "Palau", "MH": "Marshall Islands", "NR": "Nauru", "TV": "Tuvalu", "TO": "Tonga", "WS": "Samoa", "VU": "Vanuatu", "SB": "Solomon Islands", "KI": "Kiribati", "PG": "Papua New Guinea", "TL": "Timor-Leste", "BN": "Brunei", "MV": "Maldives", "BT": "Bhutan", "SC": "Seychelles", "MU": "Mauritius", "CV": "Cape Verde", "ST": "São Tomé and Príncipe", "DJ": "Djibouti", "KM": "Comoros", "BI": "Burundi", "LS": "Lesotho", "SZ": "Eswatini", "GM": "Gambia", "GW": "Guinea-Bissau", "GQ": "Equatorial Guinea", "LR": "Liberia", "ME": "Montenegro", "MK": "North Macedonia", "XK": "Kosovo", "LI": "Liechtenstein", "AD": "Andorra", "MC": "Monaco", "SM": "San Marino", "VA": "Vatican", "CW": "Curaçao", "AW": "Aruba", "SR": "Suriname", "GY": "Guyana", "TT": "Trinidad and Tobago", "BB": "Barbados", "LC": "Saint Lucia", "VC": "Saint Vincent and the Grenadines", "GD": "Grenada", "AG": "Antigua and Barbuda", "DM": "Dominica", "KN": "Saint Kitts and Nevis", "EH": "Western Sahara", "PF": "French Polynesia", "NC": "New Caledonia", "GU": "Guam", "PR": "Puerto Rico", "VI": "US Virgin Islands", "GP": "Guadeloupe", "MQ": "Martinique", "RE": "Réunion", "YT": "Mayotte", "PM": "Saint Pierre and Miquelon", "KP": "North Korea", "KR": "South Korea", "PS": "Palestine", "GF": "French Guiana", "HK": "Hong Kong", "MO": "Macao", "AI": "Anguilla", "AS": "American Samoa", "AX": "Åland Islands", "BL": "Saint Barthélemy", "BM": "Bermuda", "BQ": "Caribbean Netherlands", "CC": "Cocos Islands", "CK": "Cook Islands", "CX": "Christmas Island", "FK": "Falkland Islands", "FO": "Faroe Islands", "GG": "Guernsey", "GI": "Gibraltar", "GL": "Greenland", "GS": "South Georgia", "IM": "Isle of Man", "JE": "Jersey", "KY": "Cayman Islands", "MF": "Saint Martin", "MP": "Northern Mariana Islands", "MS": "Montserrat", "NF": "Norfolk Island", "NU": "Niue", "PN": "Pitcairn Islands", "SH": "Saint Helena", "SJ": "Svalbard and Jan Mayen", "SX": "Sint Maarten", "TC": "Turks and Caicos Islands", "TF": "French Southern Territories", "VG": "British Virgin Islands", "WF": "Wallis and Futuna"};
 function fmtCountry(c) { return ISO_TO_NAME[c] || c; }
 
-// Big centered banner shown for 5s whenever the Japan map is loaded.
-let _japanLoveTimer;
-function showJapanLoveMessage() {
-  let el = document.getElementById('japanLoveMsg');
-  if (el) el.remove(); // restart the animation if it's somehow still showing
-  el = document.createElement('div');
-  el.id = 'japanLoveMsg';
-  el.innerHTML = '<span class="jlm-text">I LOVE YOU NASTYA</span><span class="jlm-heart">❤️</span>';
-  document.body.appendChild(el);
-  clearTimeout(_japanLoveTimer);
-  _japanLoveTimer = setTimeout(() => { el.remove(); }, 5000);
-}
 let _msgTimer;
 function setMsg(text,cls){
   const el=document.getElementById('msg');
