@@ -3255,7 +3255,7 @@ function getMexicanAliases(name) {
     'ciudad', 'heroica', 'heroico', 'villa de', 'villa', 'san luis',
     'santiago de', 'santiago', 'victoria de', 'victoria',
     'heroica ciudad de', 'ciudad de', 'municipio de',
-    'general', 'el', 'la', 'los', 'las',
+    'general', 'hidalgo', 'el', 'la', 'los', 'las',
   ];
 
   for (const pfx of prefixes) {
@@ -5393,7 +5393,7 @@ function getMexicanAliases(name) {
     'ciudad', 'heroica', 'heroico', 'villa de', 'villa', 'san luis',
     'santiago de', 'santiago', 'victoria de', 'victoria',
     'heroica ciudad de', 'ciudad de', 'municipio de',
-    'general', 'el', 'la', 'los', 'las',
+    'general', 'hidalgo', 'el', 'la', 'los', 'las',
   ];
   for (const pfx of prefixes) {
     if (f.startsWith(pfx + ' ')) {
@@ -5529,7 +5529,7 @@ const CITY_WORKER_SUPPORTED = (typeof Worker !== 'undefined') && (location.proto
 // the cache in the background for the next visit. It touches no UI.
 // Bump this whenever the way city rows are parsed changes (aliases etc.), so
 // copies parsed by older code are discarded instead of being reused forever.
-const CACHE_SCHEMA = 's2';
+const CACHE_SCHEMA = 's3';
 
 function prefetchCityData() {
   const versionP = fetch('data-version.json', { cache: 'no-store' })
