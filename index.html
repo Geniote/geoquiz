@@ -1315,8 +1315,8 @@ function getMapSize() {
 }
 
 // ─── MAP DATA (multiple resolutions) ─────────────────────────────────────────
-// 110m = lightweight, used for world view
-// 50m  = detailed coastlines, used for all regional (non-world) views
+// 50m  = detailed coastlines, used for the world view and all regional views
+// 110m = lightweight fallback if 50m fails to load
 const geoCache = { '110m': null, '50m': null, 'us-states': null, 'us-counties': null, 'japan-prefs': null };
 
 async function getGeoData(res) {
@@ -1358,8 +1358,8 @@ async function getGeoData(res) {
 }
 
 // Pre-fetch 110m immediately so world loads fast; kick off 50m + US/Japan data in background
-getGeoData('110m');
-setTimeout(() => getGeoData('50m'), 800);
+getGeoData('50m').catch(() => {});
+setTimeout(() => getGeoData('110m').catch(() => {}), 800); // fallback only
 setTimeout(() => { getGeoData('us-states'); getGeoData('us-counties'); getGeoData('japan-prefs'); getGeoData('es-provinces').catch(() => {}); getGeoData('pl-voivodeships').catch(() => {}); }, 1200);
 
 // A handful of tiny multi-island countries in the high-res 10m atlas (e.g. the
@@ -1833,7 +1833,10 @@ async function drawMap(regionKey) {
   const isJapan = regionKey === 'japan';
   const isSpain = regionKey === 'spain';
   const isPoland = regionKey === 'poland';
-  const res = isWorld ? '110m' : '50m';
+  // World view now uses the 50m atlas too (a step up from the coarse 110m);
+  // if it can't be fetched, quietly fall back to 110m so the map still loads.
+  let res = '50m';
+  if (isWorld) { try { await getGeoData('50m'); } catch (e) { res = '110m'; } }
 
   // Quiz mode is tied to the one map it was started on (see QUIZ_CFG); quietly
   // turn it off whenever a different map is drawn (the indicator chip hides itself).
