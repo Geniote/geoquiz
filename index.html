@@ -5454,6 +5454,9 @@ function runInCityWorker(msg) {
     const worker = getCityWorker();
     const id = ++_cityWorkerReqId;
     _cityWorkerCallbacks.set(id, resolve);
+    // The worker is created from a blob: URL, so a relative URL like 'data.txt.gz'
+    // can't be resolved inside it. Turn it into an absolute URL here first.
+    if (msg.url) msg = { ...msg, url: new URL(msg.url, location.href).href };
     worker.postMessage({ ...msg, id });
   });
 }
@@ -5525,6 +5528,7 @@ async function autoLoadCities() {
         if (remoteVersion) { idbSet('version', remoteVersion); idbSet('cityDB', cityDB); }
         return;
       }
+      setMsg('Could not auto-load city data (data.txt.gz not found or unreadable). Use "Load data file" instead.', 'err');
       return;
     }
 
