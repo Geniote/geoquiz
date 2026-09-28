@@ -2689,13 +2689,27 @@ document.getElementById('fileInput').onchange = function(e) {
 
 function finaliseCityDB(swappedCount) {
   // Inject cities missing from cities15000 but important enough to include
+  // Each entry is added if the city isn't in the data, or has its population filled
+  // in if it IS there but with no population (those can't be guessed).
+  // matchAdmin1: also require the same admin1 (state) when checking for an existing
+  // entry; alts: other names the data might already use for the same place.
   const MISSING_CITIES = [
-    { name:'El Alto', ascii_name:'El Alto', nameF:'el alto', asciiF:'el alto', aliases:['el alto'], aliasesF:['el alto'], lat:-16.5006, lon:-68.1762, country:'BO', admin1:'04', pop:1183483, isCapital:false },
+    { name:'El Alto', lat:-16.5006, lon:-68.1762, country:'BO', admin1:'04', pop:1183483 },
+    { name:'Tarapoto', lat:-6.4894, lon:-76.3597, country:'PE', admin1:'22', pop:118000 },
+    { name:'Monroe', alts:['Monroe Township'], matchAdmin1:true, lat:40.3148, lon:-74.4293, country:'US', admin1:'NJ', pop:48594 },
   ];
   MISSING_CITIES.forEach(mc => {
-    if (!cityDB.some(c => c.ascii_name === mc.ascii_name && c.country === mc.country)) {
-      cityDB.push(mc);
+    const names = [mc.name, ...(mc.alts || [])];
+    const existing = cityDB.find(c => c.country === mc.country &&
+      names.some(n => c.ascii_name === n || c.name === n) &&
+      (!mc.matchAdmin1 || c.admin1 === mc.admin1));
+    if (existing) {
+      if (!(Number(existing.pop) > 0)) existing.pop = mc.pop;
+      return;
     }
+    const f = fold(mc.name);
+    cityDB.push({ name:mc.name, ascii_name:mc.name, nameF:f, asciiF:f, aliases:[f], aliasesF:[f],
+                  lat:mc.lat, lon:mc.lon, country:mc.country, admin1:mc.admin1, pop:mc.pop, isCapital:false });
   });
 
   // GeoNames IDs of entries to exclude (neighbourhoods, duplicates, bad data)
@@ -2792,7 +2806,9 @@ function loadCitiesFromTSV(text) {
         ? [...new Set([...aliases.map(fold), ...(mxAliases || [])])]
         : EMPTY_ALIASES_F;
       const geonamesId = parseInt(r[0]);
-      out.push({ name, ascii_name, nameF, asciiF, aliasesF, aliases, lat, lon, country, admin1, pop, isCapital, geonamesId });
+      const _c = { name, ascii_name, nameF, asciiF, aliasesF, aliases, lat, lon, country, admin1, pop, isCapital, geonamesId };
+    if (mxAliases && mxAliases.length) _c.mxF = mxAliases;
+    out.push(_c);
     }
     cityDB = out;
     finaliseCityDB(swappedCount, 'txt');
@@ -2899,8 +2915,11 @@ function loadCitiesFromBuffer(buf) {
         }
         const isCapital = DISPUTED_CAPITALS[country] === ascii_name || COUNTRY_CAPITALS[country] === ascii_name;
         const nameF = fold(name), asciiF = fold(ascii_name);
-      const aliasesF = [...new Set([...aliases.map(fold), ...(country === 'MX' && pop >= 50000 ? getMexicanAliases(name) : [])])];
-        return { name, ascii_name, nameF, asciiF, aliasesF, aliases, lat, lon, country, admin1, pop, isCapital };
+      const mxAliases = country === 'MX' && pop >= 50000 ? getMexicanAliases(name) : [];
+        const aliasesF = [...new Set([...aliases.map(fold), ...mxAliases])];
+        const _c = { name, ascii_name, nameF, asciiF, aliasesF, aliases, lat, lon, country, admin1, pop, isCapital };
+        if (mxAliases.length) _c.mxF = mxAliases;
+        return _c;
       }).filter(c => c && c.name);
       if (swappedCount > 0) console.warn('Auto-fixed ' + swappedCount + ' rows with swapped lat/lon.');
 
@@ -3250,7 +3269,7 @@ function getMexicanAliases(name) {
 
   // Strip trailing " de <state>" or " de <something>" patterns
   const deMatch = f.match(/^(.+?) de .+$/);
-  if (deMatch && deMatch[1].length > 2) extras.add(deMatch[1].trim());
+  if (deMatch && deMatch[1].length > 2 && !prefixes.includes(deMatch[1].trim())) extras.add(deMatch[1].trim());
 
   // If name has 3+ words, also add first-two-word short form (e.g. "san luis" for "San Luis Potosí")
   const words = f.split(' ');
@@ -3271,6 +3290,19 @@ function fold(s) {
     .replace(/\bsaint\b/g, 'st')
     .replace(/\bsainte\b/g, 'st')
     .replace(/\.(?=\s|$)/g, '');
+}
+
+// Nicknames that should always point at one specific city, even when a smaller
+// place elsewhere is literally called that (Rio, Greece vs Rio de Janeiro).
+const PREFERRED_NICKNAMES = {
+  'rio': ['Rio de Janeiro', 'BR'],
+};
+// True if `query` is a curated nickname for c, or one of the Mexican short forms
+// generated for big Mexican cities (Juárez, Matamoros, Durango, Victoria…).
+function isPreferredShortName(c, query) {
+  if (c.mxF && c.mxF.includes(query)) return true;
+  const n = PREFERRED_NICKNAMES[query];
+  return !!n && c.country === n[1] && c.name === n[0];
 }
 
 function lookupCity(raw) {
@@ -3299,7 +3331,8 @@ function lookupCity(raw) {
   function nameMatches(c, query) {
     return c.nameF === query ||
            c.asciiF === query ||
-           c.aliasesF.some(a => a === query);
+           c.aliasesF.some(a => a === query) ||
+           isPreferredShortName(c, query);
   }
 
   function prefixMatches(c, query) {
@@ -3337,15 +3370,24 @@ function lookupCity(raw) {
   //   which point population (below) breaks the tie in the capital's favor.
   //   A capital's own real name always wins outright either way.
   function matchScore(c) {
-    let tier;
-    if (c.name.toLowerCase() === cityQuery || c.ascii_name.toLowerCase() === cityQuery) tier = 2;
-    else if (c.nameF === cityQuery || c.asciiF === cityQuery) tier = 2;
+    let tier, realName = false;
+    if (c.name.toLowerCase() === cityQuery || c.ascii_name.toLowerCase() === cityQuery) { tier = 2; realName = true; }
+    else if (c.nameF === cityQuery || c.asciiF === cityQuery) { tier = 2; realName = true; }
+    else if (isPreferredShortName(c, cityQuery)) return 3; // curated short/nickname (Rio, Juarez, Durango…): treated like a capital's real name, population breaks ties
     else if (c.aliasesF.some(a => a === cityQuery)) tier = 1;
     else tier = 0; // prefix
     // Only capitals of UN-recognized sovereign states get the bonus —
     // territories (Bermuda, Cayman Islands, ...) don't outrank real cities
     // of the same name elsewhere (e.g. Hamilton, Canada vs Hamilton, Bermuda).
-    return tier + (c.isCapital && UN_COUNTRIES.has(c.country) ? 1 : 0);
+    // For a mere alias the bonus only applies when the query is the country's
+    // own name (Andorra → Andorra la Vella). Otherwise a stray alternate name
+    // ("Salem" is an alias of Jerusalem) would beat a real city of that name.
+    let bonus = 0;
+    if (c.isCapital && UN_COUNTRIES.has(c.country)) {
+      if (realName) bonus = 1;
+      else if (tier === 1 && (ISO_ALIASES[c.country] || []).some(a => fold(a) === cityQuery)) bonus = 1;
+    }
+    return tier + bonus;
   }
   matches.sort((a,b) => matchScore(b) - matchScore(a) || b.pop - a.pop);
 
@@ -5361,7 +5403,7 @@ function getMexicanAliases(name) {
     }
   }
   const deMatch = f.match(/^(.+?) de .+$/);
-  if (deMatch && deMatch[1].length > 2) extras.add(deMatch[1].trim());
+  if (deMatch && deMatch[1].length > 2 && !prefixes.includes(deMatch[1].trim())) extras.add(deMatch[1].trim());
   const words = f.split(' ');
   if (words.length >= 3) {
     const twoWord = words.slice(0, 2).join(' ');
@@ -5409,7 +5451,9 @@ function parseTSV(text) {
       ? [...new Set([...aliases.map(fold), ...(mxAliases || [])])]
       : EMPTY_ALIASES_F;
     const geonamesId = parseInt(r[0]);
-    out.push({ name, ascii_name, nameF, asciiF, aliasesF, aliases, lat, lon, country, admin1, pop, isCapital, geonamesId });
+    const _c = { name, ascii_name, nameF, asciiF, aliasesF, aliases, lat, lon, country, admin1, pop, isCapital, geonamesId };
+    if (mxAliases && mxAliases.length) _c.mxF = mxAliases;
+    out.push(_c);
   }
   return { cityDB: out, swappedCount };
 }
@@ -5483,6 +5527,10 @@ const CITY_WORKER_SUPPORTED = (typeof Worker !== 'undefined') && (location.proto
 // Cache-first: if a parsed copy is in IndexedDB it is used immediately without
 // waiting for the network; the version check runs alongside and only refreshes
 // the cache in the background for the next visit. It touches no UI.
+// Bump this whenever the way city rows are parsed changes (aliases etc.), so
+// copies parsed by older code are discarded instead of being reused forever.
+const CACHE_SCHEMA = 's2';
+
 function prefetchCityData() {
   const versionP = fetch('data-version.json', { cache: 'no-store' })
     .then(r => r.ok ? r.json() : null)
@@ -5492,7 +5540,7 @@ function prefetchCityData() {
     let cached = null;
     try {
       const [v, db] = await Promise.all([idbGet('version'), idbGet('cityDB')]);
-      if (Array.isArray(db) && db.length) cached = { version: v, cityDB: db };
+      if (Array.isArray(db) && db.length && typeof v === 'string' && v.endsWith('|' + CACHE_SCHEMA)) cached = { version: v, cityDB: db };
     } catch (e) { /* unreadable cache — download instead */ }
     if (cached) return { source: 'cache', cityDB: cached.cityDB, swappedCount: 0, cachedVersion: cached.version, versionP };
     if (CITY_WORKER_SUPPORTED) {
@@ -5515,7 +5563,7 @@ async function refreshCityCache(version) {
     const gz = await runInCityWorker({ cmd: 'fetchGz', url: 'data.txt.gz' });
     if (!gz.ok) return;
     await idbSet('cityDB', gz.cityDB);
-    await idbSet('version', version);
+    await idbSet('version', version + '|' + CACHE_SCHEMA);
   } catch (e) { /* try again next visit */ }
 }
 
@@ -5529,9 +5577,9 @@ async function autoLoadCities() {
     finaliseCityDB(pre.swappedCount, pre.source);
     const remoteVersion = await pre.versionP;
     if (pre.source === 'cache') {
-      if (remoteVersion && remoteVersion !== pre.cachedVersion) refreshCityCache(remoteVersion);
+      if (remoteVersion && (remoteVersion + '|' + CACHE_SCHEMA) !== pre.cachedVersion) refreshCityCache(remoteVersion);
     } else if (remoteVersion) {
-      idbSet('version', remoteVersion); idbSet('cityDB', cityDB);
+      idbSet('version', remoteVersion + '|' + CACHE_SCHEMA); idbSet('cityDB', cityDB);
     }
     return;
   }
@@ -5545,7 +5593,7 @@ async function autoLoadCities() {
   if (remoteVersion) {
     try {
       const cachedVersion = await idbGet('version');
-      if (cachedVersion === remoteVersion) {
+      if (cachedVersion === remoteVersion + '|' + CACHE_SCHEMA) {
         const cachedCities = await idbGet('cityDB');
         if (Array.isArray(cachedCities) && cachedCities.length) {
           cityDB = cachedCities;
@@ -5570,7 +5618,7 @@ async function autoLoadCities() {
         if (gz.ok) {
           cityDB = gz.cityDB;
           finaliseCityDB(gz.swappedCount, 'txt');
-          if (remoteVersion) { idbSet('version', remoteVersion); idbSet('cityDB', cityDB); }
+          if (remoteVersion) { idbSet('version', remoteVersion + '|' + CACHE_SCHEMA); idbSet('cityDB', cityDB); }
           return;
         }
       } catch (e) { /* fall through to the uncompressed options below */ }
@@ -5580,7 +5628,7 @@ async function autoLoadCities() {
         if (!r.ok) continue; // not found (or worker hiccup) — try the next candidate
         cityDB = r.cityDB;
         finaliseCityDB(r.swappedCount, 'txt');
-        if (remoteVersion) { idbSet('version', remoteVersion); idbSet('cityDB', cityDB); }
+        if (remoteVersion) { idbSet('version', remoteVersion + '|' + CACHE_SCHEMA); idbSet('cityDB', cityDB); }
         return;
       }
 
@@ -5591,7 +5639,7 @@ async function autoLoadCities() {
       if (xlsxRes.ok) {
         const buf = await xlsxRes.arrayBuffer();
         loadCitiesFromBuffer(buf);
-        if (remoteVersion) { idbSet('version', remoteVersion); idbSet('cityDB', cityDB); }
+        if (remoteVersion) { idbSet('version', remoteVersion + '|' + CACHE_SCHEMA); idbSet('cityDB', cityDB); }
         return;
       }
       setMsg('Could not auto-load city data (data.txt.gz not found or unreadable). Use "Load data file" instead.', 'err');
@@ -5606,7 +5654,7 @@ async function autoLoadCities() {
         const buf = await gzRes.arrayBuffer();
         const text = pako.inflate(new Uint8Array(buf), { to: 'string' });
         loadCitiesFromTSV(text);
-        if (remoteVersion) { idbSet('version', remoteVersion); idbSet('cityDB', cityDB); }
+        if (remoteVersion) { idbSet('version', remoteVersion + '|' + CACHE_SCHEMA); idbSet('cityDB', cityDB); }
         return;
       }
     } catch (e) { /* fall through to the uncompressed options below */ }
@@ -5621,7 +5669,7 @@ async function autoLoadCities() {
         const buf = await res.arrayBuffer();
         loadCitiesFromBuffer(buf);
       }
-      if (remoteVersion) { idbSet('version', remoteVersion); idbSet('cityDB', cityDB); }
+      if (remoteVersion) { idbSet('version', remoteVersion + '|' + CACHE_SCHEMA); idbSet('cityDB', cityDB); }
       return;
     }
   } catch (e) {
