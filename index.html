@@ -6,8 +6,8 @@
 <title>World City Quiz</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -5318,7 +5318,18 @@ async function idbSet(key, value) {
 // generation, disputed-capital table) it needs — these have no DOM
 // dependency so they're safe to run off-thread as-is.
 const CITY_WORKER_SRC = `
-self.importScripts('https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js');
+// Native gzip (DecompressionStream) is much faster than pako and needs no extra
+// download; pako is only pulled in if the browser lacks it or it throws.
+async function gunzip(buf) {
+  if (typeof DecompressionStream !== 'undefined') {
+    try {
+      const ds = new Blob([buf]).stream().pipeThrough(new DecompressionStream('gzip'));
+      return await new Response(ds).text();
+    } catch (err) { /* fall back to pako below */ }
+  }
+  self.importScripts('https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js');
+  return pako.inflate(new Uint8Array(buf), { to: 'string' });
+}
 
 const DISPUTED_CAPITALS = { 'IL':'Jerusalem','TW':'Taipei','PS':'Ramallah','CY':'Nicosia','XK':'Pristina','BO':'La Paz' };
 const EMPTY_ALIASES_F = [];
@@ -5410,7 +5421,7 @@ self.onmessage = async (e) => {
       const res = await fetch(url);
       if (!res.ok) { self.postMessage({ id, ok:false, notFound:true }); return; }
       const buf = await res.arrayBuffer();
-      const text = pako.inflate(new Uint8Array(buf), { to: 'string' });
+      const text = await gunzip(buf);
       const { cityDB, swappedCount } = parseTSV(text);
       self.postMessage({ id, ok:true, cityDB, swappedCount });
     } else if (cmd === 'fetchText') {
@@ -5467,8 +5478,63 @@ function runInCityWorker(msg) {
 // it just loses the non-blocking benefit.
 const CITY_WORKER_SUPPORTED = (typeof Worker !== 'undefined') && (location.protocol !== 'file:');
 
+// Starts loading the city data right away (at script run time, before the map and
+// session are restored) so the download/parse overlaps with the rest of start-up.
+// Cache-first: if a parsed copy is in IndexedDB it is used immediately without
+// waiting for the network; the version check runs alongside and only refreshes
+// the cache in the background for the next visit. It touches no UI.
+function prefetchCityData() {
+  const versionP = fetch('data-version.json', { cache: 'no-store' })
+    .then(r => r.ok ? r.json() : null)
+    .then(j => (j && j.version) || null)
+    .catch(() => null);
+  const work = (async () => {
+    let cached = null;
+    try {
+      const [v, db] = await Promise.all([idbGet('version'), idbGet('cityDB')]);
+      if (Array.isArray(db) && db.length) cached = { version: v, cityDB: db };
+    } catch (e) { /* unreadable cache — download instead */ }
+    if (cached) return { source: 'cache', cityDB: cached.cityDB, swappedCount: 0, cachedVersion: cached.version, versionP };
+    if (CITY_WORKER_SUPPORTED) {
+      try {
+        const gz = await runInCityWorker({ cmd: 'fetchGz', url: 'data.txt.gz' });
+        if (gz.ok) return { source: 'txt', cityDB: gz.cityDB, swappedCount: gz.swappedCount, versionP };
+      } catch (e) { /* fall through to the full fallback chain */ }
+    }
+    return null; // autoLoadCities() runs the slower fallback chain instead
+  })();
+  work.versionP = versionP;
+  return work;
+}
+
+// Re-downloads the data in the background and stores it for the NEXT visit
+// (the data currently on screen is left untouched).
+async function refreshCityCache(version) {
+  try {
+    if (!CITY_WORKER_SUPPORTED) return;
+    const gz = await runInCityWorker({ cmd: 'fetchGz', url: 'data.txt.gz' });
+    if (!gz.ok) return;
+    await idbSet('cityDB', gz.cityDB);
+    await idbSet('version', version);
+  } catch (e) { /* try again next visit */ }
+}
+
+const cityPrefetchPromise = prefetchCityData();
+
 async function autoLoadCities() {
   setMsg('Loading city data…', 'info');
+  const pre = await cityPrefetchPromise.catch(() => null);
+  if (pre) {
+    cityDB = pre.cityDB;
+    finaliseCityDB(pre.swappedCount, pre.source);
+    const remoteVersion = await pre.versionP;
+    if (pre.source === 'cache') {
+      if (remoteVersion && remoteVersion !== pre.cachedVersion) refreshCityCache(remoteVersion);
+    } else if (remoteVersion) {
+      idbSet('version', remoteVersion); idbSet('cityDB', cityDB);
+    }
+    return;
+  }
   // Cheap check first: does the published data differ from what we have cached?
   let remoteVersion = null;
   try {
