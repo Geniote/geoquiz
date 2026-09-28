@@ -3295,14 +3295,19 @@ function fold(s) {
 // Nicknames that should always point at one specific city, even when a smaller
 // place elsewhere is literally called that (Rio, Greece vs Rio de Janeiro).
 const PREFERRED_NICKNAMES = {
-  'rio': ['Rio de Janeiro', 'BR'],
+  // query: { names: [names the city may have in the data], country }
+  'rio':             { names: ['Rio de Janeiro'], country: 'BR' },
+  'port elizabeth':  { names: ['Gqeberha', 'Port Elizabeth'], country: 'ZA' }, // not Port Elizabeth on Bequia
+  'bombay':          { names: ['Mumbai'], country: 'IN' },
+  'madras':          { names: ['Chennai'], country: 'IN' },
+  'calcutta':        { names: ['Kolkata'], country: 'IN' },
 };
 // True if `query` is a curated nickname for c, or one of the Mexican short forms
 // generated for big Mexican cities (Juárez, Matamoros, Durango, Victoria…).
 function isPreferredShortName(c, query) {
   if (c.mxF && c.mxF.includes(query)) return true;
   const n = PREFERRED_NICKNAMES[query];
-  return !!n && c.country === n[1] && c.name === n[0];
+  return !!n && c.country === n.country && n.names.includes(c.name);
 }
 
 function lookupCity(raw) {
@@ -3369,11 +3374,20 @@ function lookupCity(raw) {
   //   score as the unrelated Spanish town literally named "Andorra"), at
   //   which point population (below) breaks the tie in the capital's favor.
   //   A capital's own real name always wins outright either way.
+  // Biggest population among candidates whose actual name (not a nickname) is the query.
+  const maxRealNamePop = matches.reduce((m, c) =>
+    (c.nameF === cityQuery || c.asciiF === cityQuery) ? Math.max(m, Number(c.pop) || 0) : m, 0);
   function matchScore(c) {
     let tier, realName = false;
     if (c.name.toLowerCase() === cityQuery || c.ascii_name.toLowerCase() === cityQuery) { tier = 2; realName = true; }
     else if (c.nameF === cityQuery || c.asciiF === cityQuery) { tier = 2; realName = true; }
-    else if (isPreferredShortName(c, cityQuery)) return 3; // curated short/nickname (Rio, Juarez, Durango…): treated like a capital's real name, population breaks ties
+    else if (PREFERRED_NICKNAMES[cityQuery] && isPreferredShortName(c, cityQuery)) return 3; // curated nickname (Rio…): always wins
+    else if (isPreferredShortName(c, cityQuery)) {
+      // Mexican short form (Durango, Victoria, Juarez…): only beats places that are
+      // really named that if it's the bigger city — otherwise Lagos de Moreno would
+      // outrank Lagos, Nigeria.
+      return c.pop > maxRealNamePop ? 3 : 2;
+    }
     else if (c.aliasesF.some(a => a === cityQuery)) tier = 1;
     else tier = 0; // prefix
     // Only capitals of UN-recognized sovereign states get the bonus —
