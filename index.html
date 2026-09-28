@@ -861,6 +861,11 @@ const REGIONS = {
     label:'Europe', color:'#1565C0',
     makeProj: (W,H) => d3.geoMercator().center([15, 54]).scale(Math.min(W,H)*1.05).translate([W/2, H/2]),
     clip: [-25, 35, 45, 72],
+    // Same panning setup as Spain/Japan/Poland: equal pan distance in all four
+    // directions from the opening view, with at least minPanScreens screen-heights
+    // of room each way (see the translateExtent code below).
+    symmetricPan: true,
+    minPanScreens: 1.8,
     countries: ['AL','AD','AT','BY','BE','BA','BG','HR','CY','CZ','DK','EE','FI','FO','FR','DE','GR','HU','IS','IE','IT','XK','LV','LI','LT','LU','MT','MD','MC','ME','NL','MK','NO','PL','PT','RO','SM','RS','SK','SI','ES','SE','CH','UA','GB','VA','RU','GG','JE','IM'],
     // Europe's clip box brushes against North Africa and parts of the Middle
     // East / Caucasus, so those countries' land would otherwise still be
@@ -877,6 +882,11 @@ const REGIONS = {
     label:'North America', color:'#6A1B9A',
     makeProj: (W,H) => d3.geoMercator().center([-95, 48]).scale(Math.min(W,H)*0.62).translate([W/2, H/2]),
     clip: [-170, 8, -50, 84],
+    // Same panning setup as Spain/Japan/Poland: equal pan distance in all four
+    // directions from the opening view, with at least minPanScreens screen-heights
+    // of room each way (see the translateExtent code below).
+    symmetricPan: true,
+    minPanScreens: 1.8,
     countries: ['US','CA','MX','CU','JM','HT','DO','PR','GT','BZ','HN','SV','NI','CR','PA','TT','BS','BB','AG','DM','GD','KN','LC','VC','AW','CW','SX','VG','VI','KY','TC','AI','MS','GP','MQ','MF','BL','BQ','PM','BM'],
     // Without this, any country whose land merely overlaps the viewport
     // gets drawn — which pulls in a strip of Colombia/Venezuela south of
@@ -888,6 +898,11 @@ const REGIONS = {
     label:'South America', color:'#2E7D32',
     makeProj: (W,H) => d3.geoMercator().center([-60, -15]).scale(Math.min(W,H)*0.72).translate([W/2, H/2]),
     clip: [-82, -56, -34, 13],
+    // Same panning setup as Spain/Japan/Poland: equal pan distance in all four
+    // directions from the opening view, with at least minPanScreens screen-heights
+    // of room each way (see the translateExtent code below).
+    symmetricPan: true,
+    minPanScreens: 1.8,
     countries: ['AR','BO','BR','CL','CO','EC','GY','PY','PE','SR','UY','VE','GF','FK'],
     // Restrict rendered land to the country list above, so the region runs
     // cleanly from Colombia down through the southern tip of the continent
@@ -898,6 +913,11 @@ const REGIONS = {
     label:'Africa', color:'#BF360C',
     makeProj: (W,H) => d3.geoMercator().center([20, 3]).scale(Math.min(W,H)*0.72).translate([W/2, H/2]),
     clip: [-20, -36, 52, 38],
+    // Same panning setup as Spain/Japan/Poland: equal pan distance in all four
+    // directions from the opening view, with at least minPanScreens screen-heights
+    // of room each way (see the translateExtent code below).
+    symmetricPan: true,
+    minPanScreens: 1.8,
     countries: ['DZ','AO','BJ','BW','BF','BI','CM','CV','CF','TD','KM','CD','CG','DJ','EG','GQ','ER','ET','GA','GM','GH','GN','GW','CI','KE','LS','LR','LY','MG','MW','ML','MR','MU','MA','MZ','NA','NE','NG','RW','SC','ST','SN','SL','SO','ZA','SS','SD','SZ','TZ','TG','TN','UG','ZM','ZW','EH','RE','YT','SH'],
     // Restrict rendered land to the continent and its island nations above,
     // so the Arabian Peninsula/southern Europe don't bleed in at the edges.
@@ -907,6 +927,11 @@ const REGIONS = {
     label:'Asia', color:'#E65100',
     makeProj: (W,H) => d3.geoMercator().center([103, 35]).scale(Math.min(W,H)*0.52).translate([W/2, H/2]),
     clip: [25, -12, 180, 78],
+    // Same panning setup as Spain/Japan/Poland: equal pan distance in all four
+    // directions from the opening view, with at least minPanScreens screen-heights
+    // of room each way (see the translateExtent code below).
+    symmetricPan: true,
+    minPanScreens: 1.8,
     countries: ['AF','AM','AZ','BD','BT','BN','KH','CN','GE','IN','ID','JP','KZ','KG','LA','MY','MV','MN','MM','NP','KP','PK','PH','RU','SG','KR','LK','TW','TJ','TH','TL','TM','UZ','VN','TR','PS','IL','IQ','IR','SA','YE','OM','AE','KW','QA','BH','LB','SY','JO','HK','MO'],
     // Asia's clip box overlaps Papua New Guinea/Oceania and other stray
     // land at its edges; restrict rendered land to the country list above.
@@ -920,6 +945,11 @@ const REGIONS = {
     label:'Oceania', color:'#00695C',
     makeProj: (W,H) => d3.geoMercator().center([148, -26]).scale(Math.min(W,H)*0.85).translate([W/2, H/2]),
     clip: [110, -50, 180, 5],
+    // Same panning setup as Spain/Japan/Poland: equal pan distance in all four
+    // directions from the opening view, with at least minPanScreens screen-heights
+    // of room each way (see the translateExtent code below).
+    symmetricPan: true,
+    minPanScreens: 1.8,
     countries: ['AU','NZ','PG','FJ','SB','VU','WS','KI','TO','FM','PW','MH','NR','TV','NC','PF','CK','NU','WF','PN','NF','AS'],
     // Restrict rendered land to the country list above, so Indonesia's
     // easternmost islands don't bleed in next to Papua New Guinea.
@@ -929,6 +959,11 @@ const REGIONS = {
     label:'Middle East', color:'#4527A0',
     makeProj: (W,H) => d3.geoMercator().center([44, 28]).scale(Math.min(W,H)*1.05).translate([W/2, H/2]),
     clip: [24, 12, 65, 42],
+    // Same panning setup as Spain/Japan/Poland: equal pan distance in all four
+    // directions from the opening view, with at least minPanScreens screen-heights
+    // of room each way (see the translateExtent code below).
+    symmetricPan: true,
+    minPanScreens: 1.8,
     countries: ['BH','CY','IR','IQ','IL','JO','KW','LB','OM','QA','SA','SY','TR','AE','YE'],
   },
   usa: {
@@ -2172,7 +2207,8 @@ async function drawMap(regionKey) {
         // the same panning distance up, down, left and right. The distance is
         // the largest of the four edge distances, so no side gets any smaller.
         const cx = W / 2, cy = H / 2;
-        const r = Math.max(cx - x0, x1 - cx, cy - y0, y1 - cy);
+        let r = Math.max(cx - x0, x1 - cx, cy - y0, y1 - cy);
+        if (region.minPanScreens) r = Math.max(r, region.minPanScreens * H);
         zoomBehavior.translateExtent([[cx - r, cy - r], [cx + r, cy + r]]);
       } else {
         zoomBehavior.translateExtent([[x0, y0], [x1, y1]]);
