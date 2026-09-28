@@ -2760,60 +2760,71 @@ function finaliseCityDB(swappedCount) {
 // common case, especially for the small towns that make up most of a cities500 export.
 const EMPTY_ALIASES_F = [];
 
-function loadCitiesFromTSV(text) {
-  try {
-    const lines = text.split('\n');
-    let swappedCount = 0;
-    const out = [];
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      if (!line || line.charCodeAt(0) === 35 /* '#' */) continue; // cheap skip for blank/comment lines
-      const r = line.split('\t');
-      if (r.length < 9) continue;
-      // Two possible column layouts land here:
-      //  - a full/raw GeoNames export (>=15 cols): 0=id,1=name,2=asciiname,
-      //    3=alternatenames,4=lat,5=lon,6=featureclass,7=featurecode,
-      //    8=countrycode,10=admin1,14=population — e.g. a manually uploaded
-      //    cities15000.txt straight from GeoNames.
-      //  - the slim export update-cities.yml produces (10 cols, unused
-      //    GeoNames columns like elevation/timezone/admin2-4 stripped to
-      //    shrink the download): 0=id,1=name,2=asciiname,3=alternatenames,
-      //    4=lat,5=lon,6=featurecode,7=countrycode,8=admin1,9=population
-      const isSlim = r.length < 15;
-      const featureCode = (isSlim ? r[6] : r[7]).trim();
-      if (featureCode === 'PPLX') continue; // skip neighbourhoods/districts
-      const name       = r[1].trim();
-      if (!name) continue;
-      const asciiRaw   = r[2].trim();
-      const ascii_name = asciiRaw || name;
-      const altField   = r[3];
-      const aliases    = altField ? altField.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean) : [];
-      const country    = (isSlim ? r[7] : r[8]).trim();
-      const admin1     = ((isSlim ? r[8] : r[10]) || '').trim().toUpperCase();
-      const pop        = parseInt(isSlim ? r[9] : r[14]) || 0;
-      let lat = parseFloat(r[4]);
-      let lon = parseFloat(r[5]);
-      if (isNaN(lat) || isNaN(lon)) continue;
-      const latOk = lat >= -90 && lat <= 90;
-      const lonOk = lon >= -180 && lon <= 180;
-      if (!latOk && lonOk && lon >= -90 && lon <= 90 && lat >= -180 && lat <= 180) {
-        [lat, lon] = [lon, lat]; swappedCount++;
-      } else if (!latOk || !lonOk) continue;
-      const disputedCap = DISPUTED_CAPITALS[country];
-      const isCapital = (featureCode === 'PPLC' && (!disputedCap || disputedCap === ascii_name)) || disputedCap === ascii_name;
-      const nameF = fold(name);
-      // Most rows have no ASCII transliteration to fold separately — reuse nameF.
-      const asciiF = asciiRaw && asciiRaw !== name ? fold(ascii_name) : nameF;
-      const mxAliases = country === 'MX' && pop >= 50000 ? getMexicanAliases(name) : null;
-      const aliasesF = (aliases.length || mxAliases)
-        ? [...new Set([...aliases.map(fold), ...(mxAliases || [])])]
-        : EMPTY_ALIASES_F;
-      const geonamesId = parseInt(r[0]);
-      const _c = { name, ascii_name, nameF, asciiF, aliasesF, aliases, lat, lon, country, admin1, pop, isCapital, geonamesId };
+// Pure row-parsing, no globals touched — shared by the main "load a file"
+// path below and by the auto-load pipeline (which needs parsed rows it can
+// merge with per-country overlay files *before* they become the live
+// cityDB / finaliseCityDB runs). This is the main-thread twin of the
+// Web Worker's parseTSV() — kept in sync with it by hand since the worker
+// copy has to be self-contained inside a Blob string and can't import this.
+function parseCityRows(text) {
+  const lines = text.split('\n');
+  let swappedCount = 0;
+  const out = [];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (!line || line.charCodeAt(0) === 35 /* '#' */) continue; // cheap skip for blank/comment lines
+    const r = line.split('\t');
+    if (r.length < 9) continue;
+    // Two possible column layouts land here:
+    //  - a full/raw GeoNames export (>=15 cols): 0=id,1=name,2=asciiname,
+    //    3=alternatenames,4=lat,5=lon,6=featureclass,7=featurecode,
+    //    8=countrycode,10=admin1,14=population — e.g. a manually uploaded
+    //    cities15000.txt straight from GeoNames.
+    //  - the slim export update-cities.yml produces (10 cols, unused
+    //    GeoNames columns like elevation/timezone/admin2-4 stripped to
+    //    shrink the download): 0=id,1=name,2=asciiname,3=alternatenames,
+    //    4=lat,5=lon,6=featurecode,7=countrycode,8=admin1,9=population
+    const isSlim = r.length < 15;
+    const featureCode = (isSlim ? r[6] : r[7]).trim();
+    if (featureCode === 'PPLX') continue; // skip neighbourhoods/districts
+    const name       = r[1].trim();
+    if (!name) continue;
+    const asciiRaw   = r[2].trim();
+    const ascii_name = asciiRaw || name;
+    const altField   = r[3];
+    const aliases    = altField ? altField.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean) : [];
+    const country    = (isSlim ? r[7] : r[8]).trim();
+    const admin1     = ((isSlim ? r[8] : r[10]) || '').trim().toUpperCase();
+    const pop        = parseInt(isSlim ? r[9] : r[14]) || 0;
+    let lat = parseFloat(r[4]);
+    let lon = parseFloat(r[5]);
+    if (isNaN(lat) || isNaN(lon)) continue;
+    const latOk = lat >= -90 && lat <= 90;
+    const lonOk = lon >= -180 && lon <= 180;
+    if (!latOk && lonOk && lon >= -90 && lon <= 90 && lat >= -180 && lat <= 180) {
+      [lat, lon] = [lon, lat]; swappedCount++;
+    } else if (!latOk || !lonOk) continue;
+    const disputedCap = DISPUTED_CAPITALS[country];
+    const isCapital = (featureCode === 'PPLC' && (!disputedCap || disputedCap === ascii_name)) || disputedCap === ascii_name;
+    const nameF = fold(name);
+    // Most rows have no ASCII transliteration to fold separately — reuse nameF.
+    const asciiF = asciiRaw && asciiRaw !== name ? fold(ascii_name) : nameF;
+    const mxAliases = country === 'MX' && pop >= 50000 ? getMexicanAliases(name) : null;
+    const aliasesF = (aliases.length || mxAliases)
+      ? [...new Set([...aliases.map(fold), ...(mxAliases || [])])]
+      : EMPTY_ALIASES_F;
+    const geonamesId = parseInt(r[0]);
+    const _c = { name, ascii_name, nameF, asciiF, aliasesF, aliases, lat, lon, country, admin1, pop, isCapital, geonamesId };
     if (mxAliases && mxAliases.length) _c.mxF = mxAliases;
     out.push(_c);
-    }
-    cityDB = out;
+  }
+  return { cityDB: out, swappedCount };
+}
+
+function loadCitiesFromTSV(text) {
+  try {
+    const { cityDB: rows, swappedCount } = parseCityRows(text);
+    cityDB = rows;
     finaliseCityDB(swappedCount, 'txt');
   } catch(err) {
     setFileStatus('❌ Error reading file');
@@ -5540,6 +5551,56 @@ function runInCityWorker(msg) {
 // it just loses the non-blocking benefit.
 const CITY_WORKER_SUPPORTED = (typeof Worker !== 'undefined') && (location.protocol !== 'file:');
 
+// ─── PER-COUNTRY OVERLAY FILES ─────────────────────────────────────────────
+// data-version.json can list extra small files, in the same GeoNames-style
+// TSV format as data.txt, that get merged into the base city data for
+// specific countries — e.g. a hand-curated data-jp.txt with better Japanese
+// coverage than the global export has. Declared like:
+//   "countryFiles": [ { "file": "data-jp.txt", "countries": ["JP"] } ]
+// A row from an overlay file replaces any base row for the same place (same
+// GeoNames id, or failing that the same country + folded name + ~1km of the
+// same coordinates); everything else from the base file is kept, and any
+// genuinely new city in the overlay is added. `countries` restricts which
+// countries the file is allowed to touch, as a safety net — rows for any
+// other country in that file are ignored.
+function overlayRowKey(c) {
+  return c.geonamesId ? 'id:' + c.geonamesId
+    : 'k:' + c.country + '|' + c.nameF + '|' + Math.round(c.lat * 100) + '|' + Math.round(c.lon * 100);
+}
+function mergeCountryOverlay(baseRows, overlayRows, countries) {
+  if (!overlayRows || !overlayRows.length) return baseRows;
+  const filtered = (countries && countries.length) ? overlayRows.filter(c => countries.includes(c.country)) : overlayRows;
+  if (!filtered.length) return baseRows;
+  const overlayKeys = new Set(filtered.map(overlayRowKey));
+  return baseRows.filter(c => !overlayKeys.has(overlayRowKey(c))).concat(filtered);
+}
+// Fetches + parses every declared overlay file (worker-side when available,
+// same TSV parser as the main file) and merges them into baseRows in order.
+// A file that's missing or fails to parse is skipped silently — that
+// country's data just stays whatever the base file has, same as if the
+// file weren't declared at all.
+async function applyCountryOverlays(baseRows, countryFiles) {
+  let result = baseRows;
+  if (!countryFiles || !countryFiles.length) return result;
+  for (const entry of countryFiles) {
+    if (!entry || !entry.file) continue;
+    try {
+      let overlayRows;
+      if (CITY_WORKER_SUPPORTED) {
+        const r = await runInCityWorker({ cmd: 'fetchText', url: entry.file });
+        if (!r.ok) continue;
+        overlayRows = r.cityDB;
+      } else {
+        const res = await fetch(entry.file);
+        if (!res.ok) continue;
+        overlayRows = parseCityRows(await res.text()).cityDB;
+      }
+      result = mergeCountryOverlay(result, overlayRows, entry.countries);
+    } catch (e) { /* skip this file, keep base data for its countries */ }
+  }
+  return result;
+}
+
 // Starts loading the city data right away (at script run time, before the map and
 // session are restored) so the download/parse overlaps with the rest of start-up.
 // Cache-first: if a parsed copy is in IndexedDB it is used immediately without
@@ -5549,39 +5610,53 @@ const CITY_WORKER_SUPPORTED = (typeof Worker !== 'undefined') && (location.proto
 // copies parsed by older code are discarded instead of being reused forever.
 const CACHE_SCHEMA = 's3';
 
+// The IndexedDB cache is keyed on this instead of the bare version string,
+// so that changing data-version.json's countryFiles list (even without
+// bumping "version") is enough to make a stale cached copy get rebuilt —
+// same as any other data change.
+function cacheKeyFor(version, countryFiles) {
+  return version + '::cf=' + JSON.stringify(countryFiles || []) + '|' + CACHE_SCHEMA;
+}
+
 function prefetchCityData() {
-  const versionP = fetch('data-version.json', { cache: 'no-store' })
+  const configP = fetch('data-version.json', { cache: 'no-store' })
     .then(r => r.ok ? r.json() : null)
-    .then(j => (j && j.version) || null)
     .catch(() => null);
+  const versionP = configP.then(j => (j && j.version) || null);
   const work = (async () => {
     let cached = null;
     try {
       const [v, db] = await Promise.all([idbGet('version'), idbGet('cityDB')]);
       if (Array.isArray(db) && db.length && typeof v === 'string' && v.endsWith('|' + CACHE_SCHEMA)) cached = { version: v, cityDB: db };
     } catch (e) { /* unreadable cache — download instead */ }
-    if (cached) return { source: 'cache', cityDB: cached.cityDB, swappedCount: 0, cachedVersion: cached.version, versionP };
+    if (cached) return { source: 'cache', cityDB: cached.cityDB, swappedCount: 0, cachedVersion: cached.version, versionP, configP };
     if (CITY_WORKER_SUPPORTED) {
       try {
         const gz = await runInCityWorker({ cmd: 'fetchGz', url: 'data.txt.gz' });
-        if (gz.ok) return { source: 'txt', cityDB: gz.cityDB, swappedCount: gz.swappedCount, versionP };
+        if (gz.ok) {
+          const cfg = await configP;
+          const merged = await applyCountryOverlays(gz.cityDB, cfg && cfg.countryFiles);
+          return { source: 'txt', cityDB: merged, swappedCount: gz.swappedCount, versionP, configP };
+        }
       } catch (e) { /* fall through to the full fallback chain */ }
     }
     return null; // autoLoadCities() runs the slower fallback chain instead
   })();
   work.versionP = versionP;
+  work.configP = configP;
   return work;
 }
 
 // Re-downloads the data in the background and stores it for the NEXT visit
 // (the data currently on screen is left untouched).
-async function refreshCityCache(version) {
+async function refreshCityCache(version, countryFiles) {
   try {
     if (!CITY_WORKER_SUPPORTED) return;
     const gz = await runInCityWorker({ cmd: 'fetchGz', url: 'data.txt.gz' });
     if (!gz.ok) return;
-    await idbSet('cityDB', gz.cityDB);
-    await idbSet('version', version + '|' + CACHE_SCHEMA);
+    const merged = await applyCountryOverlays(gz.cityDB, countryFiles);
+    await idbSet('cityDB', merged);
+    await idbSet('version', cacheKeyFor(version, countryFiles));
   } catch (e) { /* try again next visit */ }
 }
 
@@ -5593,25 +5668,27 @@ async function autoLoadCities() {
   if (pre) {
     cityDB = pre.cityDB;
     finaliseCityDB(pre.swappedCount, pre.source);
-    const remoteVersion = await pre.versionP;
+    const cfg = await pre.configP;
+    const remoteVersion = (cfg && cfg.version) || null;
+    const countryFiles = cfg && cfg.countryFiles;
     if (pre.source === 'cache') {
-      if (remoteVersion && (remoteVersion + '|' + CACHE_SCHEMA) !== pre.cachedVersion) refreshCityCache(remoteVersion);
+      if (remoteVersion && cacheKeyFor(remoteVersion, countryFiles) !== pre.cachedVersion) refreshCityCache(remoteVersion, countryFiles);
     } else if (remoteVersion) {
-      idbSet('version', remoteVersion + '|' + CACHE_SCHEMA); idbSet('cityDB', cityDB);
+      idbSet('version', cacheKeyFor(remoteVersion, countryFiles)); idbSet('cityDB', cityDB);
     }
     return;
   }
   // Cheap check first: does the published data differ from what we have cached?
-  let remoteVersion = null;
+  let remoteVersion = null, countryFiles = null;
   try {
     const vRes = await fetch('data-version.json', { cache: 'no-store' });
-    if (vRes.ok) remoteVersion = (await vRes.json()).version || null;
+    if (vRes.ok) { const j = await vRes.json(); remoteVersion = j.version || null; countryFiles = j.countryFiles || null; }
   } catch (e) { /* offline, file:// protocol, or file not published yet */ }
 
   if (remoteVersion) {
     try {
       const cachedVersion = await idbGet('version');
-      if (cachedVersion === remoteVersion + '|' + CACHE_SCHEMA) {
+      if (cachedVersion === cacheKeyFor(remoteVersion, countryFiles)) {
         const cachedCities = await idbGet('cityDB');
         if (Array.isArray(cachedCities) && cachedCities.length) {
           cityDB = cachedCities;
@@ -5630,13 +5707,16 @@ async function autoLoadCities() {
     // parse all happen inside a Web Worker when available (see
     // CITY_WORKER_SUPPORTED above) so this never blocks the UI thread —
     // the map stays pannable/zoomable the whole time instead of freezing.
+    // Any per-country overlay files (data-version.json's countryFiles) are
+    // merged in right after parsing, before finaliseCityDB runs, so the
+    // country list, exclusions and stats all see the merged result.
     if (CITY_WORKER_SUPPORTED) {
       try {
         const gz = await runInCityWorker({ cmd: 'fetchGz', url: 'data.txt.gz' });
         if (gz.ok) {
-          cityDB = gz.cityDB;
+          cityDB = await applyCountryOverlays(gz.cityDB, countryFiles);
           finaliseCityDB(gz.swappedCount, 'txt');
-          if (remoteVersion) { idbSet('version', remoteVersion + '|' + CACHE_SCHEMA); idbSet('cityDB', cityDB); }
+          if (remoteVersion) { idbSet('version', cacheKeyFor(remoteVersion, countryFiles)); idbSet('cityDB', cityDB); }
           return;
         }
       } catch (e) { /* fall through to the uncompressed options below */ }
@@ -5644,20 +5724,24 @@ async function autoLoadCities() {
       for (const url of ['data.txt', 'cities15000.txt', 'cities.txt']) {
         const r = await runInCityWorker({ cmd: 'fetchText', url });
         if (!r.ok) continue; // not found (or worker hiccup) — try the next candidate
-        cityDB = r.cityDB;
+        cityDB = await applyCountryOverlays(r.cityDB, countryFiles);
         finaliseCityDB(r.swappedCount, 'txt');
-        if (remoteVersion) { idbSet('version', remoteVersion + '|' + CACHE_SCHEMA); idbSet('cityDB', cityDB); }
+        if (remoteVersion) { idbSet('version', cacheKeyFor(remoteVersion, countryFiles)); idbSet('cityDB', cityDB); }
         return;
       }
 
       // xlsx parsing (XLSX.js) stays on the main thread — it's only ever a
       // last-resort fallback if none of the txt/gz files are published, so
       // it's not worth the extra complexity of moving into the worker too.
+      // (Country overlay files aren't merged in this branch — by the time
+      // every txt/gz candidate above has failed, something is badly wrong
+      // with the data publish, and getting *some* map up matters more than
+      // this last-resort path also picking up the overlays.)
       const xlsxRes = await fetch('cities.xlsx');
       if (xlsxRes.ok) {
         const buf = await xlsxRes.arrayBuffer();
         loadCitiesFromBuffer(buf);
-        if (remoteVersion) { idbSet('version', remoteVersion + '|' + CACHE_SCHEMA); idbSet('cityDB', cityDB); }
+        if (remoteVersion) { idbSet('version', cacheKeyFor(remoteVersion, countryFiles)); idbSet('cityDB', cityDB); }
         return;
       }
       setMsg('Could not auto-load city data (data.txt.gz not found or unreadable). Use "Load data file" instead.', 'err');
@@ -5665,14 +5749,16 @@ async function autoLoadCities() {
     }
 
     // No worker support (e.g. file:// or a very old browser) — original
-    // main-thread path, unchanged.
+    // main-thread path, unchanged except for the same overlay merge.
     try {
       const gzRes = await fetch('data.txt.gz');
       if (gzRes.ok) {
         const buf = await gzRes.arrayBuffer();
         const text = pako.inflate(new Uint8Array(buf), { to: 'string' });
-        loadCitiesFromTSV(text);
-        if (remoteVersion) { idbSet('version', remoteVersion + '|' + CACHE_SCHEMA); idbSet('cityDB', cityDB); }
+        const { cityDB: rows, swappedCount } = parseCityRows(text);
+        cityDB = await applyCountryOverlays(rows, countryFiles);
+        finaliseCityDB(swappedCount, 'txt');
+        if (remoteVersion) { idbSet('version', cacheKeyFor(remoteVersion, countryFiles)); idbSet('cityDB', cityDB); }
         return;
       }
     } catch (e) { /* fall through to the uncompressed options below */ }
@@ -5682,12 +5768,14 @@ async function autoLoadCities() {
       if (!res.ok) continue;
       if (isTxt) {
         const text = await res.text();
-        loadCitiesFromTSV(text);
+        const { cityDB: rows, swappedCount } = parseCityRows(text);
+        cityDB = await applyCountryOverlays(rows, countryFiles);
+        finaliseCityDB(swappedCount, 'txt');
       } else {
         const buf = await res.arrayBuffer();
-        loadCitiesFromBuffer(buf);
+        loadCitiesFromBuffer(buf); // last resort — no overlay merge here, see note above
       }
-      if (remoteVersion) { idbSet('version', remoteVersion + '|' + CACHE_SCHEMA); idbSet('cityDB', cityDB); }
+      if (remoteVersion) { idbSet('version', cacheKeyFor(remoteVersion, countryFiles)); idbSet('cityDB', cityDB); }
       return;
     }
   } catch (e) {
