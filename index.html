@@ -121,6 +121,21 @@ body.night-mode .cf-opt.active{background:rgba(43,76,126,.3)}
 .cf-sep{font-size:9.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;padding:6px 8px 3px;border-top:1px solid var(--border);margin-top:4px}
 .cf-empty{padding:7px 8px;font-size:11px;color:var(--text3)}
 
+/* Stats country scope: same look & behaviour as the typing-bar country filter
+   (it reuses the .cf-opt / .cf-sep / .cf-empty option styles above). */
+#statsCountryRow{width:100%;max-width:520px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+#statsCountryWrap{position:relative;width:100%;height:38px;border:2px solid var(--border);border-radius:9px;background:var(--bg);transition:border-color .15s}
+#statsCountryWrap:focus-within{border-color:var(--accent2)}
+#statsCountryLbl{position:absolute;left:16px;right:176px;top:0;bottom:0;display:flex;align-items:center;font-size:14px;font-weight:400;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+#scBtn{position:absolute;right:3px;top:3px;bottom:3px;width:170px;display:flex;align-items:center;gap:4px;margin:0;border:none;border-left:1px solid var(--border);border-radius:0 7px 7px 0;background-color:transparent;font-size:11px;font-weight:600;color:var(--text2);padding:0 8px;cursor:pointer;text-align:left}
+#scBtn:hover{color:var(--text);background-color:rgba(0,0,0,.03)}
+#scBtn.filtering{color:var(--accent2)}
+#scBtnLabel{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#scCaret{flex-shrink:0;border-left:3.5px solid transparent;border-right:3.5px solid transparent;border-top:4px solid currentColor}
+#scPanel{display:none;position:absolute;right:0;top:calc(100% + 5px);width:220px;max-height:216px;overflow-y:auto;overscroll-behavior:contain;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 6px 22px rgba(0,0,0,.18);z-index:60;padding:4px}
+#scPanel.open{display:block}
+#scSearch{position:absolute;right:3px;top:3px;width:1px;height:1px;box-sizing:border-box;margin:0;padding:0;border:0;background:transparent;color:transparent;caret-color:transparent;font-size:16px;opacity:0;pointer-events:none;outline:none}
+
 /* MAP PICKER — button in the session bar (left of the typing bar) + its modal */
 #mapPickBtn{display:flex;align-items:center;gap:8px;height:38px;padding:0 16px;font-size:14px;font-weight:600;border:2px solid var(--border);border-radius:9px;cursor:pointer;background:var(--surface);color:var(--text2);white-space:nowrap;flex-shrink:0}
 #mapPickBtn:hover{background:var(--bg);color:var(--text)}
@@ -777,7 +792,21 @@ input[type=checkbox]{accent-color:var(--accent2);cursor:pointer;width:14px;heigh
     <button type="button" id="toggleBestListBtn" class="toggle-best-list-btn" style="display:none">Show full list ▾</button>
     <div id="bestList" style="width:100%;margin-top:4px;display:none"></div>
 
-    <div id="otherStatsList" style="width:100%;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)"></div>
+    <div id="statsCountryRow">
+      <div id="statsCountryWrap">
+        <span id="statsCountryLbl">Show stats for a country…</span>
+        <button type="button" id="scBtn" title="Show the stats (and missing cities) for one country only">
+          <span id="scBtnLabel">All countries</span><span id="scCaret"></span>
+        </button>
+        <div id="scPanel">
+          <button type="button" class="cf-opt" data-val="any">All countries</button>
+          <div class="cf-sep">Specific country</div>
+          <div id="scCountryList"></div>
+        </div>
+        <input type="text" id="scSearch" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search countries for stats"/>
+      </div>
+    </div>
+    <div id="otherStatsList" style="width:100%;margin-top:6px"></div>
 
     <div id="missedBtnWrap" style="display:none;width:100%;max-width:520px;margin-top:6px">
       <button id="missedBtn">🔍 What did I miss?</button>
@@ -1063,6 +1092,8 @@ function cityInRegion(c, regionDef) {
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
 let cityDB = [], countriesList = [], found = [], missed = 0;
+let statsCountry = '';   // stats scope: '' = whole map, otherwise an ISO-2 country code
+let scCodes = [], scOptsKey = '', scKbOpt = null, scPrevChoice = null;   // stats country picker state
 let projection, currentTransform = d3.zoomIdentity;
 let currentRegion = 'world';
 const W_BASE = 1000, H_BASE = 500;
@@ -4272,15 +4303,19 @@ const UN_COUNTRIES = new Set([
 function renderOtherStats() {
   const el = document.getElementById('otherStatsList');
   if (!el) return;
+  syncStatsCountryPicker();   // may reset statsCountry if it isn't valid on this map
   const isUSA = currentRegion === 'usa';
   const isJapan = currentRegion === 'japan';
   const regionDef = REGIONS[currentRegion];
+  // When a single country is picked in the stats picker, only that country's
+  // cities count and only the three population tiers are shown.
+  const scoped = !!statsCountry;
 
-  // Filter cityDB to the current region
-  const regionCities = cityDB.filter(c => cityInRegion(c, regionDef));
+  // Filter cityDB to the current region (and to the picked country, if any)
+  const regionCities = cityDB.filter(c => cityInRegion(c, regionDef) && (!scoped || c.country === statsCountry));
 
   // Current region's found cities
-  const regionFound = found;
+  const regionFound = scoped ? found.filter(c => c.country === statsCountry) : found;
 
   // Helper: count found cities matching a predicate
   const foundCount = (pred) => regionFound.filter(pred).length;
@@ -4298,7 +4333,9 @@ function renderOtherStats() {
     rows.push({ label: `cities ${label}`, got, total, pct });
   }
 
-  if (isUSA) {
+  if (scoped) {
+    // Country-scoped view: population tiers only (no states / countries / capitals rows)
+  } else if (isUSA) {
     // States
     const totalStates = Object.keys(US_STATES).filter(k => k.length === 2 && !['PR','GU','VI','DC'].includes(k)).length; // 50
     const gotStates = new Set(regionFound.map(c => c.admin1).filter(Boolean)).size;
@@ -4352,9 +4389,132 @@ function renderOtherStats() {
   });
 
   if (!el.children.length) {
-    el.innerHTML = '<div class="best-empty">Load a cities file to see stats</div>';
+    el.innerHTML = scoped
+      ? `<div class="best-empty">${fmtCountry(statsCountry)} has no cities over 100,000 in the loaded data</div>`
+      : '<div class="best-empty">Load a cities file to see stats</div>';
   }
 }
+
+// ─── STATS COUNTRY PICKER ────────────────────────────────────────────────────
+// Same widget as the typing-bar country filter (button + compact scrolling list +
+// invisible type-ahead input: every keystroke selects the closest match at once,
+// Up/Down move the choice, Enter/click-outside closes, Escape undoes). It only
+// changes which country the stats + "What did I miss?" list are about; it never
+// touches the guessing filter. The list holds the countries on the current map.
+function scEl(id) { return document.getElementById(id); }
+function scOpts() { return Array.from(scEl('scPanel').querySelectorAll('.cf-opt')); }
+
+function syncStatsCountryPicker() {
+  const row = scEl('statsCountryRow');
+  if (!row) return;
+  const key = currentRegion + '|' + cityDB.length;
+  if (key !== scOptsKey) {
+    scOptsKey = key;
+    const rd = REGIONS[currentRegion];
+    const set = new Set();
+    cityDB.forEach(c => { if (cityInRegion(c, rd)) set.add(c.country); });
+    scCodes = [...set].sort((a, b) => fmtCountry(a).localeCompare(fmtCountry(b)));
+    const list = scEl('scCountryList');
+    const frag = document.createDocumentFragment();
+    scCodes.forEach(c => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'cf-opt'; b.dataset.val = 'c:' + c;
+      b.textContent = fmtCountry(c);
+      frag.appendChild(b);
+    });
+    list.innerHTML = '';
+    list.appendChild(frag);
+    scKbOpt = null;
+  }
+  if (statsCountry && !scCodes.includes(statsCountry)) statsCountry = '';
+  // A one-country map (USA, Japan, Poland…) has nothing to choose between.
+  row.style.display = scCodes.length > 1 ? '' : 'none';
+  if (scCodes.length <= 1) statsCountry = '';
+  const val = statsCountry ? 'c:' + statsCountry : 'any';
+  let label = 'All countries';
+  scOpts().forEach(o => {
+    const on = o.dataset.val === val;
+    o.classList.toggle('active', on);
+    if (on) label = o.textContent;
+  });
+  scEl('scBtnLabel').textContent = label;
+  scEl('scBtn').classList.toggle('filtering', !!statsCountry);
+}
+
+function scSetKb(o) {
+  if (scKbOpt) scKbOpt.classList.remove('kb');
+  scKbOpt = o || null;
+  if (scKbOpt) { scKbOpt.classList.add('kb'); scKbOpt.scrollIntoView({ block: 'center' }); }
+}
+function scApplyValue(v) {
+  const next = v.startsWith('c:') ? v.slice(2) : '';
+  if (next === statsCountry) return;
+  statsCountry = next;
+  renderOtherStats();
+}
+function scApplyTyped() {
+  const q = fold(scEl('scSearch').value);
+  let best = null, bestScore = 0;
+  if (q) scOpts().forEach(o => {
+    const sc = cfScore(o, q);
+    if (sc > bestScore) { best = o; bestScore = sc; }
+  });
+  scSetKb(best);
+  if (best) scApplyValue(best.dataset.val);
+}
+function scScrollToActive() {
+  const panel = scEl('scPanel');
+  const act = panel.querySelector('.cf-opt.active');
+  if (!act) { panel.scrollTop = 0; return; }
+  const pr = panel.getBoundingClientRect(), ar = act.getBoundingClientRect();
+  panel.scrollTop += (ar.top - pr.top) - (panel.clientHeight - act.offsetHeight) / 2;
+}
+function closeStatsCountryPanel() {
+  const panel = scEl('scPanel');
+  if (!panel) return;
+  panel.classList.remove('open');
+  const inp = scEl('scSearch');
+  if (inp.value) inp.value = '';
+  scSetKb(null);
+}
+
+scEl('scBtn').onclick = e => {
+  e.stopPropagation();
+  if (scEl('scPanel').classList.contains('open')) { closeStatsCountryPanel(); return; }
+  closeCountryFilterPanel();                       // only one list open at a time
+  scEl('scPanel').classList.add('open');
+  scPrevChoice = statsCountry;
+  scScrollToActive();
+  scEl('scSearch').focus({ preventScroll: true });
+};
+scEl('scSearch').addEventListener('input', scApplyTyped);
+scEl('scSearch').addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    closeStatsCountryPanel();
+  } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    const vis = scOpts();
+    if (!vis.length) return;
+    let i = vis.indexOf(scKbOpt);
+    i = e.key === 'ArrowDown' ? (i + 1) % vis.length : (i <= 0 ? vis.length - 1 : i - 1);
+    scSetKb(vis[i]);
+    scApplyValue(vis[i].dataset.val);
+  } else if (e.key === 'Escape') {
+    if (scPrevChoice !== null && scPrevChoice !== statsCountry) { statsCountry = scPrevChoice; renderOtherStats(); }
+    closeStatsCountryPanel();
+  }
+});
+scEl('scPanel').onclick = e => {
+  e.stopPropagation();
+  const opt = e.target.closest('.cf-opt');
+  if (!opt) return;
+  scApplyValue(opt.dataset.val);
+  closeStatsCountryPanel();
+};
+document.addEventListener('click', closeStatsCountryPanel);
+// Opening the typing-bar country list closes this one.
+document.getElementById('countryFilterBtn').addEventListener('click', closeStatsCountryPanel);
 
 function updateSummary() {
   const bar = document.getElementById('summaryBar');
@@ -5805,10 +5965,14 @@ function buildMissedModal() {
   const isJapan = currentRegion === 'japan';
   const regionDef = REGIONS[currentRegion];
   const foundIds  = new Set(found.map(c => dotId(c)));
+  // Same country scope as the stats panel ('' = whole map).
+  const scopeCountry = statsCountry;
+  const headEl = document.querySelector('#missedHead h2');
+  if (headEl) headEl.textContent = '🔍 What did I miss?' + (scopeCountry ? ' — ' + fmtCountry(scopeCountry) : '');
 
-  // Filter DB to current region
+  // Filter DB to current region (and to the picked country, if any)
   function inRegion(c) {
-    return cityInRegion(c, regionDef);
+    return cityInRegion(c, regionDef) && (!scopeCountry || c.country === scopeCountry);
   }
   function wasFound(c) { return foundIds.has(dotId(c)); }
 
@@ -5832,7 +5996,9 @@ function buildMissedModal() {
   // US map, prefecture capitals for the Japan map, national capitals
   // everywhere else.
   let missedCapitals = [];
-  if (isUSA) {
+  if (scopeCountry) {
+    // Country-scoped view: population tiers only, no capitals section.
+  } else if (isUSA) {
     US_STATE_CAPITALS.forEach((abbr, cityNameLower) => {
       const gotIt = found.some(c => c.name.toLowerCase() === cityNameLower && (c.admin1||'').toUpperCase() === abbr);
       if (!gotIt) missedCapitals.push({ label: `${cityNameLower.replace(/\b\w/g, l => l.toUpperCase())} (${abbr})`, cls: 'capital' });
