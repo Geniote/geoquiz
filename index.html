@@ -4712,9 +4712,9 @@ function syncCountryFilterUI() {
 // start typing with no visible box. The full list stays as it is; on EVERY keystroke
 // the closest match is highlighted, scrolled into view and chosen straight away (the
 // button label and the filter change instantly — no waiting, no Enter). Up/Down move
-// the highlight and choose too. The list then tidies itself away after a short pause
-// in typing (purely cosmetic: the choice is already made); Enter closes it at once and
-// Escape closes it and restores whatever was selected before it was opened.
+// the highlight and choose too. The list stays open while the user types (it does NOT
+// auto-close); Enter, a click outside, or the toggle button closes it, and Escape
+// closes it and restores whatever was selected before it was opened.
 const cfPanel = document.getElementById('countryFilterPanel');
 const cfSearch = document.getElementById('cfSearch');
 let cfKbOpt = null;   // option currently highlighted for Enter
@@ -4757,19 +4757,15 @@ function cfApplyFilter() {
   cfSetKb(best);
   if (best) applyCountryFilterValue(best.dataset.val);   // choose it immediately
 }
-const CF_AUTO_CLOSE_MS = 1000;
-let cfClearTimer = null;
 let cfPrevChoice = null;   // selection at the moment the list was opened (for Escape)
-// (Re)start the "typing stopped" countdown; when it runs out the list closes (the
-// choice itself was already applied) and focus goes back to the city box.
-function cfStartAutoClose() {
-  clearTimeout(cfClearTimer);
-  cfClearTimer = setTimeout(() => {
-    cfClearTimer = null;
-    if (!cfPanel.classList.contains('open')) return;
-    closeCountryFilterPanel();
-    document.getElementById('cityInput').focus();
-  }, CF_AUTO_CLOSE_MS);
+// Scroll the (open) panel so the currently selected option sits in the middle of the
+// view. Scrolls only the panel itself, never the page. With nothing selected past the
+// top (Any country) this naturally clamps to the top.
+function cfScrollToActive() {
+  const act = cfPanel.querySelector('.cf-opt.active');
+  if (!act) { cfPanel.scrollTop = 0; return; }
+  const pr = cfPanel.getBoundingClientRect(), ar = act.getBoundingClientRect();
+  cfPanel.scrollTop += (ar.top - pr.top) - (cfPanel.clientHeight - act.offsetHeight) / 2;
 }
 function panelOpts() { return Array.from(cfPanel.querySelectorAll('.cf-opt')); }
 
@@ -4786,9 +4782,7 @@ function selectCountryFilterValue(v) {
 
 function closeCountryFilterPanel() {
   cfPanel.classList.remove('open');
-  cfPanel.scrollTop = 0;   // always back to the top (Any / Every country), never where it was left
   // Reset the typed text and highlight so the next opening starts fresh.
-  clearTimeout(cfClearTimer); cfClearTimer = null;
   if (cfSearch.value) cfSearch.value = '';
   cfApplyFilter();
 }
@@ -4799,13 +4793,12 @@ document.getElementById('countryFilterBtn').onclick = e => {
   if (!opening) { closeCountryFilterPanel(); return; }
   cfPanel.classList.add('open');
   cfPrevChoice = { mode: S.countryMode, country: S.specificCountry };
-  cfPanel.scrollTop = 0;   // opens at the beginning (Any country / Every country) every time
+  cfScrollToActive();   // opens where the current selection is, not back at the top
   cfSearch.focus({ preventScroll: true });   // ready to type straight away
 };
 
 cfSearch.addEventListener('input', () => {
   cfApplyFilter();
-  cfStartAutoClose();
 });
 cfSearch.addEventListener('keydown', e => {
   if (e.key === 'Enter') {
@@ -4820,7 +4813,6 @@ cfSearch.addEventListener('keydown', e => {
     i = e.key === 'ArrowDown' ? (i + 1) % vis.length : (i <= 0 ? vis.length - 1 : i - 1);
     cfSetKb(vis[i]);
     applyCountryFilterValue(vis[i].dataset.val);       // highlight = choice
-    cfStartAutoClose();
   } else if (e.key === 'Escape') {
     // Undo whatever typing chose, then close.
     if (cfPrevChoice) {
