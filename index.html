@@ -2781,8 +2781,8 @@ function finaliseCityDB(swappedCount) {
   ]);
   cityDB = cityDB.filter(c => !EXCLUDED_GEONAMES_IDS.has(c.geonamesId));
 
-  // Spain's autonomous communities are regions, not cities. Drop any big entry in
-  // Spain whose own name (not an alias) is one of them. Plain "Madrid" and "Murcia"
+  // Spain's autonomous communities, the country itself and its big islands are not
+  // cities. Drop any big entry in Spain whose own name (not an alias) is one of them. Plain "Madrid" and "Murcia"
   // are real cities and are deliberately not listed; Ceuta and Melilla are
   // autonomous *cities* and stay.
   const ES_COMMUNITY_NAMES = new Set([
@@ -2792,10 +2792,29 @@ function finaliseCityDB(swappedCount) {
     'catalonia','catalunya','cataluna','valencian community','comunidad valenciana','comunitat valenciana',
     'extremadura','galicia','la rioja','community of madrid','comunidad de madrid',
     'region of murcia','region de murcia','navarre','navarra','comunidad foral de navarra',
-    'basque country','pais vasco','euskadi'
+    'basque country','pais vasco','euskadi',
+    // the country itself, and islands
+    'kingdom of spain','spain','espana','reino de espana',
+    'tenerife','isla de tenerife','mallorca','majorca','illa de mallorca',
+    'gran canaria','grand canary'
   ]);
+  // Poland: the 16 voivodeships (in English, Polish and short forms) and the country
+  // itself. The cities Łódź, Lublin, Opole… stay: only the "… Voivodeship" /
+  // "Województwo …" / "…skie" region entries go.
+  const PL_REGION_NAMES = new Set([
+    'greater poland','lesser poland','masovia','masovian','silesia','silesian','lower silesia','lower silesian',
+    'lubusz','pomerania','pomeranian','subcarpathia','subcarpathian','holy cross','warmian masurian',
+    'west pomeranian','kuyavian pomeranian','kuyavia pomerania',
+    'wielkopolskie','malopolskie','mazowieckie','slaskie','dolnoslaskie','lubelskie','lubuskie','lodzkie',
+    'opolskie','podkarpackie','podlaskie','pomorskie','swietokrzyskie','warminsko mazurskie',
+    'zachodniopomorskie','kujawsko pomorskie',
+    'republic of poland','poland','polska','rzeczpospolita polska'
+  ]);
+  const isPLRegionName = f => PL_REGION_NAMES.has(f) || f.endsWith(' voivodeship') || f.startsWith('wojewodztwo ');
   cityDB = cityDB.filter(c => !(c.country === 'ES' && Number(c.pop) >= 200000 &&
     (ES_COMMUNITY_NAMES.has(c.nameF) || ES_COMMUNITY_NAMES.has(c.asciiF))));
+  cityDB = cityDB.filter(c => !(c.country === 'PL' && Number(c.pop) >= 200000 &&
+    (isPLRegionName(c.nameF) || isPLRegionName(c.asciiF))));
 
   const cset = new Set(cityDB.map(c=>c.country));
   countriesList = [...cset].sort((a,b) => fmtCountry(a).localeCompare(fmtCountry(b)));
@@ -2852,8 +2871,9 @@ function parseCityRows(text) {
     const altField   = r[3];
     const aliases    = altField ? altField.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean) : [];
     const country    = (isSlim ? r[7] : r[8]).trim();
-    // Spain's autonomous communities / provinces are administrative divisions, not cities.
-    if (country === 'ES' && featureCode.startsWith('ADM')) continue;
+    // In Spain and Poland, administrative divisions (ADM*: autonomous communities,
+    // voivodeships, provinces…), the country itself (PCL*) and islands (ISL*) are not cities.
+    if ((country === 'ES' || country === 'PL') && (featureCode.startsWith('ADM') || featureCode.startsWith('PCL') || featureCode.startsWith('ISL'))) continue;
     const admin1     = ((isSlim ? r[8] : r[10]) || '').trim().toUpperCase();
     const pop        = parseInt(isSlim ? r[9] : r[14]) || 0;
     let lat = parseFloat(r[4]);
@@ -5651,7 +5671,7 @@ function parseTSV(text) {
     const altField = r[3];
     const aliases = altField ? altField.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean) : [];
     const country = (isSlim ? r[7] : r[8]).trim();
-    if (country === 'ES' && featureCode.startsWith('ADM')) continue;
+    if ((country === 'ES' || country === 'PL') && (featureCode.startsWith('ADM') || featureCode.startsWith('PCL') || featureCode.startsWith('ISL'))) continue;
     const admin1 = ((isSlim ? r[8] : r[10]) || '').trim().toUpperCase();
     const pop = parseInt(isSlim ? r[9] : r[14]) || 0;
     let lat = parseFloat(r[4]);
@@ -5799,7 +5819,7 @@ async function applyCountryOverlays(baseRows, countryFiles) {
 // the cache in the background for the next visit. It touches no UI.
 // Bump this whenever the way city rows are parsed changes (aliases etc.), so
 // copies parsed by older code are discarded instead of being reused forever.
-const CACHE_SCHEMA = 's4';
+const CACHE_SCHEMA = 's6';
 
 // The IndexedDB cache is keyed on this instead of the bare version string,
 // so that changing data-version.json's countryFiles list (even without
