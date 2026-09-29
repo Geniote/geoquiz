@@ -2700,6 +2700,10 @@ function finaliseCityDB(swappedCount) {
     { name:'El Alto', lat:-16.5006, lon:-68.1762, country:'BO', admin1:'04', pop:1183483 },
     { name:'Tarapoto', lat:-6.4894, lon:-76.3597, country:'PE', admin1:'22', pop:118000 },
     { name:'Monroe', alts:['Monroe Township'], matchAdmin1:true, lat:40.3148, lon:-74.4293, country:'US', admin1:'NJ', pop:48594 },
+    // Palau's capital since 2006. GeoNames files the place as "Melekeok" (or omits it from
+    // smaller exports), so typing "Ngerulmud" found nothing. Added under its current name;
+    // if the data already has it as Melekeok, that entry just gains the Ngerulmud name.
+    { name:'Ngerulmud', alts:['Melekeok'], lat:7.5006, lon:134.6243, country:'PW', admin1:'', pop:391, isCapital:true },
   ];
   MISSING_CITIES.forEach(mc => {
     const names = [mc.name, ...(mc.alts || [])];
@@ -2708,11 +2712,18 @@ function finaliseCityDB(swappedCount) {
       (!mc.matchAdmin1 || c.admin1 === mc.admin1));
     if (existing) {
       if (!(Number(existing.pop) > 0)) existing.pop = mc.pop;
+      // Make the preferred name findable on an entry the data knows under another name.
+      const pf = fold(mc.name);
+      if (existing.nameF !== pf && !(existing.aliasesF || []).includes(pf)) {
+        existing.aliasesF = [...(existing.aliasesF || []), pf];
+        existing.aliases = [...(existing.aliases || []), pf];
+      }
+      if (mc.isCapital) existing.isCapital = true;
       return;
     }
     const f = fold(mc.name);
     cityDB.push({ name:mc.name, ascii_name:mc.name, nameF:f, asciiF:f, aliases:[f], aliasesF:[f],
-                  lat:mc.lat, lon:mc.lon, country:mc.country, admin1:mc.admin1, pop:mc.pop, isCapital:false });
+                  lat:mc.lat, lon:mc.lon, country:mc.country, admin1:mc.admin1, pop:mc.pop, isCapital:!!mc.isCapital });
   });
 
   // GeoNames IDs of entries to exclude (neighbourhoods, duplicates, bad data)
