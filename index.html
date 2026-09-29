@@ -2781,6 +2781,22 @@ function finaliseCityDB(swappedCount) {
   ]);
   cityDB = cityDB.filter(c => !EXCLUDED_GEONAMES_IDS.has(c.geonamesId));
 
+  // Spain's autonomous communities are regions, not cities. Drop any big entry in
+  // Spain whose own name (not an alias) is one of them. Plain "Madrid" and "Murcia"
+  // are real cities and are deliberately not listed; Ceuta and Melilla are
+  // autonomous *cities* and stay.
+  const ES_COMMUNITY_NAMES = new Set([
+    'andalusia','andalucia','aragon','asturias','principality of asturias','principado de asturias',
+    'balearic islands','illes balears','islas baleares','canary islands','canarias','islas canarias',
+    'cantabria','castile and leon','castilla y leon','castile la mancha','castilla la mancha',
+    'catalonia','catalunya','cataluna','valencian community','comunidad valenciana','comunitat valenciana',
+    'extremadura','galicia','la rioja','community of madrid','comunidad de madrid',
+    'region of murcia','region de murcia','navarre','navarra','comunidad foral de navarra',
+    'basque country','pais vasco','euskadi'
+  ]);
+  cityDB = cityDB.filter(c => !(c.country === 'ES' && Number(c.pop) >= 200000 &&
+    (ES_COMMUNITY_NAMES.has(c.nameF) || ES_COMMUNITY_NAMES.has(c.asciiF))));
+
   const cset = new Set(cityDB.map(c=>c.country));
   countriesList = [...cset].sort((a,b) => fmtCountry(a).localeCompare(fmtCountry(b)));
   populateCountryFilterOptions();
@@ -2836,6 +2852,8 @@ function parseCityRows(text) {
     const altField   = r[3];
     const aliases    = altField ? altField.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean) : [];
     const country    = (isSlim ? r[7] : r[8]).trim();
+    // Spain's autonomous communities / provinces are administrative divisions, not cities.
+    if (country === 'ES' && featureCode.startsWith('ADM')) continue;
     const admin1     = ((isSlim ? r[8] : r[10]) || '').trim().toUpperCase();
     const pop        = parseInt(isSlim ? r[9] : r[14]) || 0;
     let lat = parseFloat(r[4]);
@@ -5633,6 +5651,7 @@ function parseTSV(text) {
     const altField = r[3];
     const aliases = altField ? altField.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean) : [];
     const country = (isSlim ? r[7] : r[8]).trim();
+    if (country === 'ES' && featureCode.startsWith('ADM')) continue;
     const admin1 = ((isSlim ? r[8] : r[10]) || '').trim().toUpperCase();
     const pop = parseInt(isSlim ? r[9] : r[14]) || 0;
     let lat = parseFloat(r[4]);
@@ -5780,7 +5799,7 @@ async function applyCountryOverlays(baseRows, countryFiles) {
 // the cache in the background for the next visit. It touches no UI.
 // Bump this whenever the way city rows are parsed changes (aliases etc.), so
 // copies parsed by older code are discarded instead of being reused forever.
-const CACHE_SCHEMA = 's3';
+const CACHE_SCHEMA = 's4';
 
 // The IndexedDB cache is keyed on this instead of the bare version string,
 // so that changing data-version.json's countryFiles list (even without
