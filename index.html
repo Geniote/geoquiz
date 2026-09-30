@@ -5031,7 +5031,7 @@ document.getElementById('mapWrap').addEventListener('mouseleave', () => {
 // One dropdown covers all three modes: "Any country", "Every country", and a
 // specific country (values prefixed with "c:" so they can't collide with modes).
 const ADM_UNIT = {US:'state', JP:'prefecture', PL:'voivodeship', RU:'region', ES:'community'};
-function admName(cc, a) { try { return ADMIN1_NAMES[cc + '.' + a] || a; } catch (e) { return a; } }
+function admName(cc, a) { try { return ADMIN1_NAMES[cc + '.' + a] || ('Other (' + a + ')'); } catch (e) { return a; } }
 const inStatsScope = c => !statsCountry || (statsAdmin1 ? c.admin1 === statsAdmin1 : c.country === statsCountry);
 function statsLabel() { return statsAdmin1 ? admName(statsCountry, statsAdmin1) : fmtCountry(statsCountry); }
 const unitPlural = u => u === 'country' ? 'countries' : u === 'community' ? 'communities' : u + 's';
@@ -5041,8 +5041,10 @@ function regionOptions(rd) {
   const set = new Set(), single = rd && rd.countries && rd.countries.length === 1;
   if (single) {
     const cc = rd.countries[0];
-    cityDB.forEach(c => { if (c.admin1 && cityInRegion(c, rd)) set.add(c.admin1); });
-    return { unit: ADM_UNIT[cc] || 'region', items: [...set].map(x => ({ val: 'a:' + x, label: admName(cc, x) })).sort((x, y) => x.label.localeCompare(y.label)) };
+    const top = new Map();
+    cityDB.forEach(c => { if (c.admin1 && cityInRegion(c, rd)) { set.add(c.admin1); const t = top.get(c.admin1); if (!t || c.pop > t.pop) top.set(c.admin1, c); } });
+    const lbl = x => ADMIN1_NAMES[cc + '.' + x] || ('Other (' + x + ') \u2013 ' + top.get(x).name);
+    return { unit: ADM_UNIT[cc] || 'region', items: [...set].map(x => ({ val: 'a:' + x, label: lbl(x) })).sort((x, y) => x.label.localeCompare(y.label)) };
   }
   cityDB.forEach(c => { if (cityInRegion(c, rd)) set.add(c.country); });
   return { unit: 'country', items: [...set].map(x => ({ val: 'c:' + x, label: fmtCountry(x) })).sort((x, y) => x.label.localeCompare(y.label)) };
