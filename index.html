@@ -1092,6 +1092,9 @@ function cityInRegion(c, regionDef) {
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
 let cityDB = [], countriesList = [], found = [], missed = 0;
+let statsAdmin1 = '';   // with statsCountry: scope to one prefecture/state/region on a one-country map
+let scPrevAdm = '';
+let scUnit = 'country';
 let statsCountry = '';   // stats scope: '' = whole map, otherwise an ISO-2 country code
 let scCodes = [], scOptsKey = '', scKbOpt = null, scPrevChoice = null;   // stats country picker state
 let projection, currentTransform = d3.zoomIdentity;
@@ -1101,7 +1104,7 @@ const W_BASE = 1000, H_BASE = 500;
 const S = {
   dotColor:'#cb6543', dotAlpha:0.75, uniformSize:false, uniformR:0, dotSizeMode:'normal',
   landColor:'#e8e4da', seaColor:'#c8dff0', borderColor:'#aaaaaa',
-  countryMode:'any', specificCountry:'',
+  countryMode:'any', specificCountry:'', specificAdmin1:'',
   nightMode:false, _preNight:null, // _preNight: colours saved when night mode is switched on, restored when switched off
   physicalMode:false, // shows a real satellite-image basemap instead of flat land/sea colours
   pinMode:false, // Pin mode: dots render as 3D-style map pins instead of flat circles
@@ -1858,6 +1861,7 @@ function attachQuizHitTargets(g, features, path, regionKey) {
 async function drawMap(regionKey) {
   const prevRegion = currentRegion;
   currentRegion = regionKey;
+  try { populateCountryFilterOptions(); syncCountryFilterUI(); } catch (e) {}
   const region = REGIONS[regionKey];
   const isWorld = regionKey === 'world';
   const isUSA = regionKey === 'usa';
@@ -3577,7 +3581,7 @@ function lookupCity(raw) {
     // can't be guessed.
     if (!(Number(c.pop) > 0)) return false;
     if (!cityInRegion(c, region)) return false;
-    if (S.countryMode === 'specific' && !hint && c.country !== S.specificCountry) return false;
+    if (S.countryMode === 'specific' && !hint && (c.country !== S.specificCountry || (S.specificAdmin1 && c.admin1 !== S.specificAdmin1))) return false;
     if (hint) {
       if (stateCode) return c.country === 'US' && c.admin1 === stateCode;
       return matchesCountryHint(c.country, hint);
@@ -3660,7 +3664,7 @@ function lookupCity(raw) {
   if (hint) { return [matches[0]]; }
   if (S.countryMode==='any') { return [matches[0]]; }
   if (S.countryMode==='specific') {
-    matches = matches.filter(c=>c.country===S.specificCountry);
+    matches = matches.filter(c=>c.country===S.specificCountry && (!S.specificAdmin1 || c.admin1===S.specificAdmin1));
     if (!matches.length) return [];
     return [matches[0]];
   }
@@ -4499,10 +4503,10 @@ function renderOtherStats() {
   const scoped = !!statsCountry;
 
   // Filter cityDB to the current region (and to the picked country, if any)
-  const regionCities = cityDB.filter(c => cityInRegion(c, regionDef) && (!scoped || c.country === statsCountry));
+  const regionCities = cityDB.filter(c => cityInRegion(c, regionDef) && (!scoped || inStatsScope(c)));
 
   // Current region's found cities
-  const regionFound = scoped ? found.filter(c => c.country === statsCountry) : found;
+  const regionFound = scoped ? found.filter(inStatsScope) : found;
 
   // Helper: count found cities matching a predicate
   const foundCount = (pred) => regionFound.filter(pred).length;
@@ -4577,7 +4581,7 @@ function renderOtherStats() {
 
   if (!el.children.length) {
     el.innerHTML = scoped
-      ? `<div class="best-empty">${fmtCountry(statsCountry)} has no cities over 100,000 in the loaded data</div>`
+      ? `<div class="best-empty">${statsLabel()} has no cities over 100,000 in the loaded data</div>`
       : '<div class="best-empty">Load a cities file to see stats</div>';
   }
 }
@@ -4597,28 +4601,20 @@ function syncStatsCountryPicker() {
   const key = currentRegion + '|' + cityDB.length;
   if (key !== scOptsKey) {
     scOptsKey = key;
-    const rd = REGIONS[currentRegion];
-    const set = new Set();
-    cityDB.forEach(c => { if (cityInRegion(c, rd)) set.add(c.country); });
-    scCodes = [...set].sort((a, b) => fmtCountry(a).localeCompare(fmtCountry(b)));
-    const list = scEl('scCountryList');
-    const frag = document.createDocumentFragment();
-    scCodes.forEach(c => {
-      const b = document.createElement('button');
-      b.type = 'button'; b.className = 'cf-opt'; b.dataset.val = 'c:' + c;
-      b.textContent = fmtCountry(c);
-      frag.appendChild(b);
-    });
-    list.innerHTML = '';
-    list.appendChild(frag);
+    const o = regionOptions(REGIONS[currentRegion]);
+    scCodes = o.items.map(i => i.val);
+    scUnit = o.unit;
+    fillOptionList(scEl('scCountryList'), o.items);
+    scEl('scPanel').querySelector('.cf-sep').textContent = 'Specific ' + o.unit;
+    scEl('scPanel').querySelector('[data-val="any"]').textContent = 'All ' + unitPlural(o.unit);
     scKbOpt = null;
   }
-  if (statsCountry && !scCodes.includes(statsCountry)) statsCountry = '';
-  // A one-country map (USA, Japan, Poland…) has nothing to choose between.
+  const scCur = statsAdmin1 ? 'a:' + statsAdmin1 : statsCountry ? 'c:' + statsCountry : '';
+  if (scCur && !scCodes.includes(scCur)) { statsCountry = ''; statsAdmin1 = ''; }
   row.style.display = scCodes.length > 1 ? '' : 'none';
-  if (scCodes.length <= 1) statsCountry = '';
-  const val = statsCountry ? 'c:' + statsCountry : 'any';
-  let label = 'All countries';
+  if (scCodes.length <= 1) { statsCountry = ''; statsAdmin1 = ''; }
+  const val = statsAdmin1 ? 'a:' + statsAdmin1 : statsCountry ? 'c:' + statsCountry : 'any';
+  let label = 'All ' + unitPlural(scUnit);
   scOpts().forEach(o => {
     const on = o.dataset.val === val;
     o.classList.toggle('active', on);
@@ -4634,9 +4630,10 @@ function scSetKb(o) {
   if (scKbOpt) { scKbOpt.classList.add('kb'); scKbOpt.scrollIntoView({ block: 'center' }); }
 }
 function scApplyValue(v) {
-  const next = v.startsWith('c:') ? v.slice(2) : '';
-  if (next === statsCountry) return;
-  statsCountry = next;
+  const next = v.startsWith('c:') ? v.slice(2) : v.startsWith('a:') ? REGIONS[currentRegion].countries[0] : '';
+  const adm = v.startsWith('a:') ? v.slice(2) : '';
+  if (next === statsCountry && adm === statsAdmin1) return;
+  statsCountry = next; statsAdmin1 = adm;
   renderOtherStats();
 }
 function scApplyTyped() {
@@ -4670,7 +4667,7 @@ scEl('scBtn').onclick = e => {
   if (scEl('scPanel').classList.contains('open')) { closeStatsCountryPanel(); return; }
   closeCountryFilterPanel();                       // only one list open at a time
   scEl('scPanel').classList.add('open');
-  scPrevChoice = statsCountry;
+  scPrevChoice = statsCountry; scPrevAdm = statsAdmin1;
   scScrollToActive();
   scEl('scSearch').focus({ preventScroll: true });
 };
@@ -4688,7 +4685,7 @@ scEl('scSearch').addEventListener('keydown', e => {
     scSetKb(vis[i]);
     scApplyValue(vis[i].dataset.val);
   } else if (e.key === 'Escape') {
-    if (scPrevChoice !== null && scPrevChoice !== statsCountry) { statsCountry = scPrevChoice; renderOtherStats(); }
+    if (scPrevChoice !== null && (scPrevChoice !== statsCountry || scPrevAdm !== statsAdmin1)) { statsCountry = scPrevChoice; statsAdmin1 = scPrevAdm; renderOtherStats(); }
     closeStatsCountryPanel();
   }
 });
@@ -5033,21 +5030,41 @@ document.getElementById('mapWrap').addEventListener('mouseleave', () => {
 // ─── COUNTRY FILTER (lives inside the typing bar) ────────────────────────────
 // One dropdown covers all three modes: "Any country", "Every country", and a
 // specific country (values prefixed with "c:" so they can't collide with modes).
+const ADM_UNIT = {US:'state', JP:'prefecture', PL:'voivodeship', RU:'region', ES:'community'};
+function admName(cc, a) { try { return ADMIN1_NAMES[cc + '.' + a] || a; } catch (e) { return a; } }
+const inStatsScope = c => !statsCountry || (statsAdmin1 ? c.admin1 === statsAdmin1 : c.country === statsCountry);
+function statsLabel() { return statsAdmin1 ? admName(statsCountry, statsAdmin1) : fmtCountry(statsCountry); }
+const unitPlural = u => u === 'country' ? 'countries' : u === 'community' ? 'communities' : u + 's';
+// Options offered by the two pickers for the current map: countries on multi-country maps,
+// prefectures/states/regions on one-country maps (never mixed).
+function regionOptions(rd) {
+  const set = new Set(), single = rd && rd.countries && rd.countries.length === 1;
+  if (single) {
+    const cc = rd.countries[0];
+    cityDB.forEach(c => { if (c.admin1 && cityInRegion(c, rd)) set.add(c.admin1); });
+    return { unit: ADM_UNIT[cc] || 'region', items: [...set].map(x => ({ val: 'a:' + x, label: admName(cc, x) })).sort((x, y) => x.label.localeCompare(y.label)) };
+  }
+  cityDB.forEach(c => { if (cityInRegion(c, rd)) set.add(c.country); });
+  return { unit: 'country', items: [...set].map(x => ({ val: 'c:' + x, label: fmtCountry(x) })).sort((x, y) => x.label.localeCompare(y.label)) };
+}
+function fillOptionList(list, items) {
+  const frag = document.createDocumentFragment();
+  items.forEach(o => { const b = document.createElement('button'); b.type = 'button'; b.className = 'cf-opt'; b.dataset.val = o.val; b.textContent = o.label; frag.appendChild(b); });
+  list.innerHTML = ''; list.appendChild(frag);
+}
 function populateCountryFilterOptions() {
   const list = document.getElementById('cfCountryList');
   if (!list) return;
-  if (!countriesList.length) { list.innerHTML = '<div class="cf-empty">— load data first —</div>'; return; }
-  const frag = document.createDocumentFragment();
-  countriesList.forEach(c => {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'cf-opt';
-    b.dataset.val = 'c:' + c;
-    b.textContent = fmtCountry(c);
-    frag.appendChild(b);
-  });
-  list.innerHTML = '';
-  list.appendChild(frag);
+  if (!cityDB.length) { list.innerHTML = '<div class="cf-empty"> load data first </div>'; return; }
+  const o = regionOptions(REGIONS[currentRegion]), panel = document.getElementById('countryFilterPanel');
+  fillOptionList(list, o.items);
+  panel.querySelector('[data-val="any"]').textContent = 'Any ' + o.unit;
+  panel.querySelector('[data-val="every"]').textContent = 'Every ' + o.unit;
+  panel.querySelector('.cf-sep').textContent = 'Specific ' + o.unit;
+  if (S.countryMode === 'specific') {
+    const cur = S.specificAdmin1 ? 'a:' + S.specificAdmin1 : 'c:' + S.specificCountry;
+    if (!o.items.some(i => i.val === cur)) { S.countryMode = 'any'; S.specificAdmin1 = ''; }
+  }
 }
 
 function syncCountryFilterUI() {
@@ -5055,7 +5072,7 @@ function syncCountryFilterUI() {
   const panel = document.getElementById('countryFilterPanel');
   if (!btn || !panel) return;
   const mode = S.countryMode || 'any';
-  const val = (mode === 'specific' && S.specificCountry) ? 'c:' + S.specificCountry : mode;
+  const val = (mode === 'specific' && S.specificAdmin1) ? 'a:' + S.specificAdmin1 : (mode === 'specific' && S.specificCountry) ? 'c:' + S.specificCountry : mode;
   let label = mode === 'every' ? 'Every country' : 'Any country';
   panel.querySelectorAll('.cf-opt').forEach(o => {
     const on = o.dataset.val === val;
@@ -5128,7 +5145,8 @@ function cfScrollToActive() {
 function panelOpts() { return Array.from(cfPanel.querySelectorAll('.cf-opt')); }
 
 function applyCountryFilterValue(v) {
-  if (v.startsWith('c:')) { S.countryMode = 'specific'; S.specificCountry = v.slice(2); }
+  if (v.startsWith('c:')) { S.countryMode = 'specific'; S.specificCountry = v.slice(2); S.specificAdmin1 = ''; }
+  else if (v.startsWith('a:')) { S.countryMode = 'specific'; S.specificAdmin1 = v.slice(2); S.specificCountry = REGIONS[currentRegion].countries[0]; }
   else { S.countryMode = v; }
   syncCountryFilterUI();
   persistSession();
@@ -6156,11 +6174,11 @@ function buildMissedModal() {
   // Same country scope as the stats panel ('' = whole map).
   const scopeCountry = statsCountry;
   const headEl = document.querySelector('#missedHead h2');
-  if (headEl) headEl.textContent = '🔍 What did I miss?' + (scopeCountry ? ' — ' + fmtCountry(scopeCountry) : '');
+  if (headEl) headEl.textContent = '🔍 What did I miss?' + (scopeCountry ? ' — ' + statsLabel() : '');
 
   // Filter DB to current region (and to the picked country, if any)
   function inRegion(c) {
-    return cityInRegion(c, regionDef) && (!scopeCountry || c.country === scopeCountry);
+    return cityInRegion(c, regionDef) && (!scopeCountry || inStatsScope(c));
   }
   function wasFound(c) { return foundIds.has(dotId(c)); }
 
