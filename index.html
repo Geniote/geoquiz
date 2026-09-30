@@ -2816,6 +2816,18 @@ function finaliseCityDB(swappedCount) {
   cityDB = cityDB.filter(c => !(c.country === 'PL' && Number(c.pop) >= 200000 &&
     (isPLRegionName(c.nameF) || isPLRegionName(c.asciiF))));
 
+  // Spain: districts/neighbourhoods of big cities (Madrid, Barcelona, Valencia) that the
+  // data files as populated places with city-sized populations. They are not cities.
+  // Names are in fold() form (lower-case, no accents). Matched on the entry's own name only.
+  const ES_NEIGHBOURHOOD_NAMES = new Set([
+    'chamartin',        // Madrid district
+    'ciudad lineal',    // Madrid district
+    'sant marti',       // Barcelona district
+    '7 aguas', 'siete aguas'
+  ]);
+  cityDB = cityDB.filter(c => !(c.country === 'ES' &&
+    (ES_NEIGHBOURHOOD_NAMES.has(c.nameF) || ES_NEIGHBOURHOOD_NAMES.has(c.asciiF))));
+
   const cset = new Set(cityDB.map(c=>c.country));
   countriesList = [...cset].sort((a,b) => fmtCountry(a).localeCompare(fmtCountry(b)));
   populateCountryFilterOptions();
