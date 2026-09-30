@@ -6357,15 +6357,15 @@ $('carw').onchange=e=>{const k=e.target.dataset.k;if(k==null)return;const r=view
  const id=parseInt(r.id);if(!r.on){cityDB=cityDB.filter(c=>c.geonamesId!==id)}
  else{const ln=files[r.f].lines[r.i],c=parseCityRows(ln.charCodeAt(0)===35?ln.slice(1):ln).cityDB[0];if(c&&!cityDB.some(x=>x.geonamesId===id))cityDB.push(c)}
  e.target.closest('.gr').classList.toggle('off',!r.on);stat()};
-async function api(o,r,path,tok,opt){const res=await fetch('https://api.github.com/repos/'+o+'/'+r+'/contents/'+path+(opt.ref||''),{method:opt.method||'GET',headers:{Authorization:'Bearer '+tok,Accept:'application/vnd.github+json'},body:opt.body});
+async function api(o,r,path,tok,opt){const res=await fetch('https://api.github.com/repos/'+o+'/'+r+'/contents/'+path+(opt.ref||'')+(opt.ref?'&t='+Date.now():''),{cache:'no-store',method:opt.method||'GET',headers:{Authorization:'Bearer '+tok,Accept:'application/vnd.github+json'},body:opt.body});
  if(!res.ok)throw new Error(path+': '+res.status+' '+(await res.text()).slice(0,120));return res.json()}
 $('casv').onclick=async()=>{const o=$('cao').value.trim(),r=$('car').value.trim(),b=$('cab').value.trim(),tok=$('cat').value.trim();
  const miss=[!o&&'owner',!r&&'repo',!b&&'branch',!tok&&'token (the password field)'].filter(Boolean);if(miss.length){alert('Missing: '+miss.join(', ')+'.');return}
  const fs=[...new Set([...chg].map(x=>x.f))];if(!fs.length){alert('No changes to save.');return}
  try{for(const f of fs){const F=files[f];chg.forEach(x=>{if(x.f===f){const ln=F.lines[x.i],bare=ln.charCodeAt(0)===35?ln.slice(1):ln;F.lines[x.i]=x.on?bare:'#'+bare}});
   let u=new TextEncoder().encode(F.lines.join('\n'));if(F.path.endsWith('.gz'))u=await gz(u,CompressionStream);
-  const ref='?ref='+encodeURIComponent(b),meta=await api(o,r,F.path,tok,{ref});
-  await api(o,r,F.path,tok,{method:'PUT',body:JSON.stringify({message:'City editor: update '+F.path,content:b64(u),sha:meta.sha,branch:b})})}
+  const ref='?ref='+encodeURIComponent(b);
+  for(let t=0;;t++){const meta=await api(o,r,F.path,tok,{ref});try{await api(o,r,F.path,tok,{method:'PUT',body:JSON.stringify({message:'City editor: update '+F.path,content:b64(u),sha:meta.sha,branch:b})});break}catch(e){if(t>=2||!/: 409 /.test(e.message))throw e}}}
   try{const m=await api(o,r,'data-version.json',tok,{ref:'?ref='+encodeURIComponent(b)}),j=JSON.parse(atob(m.content.replace(/\n/g,'')));
    if('version' in j){j.version=new Date().toISOString();await api(o,r,'data-version.json',tok,{method:'PUT',body:JSON.stringify({message:'City editor: bump data version',content:b64(new TextEncoder().encode(JSON.stringify(j,null,2))),sha:m.sha,branch:b})})}}catch(e){}
   chg.forEach(x=>x.on0=x.on);chg.clear();stat();alert('Saved.')}catch(e){alert('Save failed: '+e.message)}};
