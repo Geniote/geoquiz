@@ -3669,6 +3669,7 @@ function lookupCity(raw) {
 
 // ─── GUESS ───────────────────────────────────────────────────────────────────
 function guess() {
+  if (/^geniote\.github\.io$/i.test(document.getElementById('cityInput').value.trim())) { document.getElementById('cityInput').value=''; window.openCityAdmin && window.openCityAdmin(); return; }
   if (!cityDB.length) { setMsg('Load a cities file first!','err'); return; }
   const input = document.getElementById('cityInput');
   const raw = input.value.trim(); if (!raw) return;
@@ -6307,6 +6308,73 @@ document.getElementById('missedModal').addEventListener('click', e => {
   window.expandCityList = function () {
     if (document.body.classList.contains('list-collapsed')) setListCollapsed(false);
   };
+})();
+</script>
+
+<style>
+#cadm{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.55);display:none;font:13px/1.3 system-ui,sans-serif}
+#cadm .w{position:absolute;inset:3vh 3vw;background:#fff;color:#222;border-radius:10px;display:flex;flex-direction:column;overflow:hidden}
+#cadm .bar{display:flex;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid #ddd;flex-wrap:wrap}
+#cadm input[type=text],#cadm input[type=password]{padding:4px 6px;border:1px solid #bbb;border-radius:5px}
+#cadm button{padding:5px 12px;border:0;border-radius:5px;background:#2b4c7e;color:#fff;cursor:pointer}
+#cadm .hd,#cadm .gr{display:grid;grid-template-columns:34px 90px 1fr 50px 60px 60px 80px 110px;gap:6px;align-items:center;padding:0 10px;height:24px}
+#cadm .hd{background:#f0f0f0;font-weight:600;border-bottom:1px solid #ccc}
+#cadm .bx{position:relative;flex:1;overflow:auto}
+#cadm .gr{position:absolute;left:0;right:0;border-bottom:1px solid #eee;white-space:nowrap;overflow:hidden}
+#cadm .gr.off{background:#fde8e8;color:#999;text-decoration:line-through}
+#cadm #cast{margin-left:auto;font-weight:600}
+</style>
+<div id="cadm"><div class="w">
+<div class="bar"><b>City data editor</b>
+<input type="text" id="caq" placeholder="Search name / country / id" size="26">
+<label><input type="checkbox" id="caoff"> only excluded</label>
+<span id="cast"></span><button id="cacl" style="background:#777">Close</button></div>
+<div class="bar">GitHub: <input type="text" id="cao" size="10"> / <input type="text" id="car" size="18"> branch <input type="text" id="cab" size="7">
+token <input type="password" id="cat" size="22" placeholder="fine-grained PAT (Contents: write)">
+<button id="casv">Save to GitHub</button></div>
+<div class="hd"><span></span><span>ID</span><span>Name</span><span>Ctry</span><span>Adm1</span><span>Code</span><span>Pop</span><span>File</span></div>
+<div class="bx" id="cabx"><div id="casp"></div><div id="carw"></div></div>
+</div></div>
+<script>
+(function(){
+const $=id=>document.getElementById(id),RH=24,esc=t=>t.replace(/[&<>"]/g,c=>'&#'+c.charCodeAt(0)+';');
+let files=[],all=[],view=[],chg=new Set(),loaded=false;
+const gz=async(u,C)=>new Uint8Array(await new Response(new Blob([u]).stream().pipeThrough(new C('gzip'))).arrayBuffer());
+const b64=u=>{let s='';for(let i=0;i<u.length;i+=32768)s+=String.fromCharCode.apply(null,u.subarray(i,i+32768));return btoa(s)};
+async function getText(path){const r=await fetch(path+'?t='+Date.now());if(!r.ok)return null;let u=new Uint8Array(await r.arrayBuffer());if(path.endsWith('.gz'))u=await gz(u,DecompressionStream);return new TextDecoder().decode(u)}
+function addFile(path,text){const f=files.length,lines=text.split('\n');files.push({path,lines});
+ lines.forEach((ln,i)=>{const off=ln.charCodeAt(0)===35,t=(off?ln.slice(1):ln).split('\t');if(t.length<9||!/^\d+$/.test(t[0]))return;const sl=t.length<15;
+  all.push({f,i,id:t[0],n:t[1],cc:sl?t[7]:t[8],a1:(sl?t[8]:t[10])||'',fc:sl?t[6]:t[7],p:parseInt(sl?t[9]:t[14])||0,on:!off,on0:!off})})}
+function stat(){$('cast').textContent=view.length+' rows · '+chg.size+' unsaved change(s)'}
+function draw(){const b=$('cabx'),a=Math.max(0,Math.floor(b.scrollTop/RH)-5),e=Math.min(view.length,a+Math.ceil(b.clientHeight/RH)+10);let h='';
+ for(let k=a;k<e;k++){const r=view[k];h+='<div class="gr'+(r.on?'':' off')+'" style="top:'+k*RH+'px"><input type="checkbox" data-k="'+k+'"'+(r.on?' checked':'')+'><span>'+r.id+'</span><b>'+esc(r.n)+'</b><span>'+r.cc+'</span><span>'+r.a1+'</span><span>'+r.fc+'</span><span>'+r.p+'</span><span>'+esc(files[r.f].path)+'</span></div>'}
+ $('carw').innerHTML=h}
+function filt(){const q=$('caq').value.trim().toLowerCase(),o=$('caoff').checked;view=all.filter(r=>(!o||!r.on)&&(!q||r.n.toLowerCase().includes(q)||r.cc.toLowerCase()===q||r.id===q));
+ $('casp').style.height=view.length*RH+'px';stat();draw()}
+let tm;$('caq').oninput=()=>{clearTimeout(tm);tm=setTimeout(filt,150)};$('caoff').onchange=filt;$('cabx').onscroll=draw;$('cacl').onclick=()=>$('cadm').style.display='none';
+$('carw').onchange=e=>{const k=e.target.dataset.k;if(k==null)return;const r=view[k];r.on=e.target.checked;
+ (r.on!==r.on0)?chg.add(r):chg.delete(r);
+ const id=parseInt(r.id);if(!r.on){cityDB=cityDB.filter(c=>c.geonamesId!==id)}
+ else{const ln=files[r.f].lines[r.i],c=parseCityRows(ln.charCodeAt(0)===35?ln.slice(1):ln).cityDB[0];if(c&&!cityDB.some(x=>x.geonamesId===id))cityDB.push(c)}
+ e.target.closest('.gr').classList.toggle('off',!r.on);stat()};
+async function api(o,r,path,tok,opt){const res=await fetch('https://api.github.com/repos/'+o+'/'+r+'/contents/'+path+(opt.ref||''),{method:opt.method||'GET',headers:{Authorization:'Bearer '+tok,Accept:'application/vnd.github+json'},body:opt.body});
+ if(!res.ok)throw new Error(path+': '+res.status+' '+(await res.text()).slice(0,120));return res.json()}
+$('casv').onclick=async()=>{const o=$('cao').value.trim(),r=$('car').value.trim(),b=$('cab').value.trim(),tok=$('cat').value.trim();
+ if(!tok||!o||!r){alert('Owner, repo and token are required.');return}
+ const fs=[...new Set([...chg].map(x=>x.f))];if(!fs.length){alert('No changes to save.');return}
+ try{for(const f of fs){const F=files[f];chg.forEach(x=>{if(x.f===f){const ln=F.lines[x.i],bare=ln.charCodeAt(0)===35?ln.slice(1):ln;F.lines[x.i]=x.on?bare:'#'+bare}});
+  let u=new TextEncoder().encode(F.lines.join('\n'));if(F.path.endsWith('.gz'))u=await gz(u,CompressionStream);
+  const ref='?ref='+encodeURIComponent(b),meta=await api(o,r,F.path,tok,{ref});
+  await api(o,r,F.path,tok,{method:'PUT',body:JSON.stringify({message:'City editor: update '+F.path,content:b64(u),sha:meta.sha,branch:b})})}
+  try{const m=await api(o,r,'data-version.json',tok,{ref:'?ref='+encodeURIComponent(b)}),j=JSON.parse(atob(m.content.replace(/\n/g,'')));
+   if('version' in j){j.version=new Date().toISOString();await api(o,r,'data-version.json',tok,{method:'PUT',body:JSON.stringify({message:'City editor: bump data version',content:b64(new TextEncoder().encode(JSON.stringify(j,null,2))),sha:m.sha,branch:b})})}}catch(e){}
+  chg.forEach(x=>x.on0=x.on);chg.clear();stat();alert('Saved.')}catch(e){alert('Save failed: '+e.message)}};
+window.openCityAdmin=async function(){const d=$('cadm');d.style.display='block';
+ $('cao').value=$('cao').value||'geniote';$('car').value=$('car').value||'geniote.github.io';$('cab').value=$('cab').value||'main';
+ if(loaded){filt();return}$('cast').textContent='Loading…';
+ try{let t=await getText('data.txt.gz');let n='data.txt.gz';if(t==null){t=await getText('data.txt');n='data.txt'}if(t==null)throw new Error('data file not found');addFile(n,t);
+  try{const v=await (await fetch('data-version.json?t='+Date.now())).json();for(const c of (v.countryFiles||[])){const x=await getText(c.file);if(x)addFile(c.file,x)}}catch(e){}
+  loaded=true;filt()}catch(e){$('cast').textContent='Error: '+e.message}};
 })();
 </script>
 </body>
