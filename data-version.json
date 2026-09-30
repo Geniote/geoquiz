@@ -1,2 +1,18 @@
-{"version":"v2","updated":"2026-09-28T10:00:35Z","countryFiles":[{"file":"data-pl.txt","countries":["PL"]},{"file":"data-es.txt","countries":["ES"]}]}
-
+{
+  "version": "2026-09-30T08:57:14.630Z",
+  "updated": "2026-09-28T10:00:35Z",
+  "countryFiles": [
+    {
+      "file": "data-pl.txt",
+      "countries": [
+        "PL"
+      ]
+    },
+    {
+      "file": "data-es.txt",
+      "countries": [
+        "ES"
+      ]
+    }
+  ]
+}
