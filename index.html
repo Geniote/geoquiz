@@ -2816,17 +2816,153 @@ function finaliseCityDB(swappedCount) {
   cityDB = cityDB.filter(c => !(c.country === 'PL' && Number(c.pop) >= 200000 &&
     (isPLRegionName(c.nameF) || isPLRegionName(c.asciiF))));
 
-  // Spain: districts/neighbourhoods of big cities (Madrid, Barcelona, Valencia) that the
-  // data files as populated places with city-sized populations. They are not cities.
-  // Names are in fold() form (lower-case, no accents). Matched on the entry's own name only.
-  const ES_NEIGHBOURHOOD_NAMES = new Set([
-    'chamartin',        // Madrid district
-    'ciudad lineal',    // Madrid district
-    'sant marti',       // Barcelona district
-    '7 aguas', 'siete aguas'
+  // Districts, boroughs and neighbourhoods that the data files as populated places with
+  // city-sized populations. They are not cities, so they must not count in the game.
+  // To drop another one: add its GeoNames ID to the set below (IDs are safe against name
+  // clashes, e.g. the tiny village Chamartin in Avila is a different entry from the Madrid district).
+  const NOT_A_CITY_IDS = new Set([
+    // Madrid/Barcelona districts
+    3124964, // ES Ciudad Lineal (228171)
+    3125239, // ES Chamartín (140000)
+    6544105, // ES Sant Martí (235719)
+    // Warsaw districts
+    755330, // PL Wola (140958)
+    764484, // PL Mokotów (217683)
+    776029, // PL Bielany (131910)
+    776103, // PL Białołeka (129106)
+    776251, // PL Bemowo (123932)
+    6545326, // PL Ursynów (149775)
+    6545348, // PL Praga Południe (179836)
+    6545347, // PL Praga Północ (93192)
+    757065, // PL Targówek (124279)
+    753142, // PL Żoliborz (50934)
+    755475, // PL Włochy (36276)
+    756004, // PL Wesoła (20000)
+    756092, // PL Wawer (77205)
+    756320, // PL Ursus (47285)
+    758470, // PL Śródmieście (99950)
+    763442, // PL Ochota (82774)
+    760503, // PL Rembertów (21893)
+    // Abidjan communes
+    2293521, // CI Abobo (1340083)
+    2285853, // CI Koumassi (412282)
+    2595323, // CI Marcory (214061)
+    // Baghdad district
+    7802746, // IQ Sadr City (1211849)
+    // Shanghai districts
+    1798439, // CN Putuo (1239100)
+    8307452, // CN Huangpu (504700)
+    1787957, // CN Xuhui (1109800)
+    1787375, // CN Yangpu (1210800)
+    // Hong Kong districts
+    1931681, // HK Victoria (956800)
+    1819607, // HK Kowloon City (418732)
+    1818506, // HK Tseung Kwan O (412900)
+    1819595, // HK Kwai Chung (331600)
+    1818483, // HK Tsing Yi Town (182100)
+    1819757, // HK Aberdeen (157400)
+    11101593, // HK Tung Chung (114100)
+    // Mumbai/Hyderabad/Chennai localities
+    1275248, // IN Borivli (609617)
+    7279599, // IN Airoli (100000)
+    7302826, // IN Lal Bahadur Nagar (261987)
+    7302828, // IN Malkajgiri (150000)
+    1465594, // IN Madhavaram (119105)
+    // Vietnam urban districts/wards
+    7289846, // VN Ba Dinh (221893)
+    9871722, // VN Gia Lâm (309353)
+    1579018, // VN Kiến An (118047)
+    1581461, // VN Gò Vấp (110850)
+    8657105, // VN Hòa Cường (119363)
+    1560037, // VN Yên Vinh (107082)
+    // Kuala Lumpur neighbourhoods
+    12557764, // MY Taman Petaling (423062)
+    1735162, // MY Setapak (353268)
+    12750606, // MY Wangsa Maju (215600)
+    1777077, // MY Cheras (135823)
+    13118233, // MY Titiwangsa (122096)
+    11054399, // MY Bukit Bintang (120529)
+    13118362, // MY Bukit Jalil (200000)
+    1735166, // MY Batu Caves (254083)
+    // Quezon City barangays
+    7090983, // PH Commonwealth (215034)
+    7090987, // PH Bagong Silangan (106886)
+    // Brasília administrative regions
+    13512576, // BR Plano Piloto (198697)
+    3461936, // BR Guará (120641)
+    // Singapore estates
+    1884365, // SG Ang Mo Kio New Town (159340)
+    1884386, // SG Queenstown Estate (101480)
+    1880159, // SG Ulu Bedok (276990)
+    1882402, // SG Kangkar (32290)
+    // Havana municipalities
+    3568342, // CU Arroyo Naranjo (210053)
+    3538803, // CU San Miguel del Padrón (159273)
+    3547640, // CU Marianao (134057)
+    3564436, // CU Cerro (132351)
+    3557846, // CU Guanabacoa (112964)
+    // Lima districts
+    12157007, // PE Santa Anita - Los Ficus (184614)
+    12157013, // PE San Francisco De Borja (105076)
+    // Dhaka thanas
+    13589478, // BD Motijheel (202308)
+    9827976, // BD Paltan (184492)
+    1199503, // BD Kafrul (339734)
+    // Taipei district
+    1671467, // TW Neihu (274538)
+    // Bratislava borough
+    3058213, // SK Petržalka (112380)
+    // Ottawa former municipalities
+    6087029, // CA Nepean (180000)
+    5962204, // CA Gloucester (150012)
+    6094835, // CA Ottawa South (125090)
+    // London areas/boroughs
+    2635608, // GB Tottenham (130000)
+    11777624, // GB Archway (215667)
+    2655775, // GB Bexley (228000)
+    // Odesa/Kyiv neighbourhoods
+    9983718, // UA Cheremushky (120000)
+    11778464, // UA Borshchahivka (179900)
+    13535745, // UA Pechersk (100900)
+    13580099, // UA Stare Misto (41800)
+    691743, // UA Telychka (40000)
+    11776362, // UA Demiyivka (29200)
+    13535689, // UA Khreshchatyi Yar (13000)
+    // Moscow neighbourhoods
+    481453, // RU Troparëvo (118000)
+    518740, // RU Novokhovrino (50000)
+    476368, // RU Vatutino (50000)
+    521416, // RU Nikulino (30000)
+    // historic, now part of Fukaya
+    1864031, // JP Fukayachō (141268)
+    // Sydney LGA
+    6949382, // AU Pittwater (63482)
+    // Istanbul/Ankara/İzmir districts
+    6955677, // TR Çankaya (792189)
+    751324, // TR Bağcılar (749024)
+    7627067, // TR Bahçelievler (576799)
+    738329, // TR Üsküdar (524452)
+    747340, // TR Esenler (520235)
+    737071, // TR Zeytinburnu (288743)
+    739549, // TR Şişli (314684)
+    7701384, // TR Karabağlar (458000)
+    306641, // TR Konak (332277)
+    320257, // TR Çiğli (194525)
+    // Macau
+    1821263, // MO Taipa (112051)
+    // Macau parishes filed as CN
+    13527315, // CN Santo António (129800)
+    13527308, // CN Nossa Senhora de Fátima (126000)
+    // (requested) 7 Aguas
+    2510889, // ES Siete Aguas (1232)
   ]);
-  cityDB = cityDB.filter(c => !(c.country === 'ES' &&
-    (ES_NEIGHBOURHOOD_NAMES.has(c.nameF) || ES_NEIGHBOURHOOD_NAMES.has(c.asciiF))));
+  // Whole families of entries that are always sub-divisions of a city:
+  //  - Paris/Lyon/Marseille arrondissements ("Paris 15 Vaugirard", "Lyon 03", "Marseille 13", "Paris 10e Arrondissement")
+  //  - every Mexico City entry except the city itself (alcaldias, pueblos and colonias)
+  const isCitySubdivision = c =>
+    (c.country === 'FR' && /^(paris|lyon|marseille) \d/.test(c.nameF)) ||
+    (c.country === 'MX' && c.admin1 === '09' && c.geonamesId !== 3530597);
+  cityDB = cityDB.filter(c => !(NOT_A_CITY_IDS.has(c.geonamesId) || isCitySubdivision(c)));
 
   const cset = new Set(cityDB.map(c=>c.country));
   countriesList = [...cset].sort((a,b) => fmtCountry(a).localeCompare(fmtCountry(b)));
