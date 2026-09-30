@@ -6360,7 +6360,7 @@ $('carw').onchange=e=>{const k=e.target.dataset.k;if(k==null)return;const r=view
 async function api(o,r,path,tok,opt){const res=await fetch('https://api.github.com/repos/'+o+'/'+r+'/contents/'+path+(opt.ref||''),{method:opt.method||'GET',headers:{Authorization:'Bearer '+tok,Accept:'application/vnd.github+json'},body:opt.body});
  if(!res.ok)throw new Error(path+': '+res.status+' '+(await res.text()).slice(0,120));return res.json()}
 $('casv').onclick=async()=>{const o=$('cao').value.trim(),r=$('car').value.trim(),b=$('cab').value.trim(),tok=$('cat').value.trim();
- if(!tok||!o||!r){alert('Owner, repo and token are required.');return}
+ const miss=[!o&&'owner',!r&&'repo',!b&&'branch',!tok&&'token (the password field)'].filter(Boolean);if(miss.length){alert('Missing: '+miss.join(', ')+'.');return}
  const fs=[...new Set([...chg].map(x=>x.f))];if(!fs.length){alert('No changes to save.');return}
  try{for(const f of fs){const F=files[f];chg.forEach(x=>{if(x.f===f){const ln=F.lines[x.i],bare=ln.charCodeAt(0)===35?ln.slice(1):ln;F.lines[x.i]=x.on?bare:'#'+bare}});
   let u=new TextEncoder().encode(F.lines.join('\n'));if(F.path.endsWith('.gz'))u=await gz(u,CompressionStream);
