@@ -6367,7 +6367,7 @@ function stat(){$('cast').textContent=view.length+' rows · '+chg.size+' unsaved
 function draw(){const b=$('cabx'),a=Math.max(0,Math.floor(b.scrollTop/RH)-5),e=Math.min(view.length,a+Math.ceil(b.clientHeight/RH)+10);let h='';
  for(let k=a;k<e;k++){const r=view[k];h+='<div class="gr'+(r.on?'':' off')+'" style="top:'+k*RH+'px"><input type="checkbox" data-k="'+k+'"'+(r.on?' checked':'')+'><span>'+r.id+'</span><b>'+esc(r.n)+'</b><span>'+r.cc+'</span><span>'+r.a1+'</span><span>'+r.fc+'</span><span>'+r.p+'</span><span>'+esc(files[r.f].path)+'</span></div>'}
  $('carw').innerHTML=h}
-function filt(){const q=$('caq').value.trim().toLowerCase(),o=$('caoff').checked;view=all.filter(r=>(!o||!r.on)&&(!q||r.n.toLowerCase().includes(q)||r.cc.toLowerCase()===q||r.id===q));
+function filt(){const q=$('caq').value.trim().toLowerCase(),o=$('caoff').checked;const m=q.match(/^([a-z]{2}):(\w+)$/);view=all.filter(r=>(!o||!r.on)&&(!q||(m?(r.cc.toLowerCase()===m[1]&&r.a1.toLowerCase()===m[2]):(r.n.toLowerCase().includes(q)||r.cc.toLowerCase()===q||r.id===q))));
  $('casp').style.height=view.length*RH+'px';stat();draw()}
 let tm;$('caq').oninput=()=>{clearTimeout(tm);tm=setTimeout(filt,150)};$('caoff').onchange=filt;$('cabx').onscroll=draw;$('cacl').onclick=()=>$('cadm').style.display='none';
 $('carw').onchange=e=>{const k=e.target.dataset.k;if(k==null)return;const r=view[k];r.on=e.target.checked;
