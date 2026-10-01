@@ -49425,7 +49425,7 @@
 7290327	Poddębe	Poddebe	Poddebie,Poddębie	52.48401	20.90827	P	PPL	PL		78	1408	140805		0		76	Europe/Warsaw	2017-09-14
 7290328	Klucz	Klucz		52.46694	20.85497	P	PPL	PL		78	1408	140805		0		73	Europe/Warsaw	2015-09-05
 7290329	Sikory	Sikory		52.48126	20.82922	P	PPL	PL		78	1408	140805		0		75	Europe/Warsaw	2015-09-05
-7302309	Trójmiasto	Trojmiasto	Tricity,Trojmiasto	54.45098	18.53411	L	AREA	PL		82				743338		100	Europe/Warsaw	2010-06-03
+#7302309	Trójmiasto	Trojmiasto	Tricity,Trojmiasto	54.45098	18.53411	L	AREA	PL		82				743338		100	Europe/Warsaw	2010-06-03
 7302564	Nowe Jaroszowice	Nowe Jaroszowice		51.21893	15.57037	P	PPL	PL		72	0201	020102		220		257	Europe/Warsaw	2015-09-05
 7302565	Rzgów	Rzgow	Rzgow,Rzgów,Zgova,Zhgov,Zhguv,zgwb,Žgova,Жгов,Жгув,זגוב	51.66345	19.49181	P	PPLA3	PL		74	1006	100610		3370		188	Europe/Warsaw	2010-10-15
 7303464	Motaniec	Motaniec		53.35485	14.85077	P	PPL	PL		87	3214	321406		163		32	Europe/Warsaw	2015-09-05
@@ -56899,7 +56899,7 @@
 11748019	Scinawa Railway Substation	Scinawa Railway Substation		51.41698	16.41113	S	PS	PL		72	0211	021104		0		99	Europe/Warsaw	2017-10-23
 11748020	Lososiowice Railway Substation	Lososiowice Railway Substation		51.29762	16.67345	S	PS	PL		72	0222	022203		0		125	Europe/Warsaw	2017-10-23
 11748045	Hampton by Hilton Lublin	Hampton by Hilton Lublin		51.25415	22.55288	S	HTL	PL		75	0663	066301		0		181	Europe/Warsaw	2022-04-09
-11748058	Silesian Metropolis	Silesian Metropolis		50.25423	19.13818	L	RGN	PL		83				1500000		249	Europe/Warsaw	2018-08-28
+#11748058	Silesian Metropolis	Silesian Metropolis		50.25423	19.13818	L	RGN	PL		83				1500000		249	Europe/Warsaw	2018-08-28
 11748066	Pomiechowek Railway Substation	Pomiechowek Railway Substation		52.47319	20.74452	S	PS	PL		78	1414	141405		0		78	Europe/Warsaw	2017-10-24
 11748067	Swiercze Railway Substation	Swiercze Railway Substation		52.67205	20.76065	S	PS	PL		78	1424	142405		0		150	Europe/Warsaw	2017-10-24
 11748068	Wyszyny Railway Substation	Wyszyny Railway Substation		53.06263	20.39177	S	PS	PL		78	1413	141306		0		157	Europe/Warsaw	2017-10-24
