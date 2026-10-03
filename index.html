@@ -5412,7 +5412,15 @@ function loadAllSessions() {
   try { return JSON.parse(localStorage.getItem(SESS_KEY)) || {}; } catch(e) { return {}; }
 }
 function saveAllSessions(sessions) {
-  localStorage.setItem(SESS_KEY, JSON.stringify(sessions));
+  try {
+    localStorage.setItem(SESS_KEY, JSON.stringify(sessions));
+    return true;
+  } catch (e) {
+    // Most likely QuotaExceededError (localStorage is ~5 MB and every session
+    // stores a full copy of its found cities) or storage blocked by the browser.
+    console.error('Could not save sessions:', e);
+    return false;
+  }
 }
 
 // Snapshot current in-memory game state into a session object
@@ -5540,16 +5548,22 @@ function updateSessionBar() {
   }
 }
 
-function createSession(name) {
+function createSession(name, blank) {
   const sessions = loadAllSessions();
   const id = genId();
   sessions[id] = {
     id, name: name || 'Untitled Session',
     status: 'active',
     createdAt: Date.now(), updatedAt: Date.now(),
-    snapshot: captureState(),
+    // A brand-new session must start empty — capturing the live state here
+    // would copy the previous session's cities into it.
+    snapshot: blank
+      ? { foundByRegion: {}, region: 'world', S: {...S}, sortByPop: false }
+      : captureState(),
   };
-  saveAllSessions(sessions);
+  if (!saveAllSessions(sessions)) {
+    throw new Error('Browser storage is full or blocked. Delete an old session and try again.');
+  }
   return id;
 }
 
@@ -5622,7 +5636,7 @@ function renderSessionList() {
           if (remaining.length) {
             await switchSession(remaining.sort((a,b)=>b.updatedAt-a.updatedAt)[0].id);
           } else {
-            const newId = createSession('Session 1');
+            const newId = createSession('Session 1', true);
             localStorage.setItem(SESS_CUR, newId);
             found = []; svg.select('#map-g').selectAll('.city-dot').remove();
             renderFoundGrid(); updateSummary(); updateSessionBar(); lockIfSaved();
@@ -5667,17 +5681,27 @@ document.getElementById('sessModal').onclick = e => { if (e.target === document.
 document.getElementById('createSessBtn').onclick = async () => {
   const input = document.getElementById('newSessNameInput');
   const name = input.value.trim() || ('Session ' + (Object.keys(loadAllSessions()).length + 1));
-  persistSession();
-  const id = createSession(name);
-  localStorage.setItem(SESS_CUR, id);
-  found = []; captureState._fbr = {}; await drawMap('world');
-  renderFoundGrid(); updateSummary(); updateSessionBar(); lockIfSaved();
-  renderBestCountries();
-  renderOtherStats();
-  input.value = '';
-  renderSessionList();
-  closeSessModal();
-  setMsg(`Session "${name}" created.`, 'info');
+  try {
+    persistSession();                       // keep the session we're leaving
+    const id = createSession(name, true);   // blank snapshot
+    localStorage.setItem(SESS_CUR, id);
+    // Reset in-memory game state for the fresh session
+    found = []; missed = 0; captureState._fbr = {};
+    if (quizMode) setQuizMode(false);
+    tintRegionSelect('world');              // keep the map picker in sync with the world map
+    input.value = '';
+    closeSessModal();                       // close first so a slow map redraw can't look like a dead button
+    await drawMap('world');
+    renderFoundGrid(); updateSummary(); updateSessionBar(); lockIfSaved();
+    renderBestCountries();
+    renderOtherStats();
+    setMsg(`Session "${name}" created.`, 'info');
+  } catch (err) {
+    console.error('Create session failed:', err);
+    updateSessionBar();
+    renderSessionList();
+    alert('Could not create the session: ' + (err && err.message ? err.message : err));
+  }
 };
 document.getElementById('newSessNameInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('createSessBtn').click();
