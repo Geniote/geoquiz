@@ -1339,7 +1339,7 @@ function applyZoomFrame() {
     _physicalZoomTimer = setTimeout(() => {
       const [W, H] = getMapSize();
       renderPhysicalBasemap(W, H).catch(err => console.error('Physical mode: re-render on zoom/pan failed', err));
-    }, 150);
+    }, 60);
   }
 }
 
@@ -2438,16 +2438,18 @@ function latToTileY(lat, n) {
 // tiles, and if so, which zoom level and tile range cover what's on screen —
 // then fetches and composites them. Returns null (meaning "just use the base
 // texture") whenever tiles wouldn't help, aren't needed, or fail to load.
-async function computePhysicalTileSource(W, H) {
+async function computePhysicalTileSource(W, H, T, zDrop) {
+  T = T || currentTransform; zDrop = zDrop || 0;
   // A tile pyramid's zoom z packs the whole 360°-wide world into 256*2^z
   // pixels — comparing that to the current view's effective scale tells us
   // the shallowest (cheapest) zoom level that's at least as detailed as what
   // the base texture already provides, so tiles only kick in once they'd
   // actually add sharpness. This is exact for the Mercator regional views
   // and a reasonable stand-in for the World/USA composite projections.
-  const effScale = projection.scale() * currentTransform.k;
+  const effScale = projection.scale() * T.k;
   let z = 0;
   while (z < MAX_TILE_ZOOM && (256 * Math.pow(2, z)) / (2 * Math.PI) < effScale) z++;
+  z = Math.max(0, z - zDrop); // quick preview pass uses shallower (far fewer) tiles
   if (z < MIN_TILE_ZOOM_TO_ENGAGE) return null;
 
   // Sample a coarse grid across the viewport to find the lon/lat box that's
@@ -2456,7 +2458,7 @@ async function computePhysicalTileSource(W, H) {
   const STEPS = 6;
   for (let iy = 0; iy <= STEPS; iy++) {
     for (let ix = 0; ix <= STEPS; ix++) {
-      const p = projection.invert(currentTransform.invert([ix / STEPS * W, iy / STEPS * H]));
+      const p = projection.invert(T.invert([ix / STEPS * W, iy / STEPS * H]));
       if (p && isFinite(p[0]) && isFinite(p[1]) && p[1] <= 90 && p[1] >= -90) { lons.push(p[0]); lats.push(p[1]); }
     }
   }
@@ -2508,68 +2510,146 @@ function bilinearSample(data, width, height, xf, yf, wrapX) {
   ];
 }
 
+// Writes the bilinear-sampled RGB straight into `out` (no per-pixel array allocation).
+function bilinearInto(data, width, height, xf, yf, wrapX, out, oi) {
+  let x0 = Math.floor(xf), y0 = Math.floor(yf);
+  const tx = xf - x0, ty = yf - y0;
+  let x1 = x0 + 1;
+  const y1 = Math.min(height - 1, Math.max(0, y0 + 1));
+  y0 = Math.min(height - 1, Math.max(0, y0));
+  if (wrapX) { x0 = ((x0 % width) + width) % width; x1 = ((x1 % width) + width) % width; }
+  else { x0 = Math.min(width - 1, Math.max(0, x0)); x1 = Math.min(width - 1, Math.max(0, x1)); }
+  const i00 = (y0 * width + x0) * 4, i10 = (y0 * width + x1) * 4;
+  const i01 = (y1 * width + x0) * 4, i11 = (y1 * width + x1) * 4;
+  const w00 = (1 - tx) * (1 - ty), w10 = tx * (1 - ty), w01 = (1 - tx) * ty, w11 = tx * ty;
+  out[oi]   = data[i00]   * w00 + data[i10]   * w10 + data[i01]   * w01 + data[i11]   * w11;
+  out[oi+1] = data[i00+1] * w00 + data[i10+1] * w10 + data[i01+1] * w01 + data[i11+1] * w11;
+  out[oi+2] = data[i00+2] * w00 + data[i10+2] * w10 + data[i01+2] * w01 + data[i11+2] * w11;
+  out[oi+3] = 255;
+  return true;
+}
+
+let _physRenderId = 0;      // bumped on every new render request; older in-flight renders drop their result
+let _physicalBlobUrl = null;
+
 // Builds the reprojected raster and inserts it as an <image> in the
-// untransformed #physical-g layer (a sibling of #map-g, not the pan/zoom
-// group), so it's always redrawn crisp for the current view — a raster
-// dropped inside the zoom-transformed group would just get stretched and
-// go blocky as the user zooms in, the way a bitmap always does under a
-// CSS/SVG scale transform.
+// untransformed #physical-g layer. Two passes: a fast low-res/shallow-tile
+// preview that appears almost immediately, then the full-detail pass. Any newer
+// zoom/pan request cancels the older one mid-way (see _physRenderId).
 async function renderPhysicalBasemap(W, H) {
-  // Fetch the sharp map tiles and the whole-Earth texture in parallel. Either one
-  // alone is enough to draw a map; only if BOTH fail do we report an error.
+  const id = ++_physRenderId;
+  await renderPhysicalPass(W, H, id, true);
+  if (id !== _physRenderId) return;
+  await renderPhysicalPass(W, H, id, false);
+}
+
+async function renderPhysicalPass(W, H, id, quick) {
+  const T = currentTransform; // freeze the view this pass is drawn for
   const basePromise = _physicalBaseFailed
     ? Promise.resolve(null)
     : loadPhysicalSource().catch(e => { _physicalBaseFailed = true; console.warn('Physical mode: base texture unavailable', e); return null; });
-  const [src, tileSrc] = await Promise.all([basePromise, computePhysicalTileSource(W, H)]);
+  const [src, tileSrc] = await Promise.all([basePromise, computePhysicalTileSource(W, H, T, quick ? 2 : 0)]);
+  if (id !== _physRenderId) return;
   if (!src && !tileSrc) throw new Error('Neither satellite tiles nor the base texture could be loaded');
   const sData = src ? src.data : null, sw = src ? src.width : 0, sh = src ? src.height : 0;
-  // Render extra pixels-per-CSS-pixel on high-DPI (retina) screens so the
-  // basemap looks as crisp as the rest of the (vector) UI there, instead of
-  // being visibly softer than everything around it. Capped both in ratio and
-  // in total sample count so this stays fast on a large/maximized map pane.
-  let dpr = Math.min(window.devicePixelRatio || 1, 2);
-  if (W * H * dpr * dpr > 4_000_000) dpr = 1;
-  const rw = Math.round(W * dpr), rh = Math.round(H * dpr);
+
+  let dpr = quick ? 0.5 : Math.min(window.devicePixelRatio || 1, 2);
+  if (!quick && W * H * dpr * dpr > 4_000_000) dpr = 1;
+  const rw = Math.max(2, Math.round(W * dpr)), rh = Math.max(2, Math.round(H * dpr));
   const canvas = document.createElement('canvas');
   canvas.width = rw; canvas.height = rh;
   const ctx = canvas.getContext('2d');
   const target = ctx.createImageData(rw, rh);
-  const tData = target.data;
+  const tData = target.data; // zero-filled = transparent -> dark background shows through
   const tileN = tileSrc ? Math.pow(2, tileSrc.z) : 0;
-  for (let y = 0; y < rh; y++) {
-    for (let x = 0; x < rw; x++) {
-      // Undo the current pan/zoom transform first so each screen pixel maps
-      // to the right point in the base (untransformed) projection, then to
-      // lon/lat — this is what keeps the basemap aligned and sharp at any
-      // zoom level instead of being a fixed image stretched by the transform.
-      const screenPt = currentTransform.invert([(x + 0.5) / dpr, (y + 0.5) / dpr]);
-      const p = projection.invert(screenPt);
-      if (!p || !isFinite(p[0]) || !isFinite(p[1]) || p[1] > 90 || p[1] < -90) continue;
-      const lon = ((p[0] + 180) % 360 + 360) % 360 - 180;
-      const lat = p[1];
 
-      let rgb = null;
-      if (tileSrc) {
-        const txf = lonToTileX(lon, tileN) - tileSrc.xMin;
-        const tyf = latToTileY(lat, tileN) - tileSrc.yMin;
-        const tileCol = Math.floor(txf), tileRow = Math.floor(tyf);
-        if (tileCol >= 0 && tileCol < tileSrc.nx && tileRow >= 0 && tileRow < tileSrc.ny &&
-            tileSrc.tileOk[tileRow * tileSrc.nx + tileCol]) {
-          rgb = bilinearSample(tileSrc.data, tileSrc.width, tileSrc.height, txf * 256, tyf * 256, false);
+  // Samples one pixel given its tile-mosaic coords (txf,tyf) and base-texture coords (sxf,syf).
+  const shade = (txf, tyf, sxf, syf, oi) => {
+    if (tileSrc) {
+      const c = Math.floor(txf), r = Math.floor(tyf);
+      if (c >= 0 && c < tileSrc.nx && r >= 0 && r < tileSrc.ny && tileSrc.tileOk[r * tileSrc.nx + c]) {
+        bilinearInto(tileSrc.data, tileSrc.width, tileSrc.height, txf * 256, tyf * 256, false, tData, oi);
+        return;
+      }
+    }
+    if (sData) bilinearInto(sData, sw, sh, sxf, syf, true, tData, oi);
+  };
+
+  // Expensive part is projection.invert(). Do it only on a coarse grid (every STEP
+  // output pixels) and interpolate the texture coordinates in between; cells where
+  // the mapping jumps (antimeridian, composite-projection insets, off-globe) fall
+  // back to exact per-pixel inversion so nothing gets distorted.
+  const STEP = 4;
+  const gw = Math.ceil(rw / STEP) + 1, gh = Math.ceil(rh / STEP) + 1;
+  const NTX = new Float32Array(gw * gh), NTY = new Float32Array(gw * gh);
+  const NSX = new Float32Array(gw * gh), NSY = new Float32Array(gw * gh);
+  const NLON = new Float32Array(gw * gh), NLAT = new Float32Array(gw * gh);
+  const NOK = new Uint8Array(gw * gh);
+  for (let j = 0; j < gh; j++) {
+    for (let i = 0; i < gw; i++) {
+      const k = j * gw + i;
+      const p = projection.invert(T.invert([(i * STEP + 0.5) / dpr, (j * STEP + 0.5) / dpr]));
+      if (!p || !isFinite(p[0]) || !isFinite(p[1]) || p[1] > 90 || p[1] < -90) continue;
+      const lon = ((p[0] + 180) % 360 + 360) % 360 - 180, lat = p[1];
+      NOK[k] = 1; NLON[k] = lon; NLAT[k] = lat;
+      if (tileSrc) { NTX[k] = lonToTileX(lon, tileN) - tileSrc.xMin; NTY[k] = latToTileY(lat, tileN) - tileSrc.yMin; }
+      if (sData) { NSX[k] = (lon + 180) / 360 * sw - 0.5; NSY[k] = (90 - lat) / 180 * sh - 0.5; }
+    }
+  }
+  const SPAN = 15; // degrees; a bigger jump inside one 4px cell means a discontinuity
+  const cellOk = new Uint8Array((gw - 1) * (gh - 1));
+  for (let j = 0; j < gh - 1; j++) {
+    for (let i = 0; i < gw - 1; i++) {
+      const a = j * gw + i, b = a + 1, c = a + gw, d = c + 1;
+      if (!(NOK[a] && NOK[b] && NOK[c] && NOK[d])) continue;
+      const lo = Math.min(NLON[a], NLON[b], NLON[c], NLON[d]), hi = Math.max(NLON[a], NLON[b], NLON[c], NLON[d]);
+      const la = Math.min(NLAT[a], NLAT[b], NLAT[c], NLAT[d]), lb = Math.max(NLAT[a], NLAT[b], NLAT[c], NLAT[d]);
+      if (hi - lo < SPAN && lb - la < SPAN) cellOk[j * (gw - 1) + i] = 1;
+    }
+  }
+
+  const ROWS_PER_SLICE = 40;
+  for (let y0 = 0; y0 < rh; y0 += ROWS_PER_SLICE) {
+    const y1 = Math.min(rh, y0 + ROWS_PER_SLICE);
+    for (let y = y0; y < y1; y++) {
+      const j = Math.min(gh - 2, Math.floor(y / STEP));
+      const v = (y - j * STEP) / STEP, nv = 1 - v;
+      for (let x = 0; x < rw; x++) {
+        const i = Math.min(gw - 2, Math.floor(x / STEP));
+        const oi = (y * rw + x) * 4;
+        if (cellOk[j * (gw - 1) + i]) {
+          const u = (x - i * STEP) / STEP, nu = 1 - u;
+          const a = j * gw + i, b = a + 1, c = a + gw, d = c + 1;
+          const w00 = nu * nv, w10 = u * nv, w01 = nu * v, w11 = u * v;
+          shade(
+            NTX[a]*w00 + NTX[b]*w10 + NTX[c]*w01 + NTX[d]*w11,
+            NTY[a]*w00 + NTY[b]*w10 + NTY[c]*w01 + NTY[d]*w11,
+            NSX[a]*w00 + NSX[b]*w10 + NSX[c]*w01 + NSX[d]*w11,
+            NSY[a]*w00 + NSY[b]*w10 + NSY[c]*w01 + NSY[d]*w11,
+            oi);
+        } else {
+          const p = projection.invert(T.invert([(x + 0.5) / dpr, (y + 0.5) / dpr]));
+          if (!p || !isFinite(p[0]) || !isFinite(p[1]) || p[1] > 90 || p[1] < -90) continue;
+          const lon = ((p[0] + 180) % 360 + 360) % 360 - 180, lat = p[1];
+          shade(
+            tileSrc ? lonToTileX(lon, tileN) - tileSrc.xMin : 0,
+            tileSrc ? latToTileY(lat, tileN) - tileSrc.yMin : 0,
+            (lon + 180) / 360 * sw - 0.5,
+            (90 - lat) / 180 * sh - 0.5,
+            oi);
         }
       }
-      if (!rgb && sData) {
-        // Bilinear sample instead of nearest-neighbor for a smoother look.
-        const sxf = (lon + 180) / 360 * sw - 0.5;
-        const syf = (90 - lat) / 180 * sh - 0.5;
-        rgb = bilinearSample(sData, sw, sh, sxf, syf, true);
-      }
-      if (!rgb) continue;
-      const ti = (y * rw + x) * 4;
-      tData[ti] = rgb[0]; tData[ti+1] = rgb[1]; tData[ti+2] = rgb[2]; tData[ti+3] = 255;
+    }
+    if (!quick) { // keep the UI responsive and let a newer zoom cancel this render
+      await new Promise(r => setTimeout(r, 0));
+      if (id !== _physRenderId) return;
     }
   }
   ctx.putImageData(target, 0, 0);
+  // Async JPEG encoding off the main thread (much faster than toDataURL on big canvases).
+  const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.9));
+  if (id !== _physRenderId || !blob) return;
+  const url = URL.createObjectURL(blob);
   const physicalG = svg.select('#physical-g');
   physicalG.select('#physicalImg').remove();
   physicalG.append('image')
@@ -2577,12 +2657,14 @@ async function renderPhysicalBasemap(W, H) {
     .attr('x', 0).attr('y', 0)
     .attr('width', W).attr('height', H)
     .attr('preserveAspectRatio', 'none')
-    .attr('href', canvas.toDataURL('image/jpeg', 0.92));
-  // This render is now the ground truth for the current view — clear the
-  // live "catch-up" transform onZoom() applies between renders, and remember
-  // this transform so the next one knows how far the view has since moved.
-  physicalG.style('transform', null);
-  _physicalBakedTransform = currentTransform;
+    .attr('href', url);
+  if (_physicalBlobUrl) URL.revokeObjectURL(_physicalBlobUrl);
+  _physicalBlobUrl = url;
+  // This raster was drawn for transform T. If the user has moved on since, keep the
+  // live catch-up transform so it stays glued to the borders until the next render.
+  _physicalBakedTransform = T;
+  const cur = currentTransform, k = cur.k / T.k;
+  physicalG.style('transform', (cur === T) ? null : `translate(${cur.x - T.x * k}px,${cur.y - T.y * k}px) scale(${k})`);
 }
 
 // Turns the satellite layer on/off against a map group that already has its
