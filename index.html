@@ -2287,6 +2287,8 @@ async function drawMap(regionKey) {
 // remaining URLs are lower-res fallbacks tried in order if that one is ever unreachable.
 const PHYSICAL_IMG_URLS = [
   'https://cdn.jsdelivr.net/gh/Ornstein89/paraview_orbit@main/8k_earth_daymap.jpg',
+  'https://cdn.jsdelivr.net/gh/Ornstein89/paraview_orbit@master/8k_earth_daymap.jpg',
+  'https://cdn.jsdelivr.net/gh/Siqister/files/8k_earth_daymap.jpg',
   'https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg',
   'https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-blue-marble.jpg',
 ];
@@ -2297,7 +2299,9 @@ function loadImageAndReadPixels(url) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
+    const timer = setTimeout(() => { img.src = ''; reject(new Error('Timed out loading satellite image: ' + url)); }, 20000);
     img.onload = () => {
+      clearTimeout(timer);
       // Use the image at full native resolution — physical mode's own bilinear
       // sampling (see renderPhysicalBasemap) is what actually determines sharpness
       // when zoomed in, so there's no benefit to throwing away source detail here.
@@ -2317,6 +2321,7 @@ function loadImageAndReadPixels(url) {
       resolve({ data: imgData.data, width: sw, height: sh });
     };
     img.onerror = (ev) => {
+      clearTimeout(timer);
       console.error('Physical mode: image failed to load from', url, ev);
       reject(new Error('Could not load satellite image: ' + url));
     };
@@ -2324,6 +2329,7 @@ function loadImageAndReadPixels(url) {
   });
 }
 
+let _physicalBaseFailed = false;
 async function loadPhysicalSource() {
   if (_physicalSource) return _physicalSource;
   if (_physicalLoadPromise) return _physicalLoadPromise;
@@ -2356,7 +2362,10 @@ async function loadPhysicalSource() {
 // used as a per-pixel fallback if a given tile fails to load. Higher zoom =
 // a deeper (sharper) tile level, up to the pyramid's max, so the image keeps
 // resolving more detail as you zoom in.
-const TILE_URL_TEMPLATE = 'https://cdn.jsdelivr.net/gh/freetiler/nasa-bluemarble/tiles/{z}/{x}/{y}.jpeg';
+const TILE_URL_TEMPLATES = [
+  'https://cdn.jsdelivr.net/gh/freetiler/nasa-bluemarble/tiles/{z}/{x}/{y}.jpeg',
+  'https://cdn.statically.io/gh/freetiler/nasa-bluemarble/main/tiles/{z}/{x}/{y}.jpeg',
+];
 const MAX_TILE_ZOOM = 8;         // deepest zoom level the tile set publishes
 const MIN_TILE_ZOOM_TO_ENGAGE = 0; // engage the sharper tile pyramid at every zoom level; the blurrier whole-earth texture is now only a fallback for when tiles fail to load
 const MAX_TILES_PER_FETCH = 144;   // safety cap (12x12) so an odd view can't trigger a huge fetch
@@ -2369,13 +2378,22 @@ function loadTileImage(z, x, y) {
   if (y < 0 || y >= n) return Promise.resolve(null); // no tiles beyond the poles
   const key = z + '/' + x + '/' + y;
   if (_tileImageCache.has(key)) return _tileImageCache.get(key);
-  const p = new Promise(resolve => {
+  const tryUrl = (tpl) => new Promise(resolve => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
-    img.onload = () => resolve(img);
-    img.onerror = () => resolve(null); // missing/failed tile — caller falls back gracefully
-    img.src = TILE_URL_TEMPLATE.replace('{z}', z).replace('{x}', x).replace('{y}', y);
+    const timer = setTimeout(() => { img.src = ''; resolve(null); }, 15000);
+    img.onload = () => { clearTimeout(timer); resolve(img); };
+    img.onerror = () => { clearTimeout(timer); resolve(null); };
+    img.src = tpl.replace('{z}', z).replace('{x}', x).replace('{y}', y);
   });
+  const p = (async () => {
+    for (const tpl of TILE_URL_TEMPLATES) {
+      const img = await tryUrl(tpl);
+      if (img) return img;
+    }
+    _tileImageCache.delete(key); // don't cache failures forever
+    return null; // missing/failed tile — caller falls back gracefully
+  })();
   _tileImageCache.set(key, p);
   return p;
 }
@@ -2497,12 +2515,14 @@ function bilinearSample(data, width, height, xf, yf, wrapX) {
 // go blocky as the user zooms in, the way a bitmap always does under a
 // CSS/SVG scale transform.
 async function renderPhysicalBasemap(W, H) {
-  const src = await loadPhysicalSource();
-  const { data: sData, width: sw, height: sh } = src;
-  // Zoomed in far enough, fetch real map tiles for just the visible patch of
-  // the globe so detail keeps increasing instead of plateauing at the base
-  // texture's fixed resolution (see computePhysicalTileSource for the cutoff).
-  const tileSrc = await computePhysicalTileSource(W, H);
+  // Fetch the sharp map tiles and the whole-Earth texture in parallel. Either one
+  // alone is enough to draw a map; only if BOTH fail do we report an error.
+  const basePromise = _physicalBaseFailed
+    ? Promise.resolve(null)
+    : loadPhysicalSource().catch(e => { _physicalBaseFailed = true; console.warn('Physical mode: base texture unavailable', e); return null; });
+  const [src, tileSrc] = await Promise.all([basePromise, computePhysicalTileSource(W, H)]);
+  if (!src && !tileSrc) throw new Error('Neither satellite tiles nor the base texture could be loaded');
+  const sData = src ? src.data : null, sw = src ? src.width : 0, sh = src ? src.height : 0;
   // Render extra pixels-per-CSS-pixel on high-DPI (retina) screens so the
   // basemap looks as crisp as the rest of the (vector) UI there, instead of
   // being visibly softer than everything around it. Capped both in ratio and
@@ -2538,12 +2558,13 @@ async function renderPhysicalBasemap(W, H) {
           rgb = bilinearSample(tileSrc.data, tileSrc.width, tileSrc.height, txf * 256, tyf * 256, false);
         }
       }
-      if (!rgb) {
+      if (!rgb && sData) {
         // Bilinear sample instead of nearest-neighbor for a smoother look.
         const sxf = (lon + 180) / 360 * sw - 0.5;
         const syf = (90 - lat) / 180 * sh - 0.5;
         rgb = bilinearSample(sData, sw, sh, sxf, syf, true);
       }
+      if (!rgb) continue;
       const ti = (y * rw + x) * 4;
       tData[ti] = rgb[0]; tData[ti+1] = rgb[1]; tData[ti+2] = rgb[2]; tData[ti+3] = 255;
     }
