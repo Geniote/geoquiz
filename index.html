@@ -455,6 +455,8 @@ body.circle-mode #bottomPanels,body.circle-mode #nightCanvas{display:none !impor
 /* Circle challenge always accepts every matching city, so the Any/Every country filter is hidden and the text box gets its full width back. */
 body.circle-mode #countryFilterBtn,body.circle-mode #countryFilterPanel{display:none !important}
 body.circle-mode #cityInput{padding-right:16px}
+/* The circle challenge has its own rounds, so the global Clear all button (which would wipe the cities found in the normal game) is hidden. */
+body.circle-mode #clearBtn{display:none !important}
 body.circle-mode .city-dot:not(.circle-dot),body.circle-mode .city-dot.force-visible:not(.circle-dot){display:none !important}
 body .circle-missed .main-dot{fill:#9aa0a6;fill-opacity:.8;stroke:#fff}
 /* Circle challenge: found cities are solid blue dots with no outline */
@@ -3972,7 +3974,7 @@ const CIRCLE_CFG = {
     bigCityPop: 50000,               // a "big city" for sizing the circle: population at or above this
     targetBigCities: [8, 14],        // the radius is set so that about this many big cities fall inside the circle (random in this range)
     nudgeKm: 150,                    // the centre is moved up to this far off the seed city so the biggest city isn't always in the middle
-    revealCount: 10,                 // "Reveal" shows this many of the biggest cities you missed
+    revealCount: 10,                 // "Reveal" covers the circle's top N biggest cities (the ones not found yet are shown)
     popFloor: 1000,                  // population worth the minimum score (log scale starts here)
     minCities: 30,                   // a circle needs at least this many eligible cities
     bounds: [-124.5, -67.5, 25.5, 49], // [lonMin, lonMax, latMin, latMax] for the centre (contiguous US)
@@ -4081,19 +4083,21 @@ function circleNewRound(retry) {
   let best = null;
   const [tMin, tMax] = cfg.targetBigCities;
   const bigs = eligible.filter(c => (Number(c.pop) || 0) >= cfg.bigCityPop); // only big cities decide how large the circle is
+  const prior = circleOld.flatMap(o => o.cities), priorKeys = new Set(prior.map(circleKey)); // cities guessed in earlier rounds
   for (let t = 0; t < 150; t++) {
     const seed = pool[Math.floor(Math.random() * pool.length)];
     // Nudge the centre off the seed city so the biggest city isn't always dead centre.
     const lat = Math.min(y1, Math.max(y0, seed.lat + (Math.random() * 2 - 1) * cfg.nudgeKm / 111));
     const lon = Math.min(x1, Math.max(x0, seed.lon + (Math.random() * 2 - 1) * cfg.nudgeKm / (111 * Math.cos(lat * Math.PI / 180))));
-    // A new circle must not overlap the circles of earlier rounds: skip centres that are too close to one,
-    // and shrink the radius if it would still reach into one. Only if no clear spot turns up after many
-    // tries (a very crowded map) is an overlap tolerated, so a round can always start.
+    // Circles may overlap earlier circles, but a new one must not cover a city already guessed in a previous
+    // round: skip centres too close to one, and shrink the radius so it stops just short of the nearest one.
+    // Only if no clear spot turns up after many tries (a very crowded map) is it tolerated, and then those
+    // cities are simply left out of the new circle (see `inside` below), so they never count twice.
     let tooClose = false, room = Infinity;
-    for (const o of circleOld) {
-      const d = d3.geoDistance(o.center, [lon, lat]) * 6371;
-      if (d < o.r + cfg.minR) tooClose = true;
-      room = Math.min(room, d - o.r);
+    for (const pc of prior) {
+      const d = d3.geoDistance([pc.lon, pc.lat], [lon, lat]) * 6371;
+      if (d <= cfg.minR + 1) tooClose = true;
+      room = Math.min(room, d);
     }
     if (tooClose && (best || t < 120)) continue;
     // Adaptive size: a radius that reaches roughly the Nth-nearest big city (N random in
@@ -4101,8 +4105,8 @@ function circleNewRound(retry) {
     const bigD = Float64Array.from(bigs, c => d3.geoDistance([c.lon, c.lat], [lon, lat]) * 6371).sort();
     const n = Math.min(bigD.length, tMin + Math.floor(Math.random() * (tMax - tMin + 1)));
     let r = bigD.length ? Math.min(cfg.maxR, Math.max(cfg.minR, bigD[n - 1] * 1.05)) : cfg.maxR;
-    if (!tooClose && r > room) r = Math.max(cfg.minR, room); // pull the edge back so it stops at the previous circle
-    const inside = eligible.filter(c => Math.abs(c.lat - lat) < r / 111 + 0.5 && d3.geoDistance([c.lon, c.lat], [lon, lat]) * 6371 <= r);
+    if (!tooClose && r > room - 1) r = Math.max(cfg.minR, room - 1); // pull the edge back so it stops short of the nearest already-guessed city
+    const inside = eligible.filter(c => Math.abs(c.lat - lat) < r / 111 + 0.5 && d3.geoDistance([c.lon, c.lat], [lon, lat]) * 6371 <= r && !priorKeys.has(circleKey(c)));
     if (!best || inside.length > best.inside.length) best = { center: [lon, lat], r, inside };
     if (inside.length >= cfg.minCities) { best = { center: [lon, lat], r, inside }; break; }
   }
@@ -4122,12 +4126,19 @@ function circleNewRound(retry) {
   document.getElementById('cityInput').focus();
 }
 
-// Reveal shows the biggest cities inside the circle that weren't found yet.
-function circleMissedList() {
+// Reveal works on the circle's own top 10 (the 10 biggest cities inside it, found or not): it shows those of them
+// the player hasn't typed yet. Only when all 10 have been found is there nothing left to reveal there, and then it
+// shows the next 3 biggest cities after the top 10 that weren't found.
+const CIRCLE_BONUS_REVEAL = 3;
+function circleRevealPlan() {
   const foundKeys = new Set(circle.found.map(f => circleKey(f.city)));
-  return [...circle.cities.entries()].filter(e => !foundKeys.has(e[0]))
-    .sort((a, b) => (Number(b[1].pop) || 0) - (Number(a[1].pop) || 0)).slice(0, CIRCLE_CFG[circleRegion].revealCount).map(e => e[1]);
+  const sorted = [...circle.cities.entries()].sort((a, b) => (Number(b[1].pop) || 0) - (Number(a[1].pop) || 0));
+  const n = CIRCLE_CFG[circleRegion].revealCount;
+  const left = sorted.slice(0, n).filter(e => !foundKeys.has(e[0]));
+  if (left.length) return { list: left.map(e => e[1]), bonus: false };
+  return { list: sorted.slice(n).filter(e => !foundKeys.has(e[0])).slice(0, CIRCLE_BONUS_REVEAL).map(e => e[1]), bonus: true };
 }
+function circleMissedList() { return circleRevealPlan().list; }
 // Logarithmic, so one giant city doesn't flatten everything else: the biggest
 // city in the circle is 1000 and a city at the floor population is ~0, with
 // everything in between spread by how many times smaller than the biggest it is.
@@ -4210,8 +4221,10 @@ function circleGuess() {
 function circleReveal() {
   if (!circle || circle.revealed) return;
   circle.revealed = true;
-  const missed = circleMissedList().length;
-  setMsg(missed ? `The biggest ${missed} cities you missed are shown in grey.` : 'You found every city in the circle!', 'dup');
+  const plan = circleRevealPlan(), n = plan.list.length, top = CIRCLE_CFG[circleRegion].revealCount;
+  setMsg(!n ? 'You found every city in the circle!'
+    : plan.bonus ? `You found the circle's ${top} biggest cities! Here ${n === 1 ? 'is the next biggest city' : 'are the next ' + n + ' biggest cities'} you hadn't found, in grey.`
+    : `${n === 1 ? '1 of' : n + ' of'} the circle's ${top} biggest cities you hadn't found ${n === 1 ? 'is' : 'are'} shown in grey.`, 'dup');
   circleRenderOverlay();
 }
 
@@ -4311,7 +4324,13 @@ function circleSaveGame(name) {
     rounds: circleScores.map(r => r.score), cities: circleScores.reduce((t, r) => t + r.found, 0), region: circleRegion, date: Date.now() };
   list.push(entry);
   list.sort((a, b) => b.total - a.total || a.date - b.date);
-  if (list.length > CIRCLE_BOARD_MAX) list.length = CIRCLE_BOARD_MAX;
+  // Each map keeps its own top CIRCLE_BOARD_MAX games, so a busy map can't push another map's scores out.
+  const perMap = {};
+  for (let i = 0; i < list.length; i++) {
+    const rk = list[i].region || 'usa';
+    perMap[rk] = (perMap[rk] || 0) + 1;
+    if (perMap[rk] > CIRCLE_BOARD_MAX) { list.splice(i, 1); i--; }
+  }
   if (!circleStoreScores(list)) return null;
   try { localStorage.setItem(CIRCLE_NAME_KEY, entry.name === 'Player' ? '' : entry.name); } catch (e) {}
   const sameMap = list.filter(x => (x.region || 'usa') === (entry.region || 'usa')); // each map has its own scoreboard
