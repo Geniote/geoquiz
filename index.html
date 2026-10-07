@@ -4031,8 +4031,9 @@ function onNightMouseMove(ev) {
       const _cs = US_STATE_CAPITALS.get(city.name.toLowerCase());
       const isSC = isUSMode && _cs !== undefined && (city.admin1||'').toUpperCase() === _cs;
       const isPC = isJPMode && isJPPrefCapital(city);
-      const isCap = (city.isCapital && !isUSMode && !isJPMode && UN_COUNTRIES.has(city.country)) || isSC || isPC;
-      const starHtml = isCap ? ` <span title="${isSC?'State capital':(isPC?'Prefecture capital':'Capital')}" style="color:var(--text)">★</span>` : '';
+      const _rcl = regionalCapitalLabel(city);
+      const isCap = (city.isCapital && !isUSMode && !isJPMode && UN_COUNTRIES.has(city.country)) || isSC || isPC || !!_rcl;
+      const starHtml = isCap ? ` <span title="${isSC?'State capital':(isPC?'Prefecture capital':(_rcl||'Capital'))}" style="color:var(--text)">★</span>` : '';
       tooltip.innerHTML = `<strong>${displayName(city)}${city.pop?` <span class="fi-pop">(${fmtPop(city.pop)})</span>`:''}${starHtml}</strong><br>${fmtLocation(city)}`;
     }
     tooltip.style.display = 'block';
@@ -4109,7 +4110,7 @@ function addDot(city) {
   const id = dotId(city);
   const dg = svg.select('#map-g').append('g').attr('class','city-dot').attr('id',id);
 
-  const onOver = () => { tooltip.style.display='block'; const isUSMode=currentRegion==='usa'; const isJPMode=currentRegion==='japan'; const _cs=US_STATE_CAPITALS.get(city.name.toLowerCase()); const isSC=isUSMode&&_cs!==undefined&&(city.admin1||'').toUpperCase()===_cs; const isPC=isJPMode&&isJPPrefCapital(city); const isCap=(city.isCapital&&!isUSMode&&!isJPMode&&UN_COUNTRIES.has(city.country))||isSC||isPC; const starHtml=isCap?` <span title="${isSC?'State capital':(isPC?'Prefecture capital':'Capital')}" style="color:var(--text)">★</span>`:''; tooltip.style.display='block'; tooltip.innerHTML=`<strong>${displayName(city)}${city.pop?` <span class="fi-pop">(${fmtPop(city.pop)})</span>`:''}${starHtml}</strong><br>${fmtLocation(city)}`; };
+  const onOver = () => { tooltip.style.display='block'; const isUSMode=currentRegion==='usa'; const isJPMode=currentRegion==='japan'; const _cs=US_STATE_CAPITALS.get(city.name.toLowerCase()); const isSC=isUSMode&&_cs!==undefined&&(city.admin1||'').toUpperCase()===_cs; const isPC=isJPMode&&isJPPrefCapital(city); const _rcl=regionalCapitalLabel(city); const isCap=(city.isCapital&&!isUSMode&&!isJPMode&&UN_COUNTRIES.has(city.country))||isSC||isPC||!!_rcl; const starHtml=isCap?` <span title="${isSC?'State capital':(isPC?'Prefecture capital':(_rcl||'Capital'))}" style="color:var(--text)">★</span>`:''; tooltip.style.display='block'; tooltip.innerHTML=`<strong>${displayName(city)}${city.pop?` <span class="fi-pop">(${fmtPop(city.pop)})</span>`:''}${starHtml}</strong><br>${fmtLocation(city)}`; };
   const onMove = ev => { const rc=mapEl.getBoundingClientRect(); tooltip.style.left=(ev.clientX-rc.left+14)+'px'; tooltip.style.top=(ev.clientY-rc.top-46)+'px'; };
   const onOut = () => tooltip.style.display='none';
   const onClick = () => { tooltip.style.display='none'; highlightCity(city); };
@@ -4196,12 +4197,13 @@ function renderFoundGrid() {
     const _capState = US_STATE_CAPITALS.get(city.name.toLowerCase());
     const isStateCapital = isUSMode && _capState !== undefined && (city.admin1 || '').toUpperCase() === _capState;
     const isPrefCapital = isJPMode && isJPPrefCapital(city);
-    const isCapitalItem = (city.isCapital && !isUSMode && !isJPMode && UN_COUNTRIES.has(city.country)) || isStateCapital || isPrefCapital;
+    const regCapLabel = regionalCapitalLabel(city);
+    const isCapitalItem = (city.isCapital && !isUSMode && !isJPMode && UN_COUNTRIES.has(city.country)) || isStateCapital || isPrefCapital || !!regCapLabel;
     div.className='fi' + (isCapitalItem ? ' fi-is-capital' : '') + (id === _justAddedId ? ' fi-enter' : ''); div.id='card-'+id;
     div.style.cursor='pointer';
     div.title='Click to locate on map';
     const capitalStar = isCapitalItem
-      ? `<span class="fi-capital" title="${isStateCapital ? 'State capital' : (isPrefCapital ? 'Prefecture capital' : 'Capital')}">★</span>` : '';
+      ? `<span class="fi-capital" title="${isStateCapital ? 'State capital' : (isPrefCapital ? 'Prefecture capital' : (regCapLabel || 'Capital'))}">★</span>` : '';
     const guessNum = found.indexOf(city) + 1;
     div.innerHTML=`<span class="fi-num">${guessNum}.</span><div class="fi-info"><span class="fi-name">${displayName(city)}${city.pop?` <span class="fi-pop">(${fmtPop(city.pop)})</span>`:''}${capitalStar}</span><span class="fi-meta">${fmtLocation(city)}</span></div><button class="rm" title="Remove">✕</button>`;
     div.querySelector('.rm').onclick = (e) => { e.stopPropagation(); removeCity(city); };
@@ -4888,6 +4890,28 @@ function ruRegionCapitalOf(city) {
   if (!keys) return null;
   const mine = [city.name, city.ascii_name, city.nameF, city.asciiF].map(ruCapitalKey);
   return mine.some(k => keys.has(k)) ? city.admin1 : null;
+}
+
+// Spain / Poland / Russia: is this city the capital of a province / voivodeship /
+// federal subject? Returns the tooltip label ('Provincial capital', …) or null.
+// Mirrors how the US (state capitals) and Japan (prefecture capitals) maps star
+// their capitals, and uses the same matching as the stats "capitals" rows.
+const _regCapFlatCache = new Map();
+function regionalCapitalLabel(city) {
+  if (!city) return null;
+  if (currentRegion === 'russia') return ruRegionCapitalOf(city) ? 'Regional capital' : null;
+  if (currentRegion !== 'spain' && currentRegion !== 'poland') return null;
+  const isES = currentRegion === 'spain';
+  const country = isES ? 'ES' : 'PL';
+  if (city.country !== country) return null;
+  const ck = country + ':' + cityDB.length;
+  let flat = _regCapFlatCache.get(ck);
+  if (!flat) {
+    flat = new Set();
+    regionCapitalCityKeys(country, isES ? ES_REGION_CAPITAL_NAMES : PL_REGION_CAPITAL_NAMES).forEach(set => set.forEach(k => flat.add(k)));
+    _regCapFlatCache.set(ck, flat);
+  }
+  return flat.has(city.name + '|' + (city.admin1 || '') + '|' + city.country) ? (isES ? 'Provincial capital' : 'Voivodeship capital') : null;
 }
 
 function renderOtherStats() {
@@ -6654,6 +6678,25 @@ function buildMissedModal() {
       const id = Number(jisId);
       const gotIt = found.some(c => c.country === 'JP' && jpCapitalKey(c) === cityNameLower);
       if (!gotIt) missedCapitals.push({ label: `${cityNameLower.replace(/\b\w/g, l => l.toUpperCase())} (${JP_PREF_NAMES[id]})`, cls: 'capital' });
+    });
+    missedCapitals.sort((a,b) => a.label.localeCompare(b.label));
+  } else if (currentRegion === 'spain' || currentRegion === 'poland') {
+    const isES = currentRegion === 'spain';
+    const country = isES ? 'ES' : 'PL';
+    const table = isES ? ES_REGION_CAPITAL_NAMES : PL_REGION_CAPITAL_NAMES;
+    const display = isES ? ES_REGION_CAPITALS : PL_VOIVODESHIP_CAPITALS;
+    const regNames = isES ? ES_REGION_NAMES : PL_VOIVODESHIP_NAMES;
+    const foundKeys = new Set(found.filter(c => c.country === country).map(c => c.name + '|' + (c.admin1 || '') + '|' + c.country));
+    regionCapitalCityKeys(country, table).forEach((set, id) => {
+      let gotIt = false;
+      for (const k of set) if (foundKeys.has(k)) { gotIt = true; break; }
+      if (!gotIt) missedCapitals.push({ label: `${display[id] || table[id][0]} (${String(regNames[id] || id).replace(/ \(.*\)$/, '')})`, cls: 'capital' });
+    });
+    missedCapitals.sort((a,b) => a.label.localeCompare(b.label));
+  } else if (currentRegion === 'russia') {
+    const gotCodes = new Set(found.map(ruRegionCapitalOf).filter(Boolean));
+    Object.entries(RU_REGION_CAPITALS).forEach(([code, names]) => {
+      if (!gotCodes.has(code)) missedCapitals.push({ label: names[0], cls: 'capital' });
     });
     missedCapitals.sort((a,b) => a.label.localeCompare(b.label));
   } else {
