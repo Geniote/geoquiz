@@ -3963,7 +3963,7 @@ function lookupCity(raw) {
 // can. The biggest city inside the circle is worth 1000 points and every other
 // one is worth its share of that (pop / biggest pop * 1000). Cities outside the
 // circle don't count. Rounds aren't saved with the session. To offer it on
-// another map, add an entry here (and make sure the map opens the mode picker).
+// another map, add an entry here (USA, Japan, Russia, Poland and Spain are set up; the map must also open the mode picker, i.e. have a QUIZ_CFG entry).
 const CIRCLE_CFG = {
   usa: {
     title: 'Circle challenge',
@@ -3972,11 +3972,64 @@ const CIRCLE_CFG = {
     bigCityPop: 50000,               // a "big city" for sizing the circle: population at or above this
     targetBigCities: [8, 14],        // the radius is set so that about this many big cities fall inside the circle (random in this range)
     nudgeKm: 150,                    // the centre is moved up to this far off the seed city so the biggest city isn't always in the middle
-    revealCount: 15,                 // "Reveal" shows this many of the biggest cities you missed
+    revealCount: 10,                 // "Reveal" shows this many of the biggest cities you missed
     popFloor: 1000,                  // population worth the minimum score (log scale starts here)
     minCities: 30,                   // a circle needs at least this many eligible cities
     bounds: [-124.5, -67.5, 25.5, 49], // [lonMin, lonMax, latMin, latMax] for the centre (contiguous US)
     rounds: 3,                       // circles per game
+  },
+  japan: {
+    title: 'Circle challenge',
+    desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Tokyo. You play 3 circles; your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
+    minR: 25, maxR: 350,             // km: Japan is dense, so circles are much smaller than in the US
+    bigCityPop: 50000,
+    targetBigCities: [8, 14],
+    nudgeKm: 60,
+    revealCount: 10,
+    popFloor: 1000,
+    minCities: 30,
+    bounds: [127, 146, 26, 45.6],    // Okinawa to northern Hokkaido
+    rounds: 3,
+  },
+  russia: {
+    title: 'Circle challenge',
+    desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many, so Siberian circles are huge). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Moscow. You play 3 circles; your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
+    minR: 80, maxR: 1500,            // km: European Russia is dense, Siberia and the Far East are very sparse
+    bigCityPop: 50000,
+    targetBigCities: [6, 12],
+    nudgeKm: 250,
+    revealCount: 10,
+    popFloor: 1000,
+    minCities: 20,
+    minZoom: 1,
+    bounds: [19, 180, 41, 72],       // Kaliningrad to the Far East (centres stay east of the antimeridian so circles never wrap)
+    rounds: 3,
+  },
+  poland: {
+    title: 'Circle challenge',
+    desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Warsaw. You play 3 circles; your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
+    minR: 25, maxR: 180,             // km: Poland is small, so circles stay modest
+    bigCityPop: 20000,               // Poland has fewer large cities, so smaller ones set the circle size too
+    targetBigCities: [6, 10],
+    nudgeKm: 40,
+    revealCount: 10,
+    popFloor: 1000,
+    minCities: 30,
+    bounds: [14.1, 24.2, 49, 54.8],
+    rounds: 3,
+  },
+  spain: {
+    title: 'Circle challenge',
+    desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Madrid. You play 3 circles; your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
+    minR: 40, maxR: 350,             // km: smaller around Madrid and the coasts, bigger in the empty interior and the islands
+    bigCityPop: 50000,
+    targetBigCities: [8, 14],
+    nudgeKm: 80,
+    revealCount: 10,
+    popFloor: 1000,
+    minCities: 30,
+    bounds: [-18.5, 4.5, 27.5, 43.9], // Canary Islands to the Balearics and the north coast
+    rounds: 3,
   },
 };
 const CIRCLE_SCORES_KEY = 'wcq_circle_scores', CIRCLE_NAME_KEY = 'wcq_circle_name', CIRCLE_BOARD_MAX = 100;
@@ -4028,16 +4081,27 @@ function circleNewRound(retry) {
   let best = null;
   const [tMin, tMax] = cfg.targetBigCities;
   const bigs = eligible.filter(c => (Number(c.pop) || 0) >= cfg.bigCityPop); // only big cities decide how large the circle is
-  for (let t = 0; t < 30; t++) {
+  for (let t = 0; t < 150; t++) {
     const seed = pool[Math.floor(Math.random() * pool.length)];
     // Nudge the centre off the seed city so the biggest city isn't always dead centre.
     const lat = Math.min(y1, Math.max(y0, seed.lat + (Math.random() * 2 - 1) * cfg.nudgeKm / 111));
     const lon = Math.min(x1, Math.max(x0, seed.lon + (Math.random() * 2 - 1) * cfg.nudgeKm / (111 * Math.cos(lat * Math.PI / 180))));
+    // A new circle must not overlap the circles of earlier rounds: skip centres that are too close to one,
+    // and shrink the radius if it would still reach into one. Only if no clear spot turns up after many
+    // tries (a very crowded map) is an overlap tolerated, so a round can always start.
+    let tooClose = false, room = Infinity;
+    for (const o of circleOld) {
+      const d = d3.geoDistance(o.center, [lon, lat]) * 6371;
+      if (d < o.r + cfg.minR) tooClose = true;
+      room = Math.min(room, d - o.r);
+    }
+    if (tooClose && (best || t < 120)) continue;
     // Adaptive size: a radius that reaches roughly the Nth-nearest big city (N random in
     // targetBigCities), kept within minR..maxR. Many big cities nearby = small circle, few = big circle.
     const bigD = Float64Array.from(bigs, c => d3.geoDistance([c.lon, c.lat], [lon, lat]) * 6371).sort();
     const n = Math.min(bigD.length, tMin + Math.floor(Math.random() * (tMax - tMin + 1)));
-    const r = bigD.length ? Math.min(cfg.maxR, Math.max(cfg.minR, bigD[n - 1] * 1.05)) : cfg.maxR;
+    let r = bigD.length ? Math.min(cfg.maxR, Math.max(cfg.minR, bigD[n - 1] * 1.05)) : cfg.maxR;
+    if (!tooClose && r > room) r = Math.max(cfg.minR, room); // pull the edge back so it stops at the previous circle
     const inside = eligible.filter(c => Math.abs(c.lat - lat) < r / 111 + 0.5 && d3.geoDistance([c.lon, c.lat], [lon, lat]) * 6371 <= r);
     if (!best || inside.length > best.inside.length) best = { center: [lon, lat], r, inside };
     if (inside.length >= cfg.minCities) { best = { center: [lon, lat], r, inside }; break; }
@@ -4108,7 +4172,8 @@ function circleZoom() {
   const [[bx0, by0], [bx1, by1]] = d3.geoPath().projection(projection).bounds(feat);
   const dx = Math.max(bx1 - bx0, 1), dy = Math.max(by1 - by0, 1);
   // Start at 200% at least, but zoom in further on small circles so the whole circle still fills a good part of the view.
-  const k = Math.min(5, Math.max(2, 0.4 * Math.min(W / dx, H / dy)));
+  const minK = (CIRCLE_CFG[circleRegion] && CIRCLE_CFG[circleRegion].minZoom) || 2; // Russia's big circles need less than 2x to fit
+  const k = Math.min(5, Math.max(minK, 0.4 * Math.min(W / dx, H / dy)));
   const t = d3.zoomIdentity.translate(W / 2 - k * (bx0 + bx1) / 2, H / 2 - k * (by0 + by1) / 2).scale(k);
   svg.transition().duration(700).call(zoomBehavior.transform, t);
 }
@@ -4249,7 +4314,8 @@ function circleSaveGame(name) {
   if (list.length > CIRCLE_BOARD_MAX) list.length = CIRCLE_BOARD_MAX;
   if (!circleStoreScores(list)) return null;
   try { localStorage.setItem(CIRCLE_NAME_KEY, entry.name === 'Player' ? '' : entry.name); } catch (e) {}
-  return { entry, rank: list.findIndex(x => x.id === entry.id) + 1, of: list.length };
+  const sameMap = list.filter(x => (x.region || 'usa') === (entry.region || 'usa')); // each map has its own scoreboard
+  return { entry, rank: sameMap.findIndex(x => x.id === entry.id) + 1, of: sameMap.length };
 }
 
 function openCircleEnd() {
@@ -4283,7 +4349,10 @@ function closeCircleEnd() { document.getElementById('circleEndModal').classList.
 
 let circleLastSavedId = null;
 function openCircleBoard() {
-  const list = circleLoadScores();
+  const boardRegion = circleRegion || 'usa';
+  const list = circleLoadScores().filter(g => (g.region || 'usa') === boardRegion); // entries saved before maps were tracked count as USA
+  const bh = document.querySelector('#circleBoardModal .cm-head h2');
+  if (bh) bh.textContent = '🏆 Circle challenge · ' + ((REGIONS[boardRegion] && REGIONS[boardRegion].label) || boardRegion) + ' · Scoreboard';
   const body = document.getElementById('circleBoardBody');
   const fmtDate = t => { try { return new Date(t).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return ''; } };
   if (!list.length) body.innerHTML = '<div class="cb-empty">No saved games yet. Finish a game and save your score to see it here!</div>';
