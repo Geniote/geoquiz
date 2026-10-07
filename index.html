@@ -286,6 +286,14 @@ body.night-mode .mode-toggle:has(input:checked){box-shadow:0 0 0 2px rgba(111,16
 /* Invisible enlarged click targets for tiny islands — only live during a quiz. */
 #quiz-hit-g path{pointer-events:none}
 .quiz-active #quiz-hit-g path{pointer-events:stroke;cursor:pointer}
+/* The enlarged click targets around small islands (non-scaling 20px strokes) are
+   only needed by the quiz; outside it they are removed from rendering entirely,
+   which matters on maps with hundreds of islands (Japan). */
+#quiz-hit-g{display:none}
+.quiz-active #quiz-hit-g{display:inline}
+/* While the map is being zoomed/dragged, draw its paths without anti-aliasing
+   (much cheaper to re-rasterize); full quality returns when the gesture stops. */
+body.map-zooming #map-g path{shape-rendering:optimizeSpeed}
 .quiz-hint-blink{animation:quizHintBlink .9s ease-in-out infinite}
 @keyframes quizHintBlink{50%{fill:#facc15;fill-opacity:1}}
 .quiz-solved{fill:var(--accent2);fill-opacity:.55!important;transition:fill .25s ease}
@@ -1304,8 +1312,12 @@ let _physicalBakedTransform = d3.zoomIdentity;
 // requestAnimationFrame callback, so no matter how many ticks arrive, the
 // expensive part runs at most once per frame — same cadence as drag.
 let _zoomFrameQueued = false;
+let _zoomingOffTimer = null;
 function onZoom(e) {
   currentTransform = e.transform;
+  document.body.classList.add('map-zooming');
+  clearTimeout(_zoomingOffTimer);
+  _zoomingOffTimer = setTimeout(() => document.body.classList.remove('map-zooming'), 180);
   if (_zoomFrameQueued) return;
   _zoomFrameQueued = true;
   requestAnimationFrame(applyZoomFrame);
@@ -1351,7 +1363,7 @@ function getMapSize() {
 // ─── MAP DATA (multiple resolutions) ─────────────────────────────────────────
 // 50m  = detailed coastlines, used for the world view and all regional views
 // 110m = lightweight fallback if 50m fails to load
-const geoCache = { '110m': null, '50m': null, 'us-states': null, 'us-counties': null, 'japan-prefs': null };
+const geoCache = { '110m': null, '50m': null, 'us-states': null, 'us-counties': null, 'japan-prefs': null, 'ru-regions': null };
 
 async function getGeoData(res) {
   if (geoCache[res]) return geoCache[res];
@@ -1378,6 +1390,18 @@ async function getGeoData(res) {
       'https://cdn.jsdelivr.net/gh/ppatrzyk/polska-geojson@master/wojewodztwa/wojewodztwa-medium.geojson',
       'https://raw.githubusercontent.com/ppatrzyk/polska-geojson/master/wojewodztwa/wojewodztwa-medium.geojson',
     ],
+    // Russia's federal subjects (oblasts, krais, republics, autonomous okrugs
+    // and the two federal cities): geoBoundaries ADM1, simplified GeoJSON in
+    // real lon/lat, one feature per subject. Tried in order; the last one is
+    // GitHub's LFS-aware host, in case the file is stored as a Git LFS object
+    // (the first two would then return a tiny pointer text instead of JSON).
+    // If every URL fails the Russia map simply draws without the outlines.
+    // Any GeoJSON FeatureCollection or TopoJSON of the subjects works here.
+    'ru-regions': [
+      'https://cdn.jsdelivr.net/gh/wmgeolab/geoBoundaries@main/releaseData/gbOpen/RUS/ADM1/geoBoundaries-RUS-ADM1_simplified.geojson',
+      'https://raw.githubusercontent.com/wmgeolab/geoBoundaries/main/releaseData/gbOpen/RUS/ADM1/geoBoundaries-RUS-ADM1_simplified.geojson',
+      'https://media.githubusercontent.com/media/wmgeolab/geoBoundaries/main/releaseData/gbOpen/RUS/ADM1/geoBoundaries-RUS-ADM1_simplified.geojson',
+    ],
   };
   let lastErr;
   for (const url of [].concat(urls[res])) {
@@ -1394,7 +1418,7 @@ async function getGeoData(res) {
 // Pre-fetch 110m immediately so world loads fast; kick off 50m + US/Japan data in background
 getGeoData('50m').catch(() => {});
 setTimeout(() => getGeoData('110m').catch(() => {}), 800); // fallback only
-setTimeout(() => { getGeoData('us-states'); getGeoData('us-counties'); getGeoData('japan-prefs'); getGeoData('es-provinces').catch(() => {}); getGeoData('pl-voivodeships').catch(() => {}); }, 1200);
+setTimeout(() => { getGeoData('us-states'); getGeoData('us-counties'); getGeoData('japan-prefs'); getGeoData('es-provinces').catch(() => {}); getGeoData('pl-voivodeships').catch(() => {}); getGeoData('ru-regions').catch(() => {}); }, 1200);
 
 // A handful of tiny multi-island countries in the high-res 10m atlas (e.g. the
 // Maldives) have a few individual polygons whose ring winding is backwards.
@@ -1858,6 +1882,28 @@ function attachQuizHitTargets(g, features, path, regionKey) {
     });
 }
 
+// One line thickness for every country/region border on the Japan, Spain, Poland and Russia maps.
+const BORDER_W = 0.5;
+// Drops projected points closer than `minDist` px to the previous kept point
+// (always keeping each line's/ring's last point). Detailed boundary files (Japan's
+// islands, Russia's coast) carry far more vertices than a pixel can show; fewer
+// vertices means a lighter SVG path and a smoother zoom, with no visible change.
+function decimateStream(sink, minDist) {
+  const sq = minDist * minDist;
+  let lx = 0, ly = 0, px = 0, py = 0, n = 0, pending = false;
+  return {
+    point(x, y) {
+      if (n++ === 0 || (x - lx) * (x - lx) + (y - ly) * (y - ly) >= sq) { sink.point(x, y); lx = x; ly = y; pending = false; }
+      else { px = x; py = y; pending = true; }
+    },
+    lineStart() { n = 0; pending = false; sink.lineStart(); },
+    lineEnd() { if (pending) sink.point(px, py); sink.lineEnd(); },
+    polygonStart() { sink.polygonStart(); },
+    polygonEnd() { sink.polygonEnd(); },
+    sphere() { if (sink.sphere) sink.sphere(); },
+  };
+}
+const _geoFailed = new Set(); // geo datasets that failed to download (not retried on every redraw)
 async function drawMap(regionKey) {
   const prevRegion = currentRegion;
   currentRegion = regionKey;
@@ -1868,6 +1914,7 @@ async function drawMap(regionKey) {
   const isJapan = regionKey === 'japan';
   const isSpain = regionKey === 'spain';
   const isPoland = regionKey === 'poland';
+  const isRussia = regionKey === 'russia';
   // World view now uses the 50m atlas too (a step up from the coarse 110m);
   // if it can't be fetched, quietly fall back to 110m so the map still loads.
   let res = '50m';
@@ -1888,10 +1935,28 @@ async function drawMap(regionKey) {
   const usCountiesData = isUSA && !usQuizOn ? await getGeoData('us-counties') : null; // the state quiz doesn't need the (large) county file
   // Pre-fetch prefecture-level Japan data for the Japan mode
   const japanPrefData  = isJapan ? await getGeoData('japan-prefs') : null;
-  // Province shapes for the Spain quiz
-  const spainRegionData = spainQuizOn ? await getGeoData('es-provinces') : null;
-  // Voivodeship shapes for the Poland quiz
-  const polandRegionData = polandQuizOn ? await getGeoData('pl-voivodeships') : null;
+  // Region shapes. A failed download in the quiz is an error as before; in
+  // Normal mode it only costs the region outlines (and isn't retried on every redraw).
+  const softGeo = key => _geoFailed.has(key) ? Promise.resolve(null)
+    : getGeoData(key).catch(err => { _geoFailed.add(key); console.warn(key + ' data could not be loaded; drawing the map without region outlines.', err); return null; });
+  const spainRegionData  = isSpain  ? (spainQuizOn  ? await getGeoData('es-provinces')    : await softGeo('es-provinces'))    : null;
+  const polandRegionData = isPoland ? (polandQuizOn ? await getGeoData('pl-voivodeships') : await softGeo('pl-voivodeships')) : null;
+  // Federal-subject outlines for the Russia map. A failed download must never
+  // break the map itself, so on failure an empty collection is cached (no
+  // retry loop on every redraw) and the map just shows without the outlines.
+  const russiaRegionData = isRussia ? await softGeo('ru-regions') : null;
+  // Normal mode on these maps now uses the same shapes as their quiz (Spain,
+  // Poland) or the same approach (Russia) as Japan: the country's land is the
+  // union of its regions, drawn from the region data itself with the region
+  // borders on top, so coastline and borders come from one dataset and line up.
+  // If the region data can't be loaded, the plain world-atlas outline is used.
+  const spainShapes  = !!(spainRegionData && spainRegionData.objects && spainRegionData.objects.provinces);
+  const polandShapes = !!(polandRegionData && polandRegionData.features && polandRegionData.features.length);
+  const russiaFeatures = !russiaRegionData ? []
+    : russiaRegionData.type === 'Topology'
+      ? topojson.feature(russiaRegionData, russiaRegionData.objects[Object.keys(russiaRegionData.objects)[0]]).features
+      : (russiaRegionData.features || []);
+  const russiaShapes = russiaFeatures.length > 0;
 
   const [W, H] = getMapSize();
   svg.attr('viewBox', `0 0 ${W} ${H}`);
@@ -1906,6 +1971,7 @@ async function drawMap(regionKey) {
   projection = region.makeProj(W, H);
   currentProjScale = projection.scale();
   const path = d3.geoPath().projection(projection);
+  const lightPath = d3.geoPath({ stream: s => projection.stream(decimateStream(s, 0.25)) }); // same shapes, fewer vertices (Japan, Russia)
 
   svg.select('#physical-g').remove();
   svg.append('g').attr('id', 'physical-g'); // untransformed layer for the satellite raster, drawn first (behind)
@@ -1924,7 +1990,7 @@ async function drawMap(regionKey) {
   }
 
   // Land + borders — skip world-atlas land for USA/Japan (use their own high-res shapes instead)
-  if (!isUSA && !isJapan && !spainQuizOn && !polandQuizOn) {
+  if (!isUSA && !isJapan && !spainShapes && !polandShapes && !russiaShapes) {
     let countryFeatures = topojson.feature(geoData, geoData.objects.countries).features;
     countryFeatures.forEach(fixInvertedWinding);
     // Several disputed territories (Kosovo, Northern Cyprus, Somaliland...)
@@ -2131,7 +2197,7 @@ async function drawMap(regionKey) {
     attachQuizHandlers(
       g.select('#countries-g').selectAll('path')
         .data(prefFeatures).join('path')
-        .attr('d', path)
+        .attr('d', lightPath)
         .attr('fill', S.landColor)
         .attr('stroke', S.borderColor)
         .attr('stroke-width', 0.15)
@@ -2141,14 +2207,13 @@ async function drawMap(regionKey) {
 
     // Prefecture borders (internal)
     const prefMesh = topojson.mesh(japanPrefData, japanPrefData.objects.japan, (a,b) => a !== b);
-    g.append('path').attr('id','pref-borders').datum(prefMesh).attr('d', path)
-      .attr('fill','none').attr('stroke', S.borderColor).attr('stroke-width', 0.5)
-      .attr('stroke-opacity', 0.8);
+    g.append('path').attr('id','pref-borders').datum(prefMesh).attr('d', lightPath)
+      .attr('fill','none').attr('stroke', S.borderColor).attr('stroke-width', BORDER_W);
 
-    // Outer national border (slightly bolder)
+    // Outer national border (same thickness as the internal ones)
     const jpNationMesh = topojson.mesh(japanPrefData, japanPrefData.objects.japan, (a,b) => a === b);
-    g.append('path').attr('id','nation-border-jp').datum(jpNationMesh).attr('d', path)
-      .attr('fill','none').attr('stroke', S.borderColor).attr('stroke-width', 0.9);
+    g.append('path').attr('id','nation-border-jp').datum(jpNationMesh).attr('d', lightPath)
+      .attr('fill','none').attr('stroke', S.borderColor).attr('stroke-width', BORDER_W);
 
     // Hover-outline overlay for the prefecture quiz: a single reusable path,
     // appended last so it always sits above the border mesh above, whose 'd'
@@ -2160,7 +2225,7 @@ async function drawMap(regionKey) {
 
   // Spain quiz: one clickable shape per province / autonomous city, drawn in
   // place of the plain country outline used in Normal mode.
-  if (spainQuizOn && spainRegionData) {
+  if (spainShapes) {
     const esProv = spainRegionData.objects.provinces;
     const esComm = spainRegionData.objects.autonomous_regions; // may be absent
     const esFeatures = topojson.feature(spainRegionData, esProv).features;
@@ -2175,22 +2240,14 @@ async function drawMap(regionKey) {
       path, 'spain');
     attachQuizHitTargets(g, esFeatures, path, 'spain');
 
-    // Province borders (internal, thin)
+    // Province borders (internal), one thickness for everything, like Poland / Russia
     const esMesh = topojson.mesh(spainRegionData, esProv, (a, b) => a !== b);
-    g.append('path').attr('id', 'spain-borders').datum(esMesh).attr('d', path)
-      .attr('fill', 'none').attr('stroke', S.borderColor).attr('stroke-width', 0.4)
-      .attr('stroke-opacity', 0.7);
-    // Autonomous-community borders on top, slightly bolder, for orientation
-    if (esComm) {
-      const commMesh = topojson.mesh(spainRegionData, esComm, (a, b) => a !== b);
-      g.append('path').attr('id', 'spain-community-borders').datum(commMesh).attr('d', path)
-        .attr('fill', 'none').attr('stroke', S.borderColor).attr('stroke-width', 0.8)
-        .attr('stroke-opacity', 0.9).style('pointer-events', 'none');
-    }
+    g.append('path').attr('id', 'spain-borders').classed('region-outline', true).datum(esMesh).attr('d', path)
+      .attr('fill', 'none').attr('stroke', S.borderColor).attr('stroke-width', BORDER_W);
     // Outer coastline / national border
     const esOuter = topojson.mesh(spainRegionData, esProv, (a, b) => a === b);
-    g.append('path').attr('id', 'nation-border-es').datum(esOuter).attr('d', path)
-      .attr('fill', 'none').attr('stroke', S.borderColor).attr('stroke-width', 0.9);
+    g.append('path').attr('id', 'nation-border-es').classed('region-outline', true).datum(esOuter).attr('d', path)
+      .attr('fill', 'none').attr('stroke', S.borderColor).attr('stroke-width', BORDER_W);
 
     // Hover-outline overlay (same idea as the Japan / US quizzes)
     quizHoverOutline = g.append('path').attr('id', 'quizHoverOutline');
@@ -2201,7 +2258,7 @@ async function drawMap(regionKey) {
   // no shared-border topology, and building one at runtime (topojson.topology)
   // takes ~20 s on a file this size and freezes the page — so each shape simply
   // carries its own outline stroke instead.
-  if (polandQuizOn && polandRegionData) {
+  if (polandShapes) {
     const plFeatures = polandRegionData.features;
     plFeatures.forEach(fixInvertedWinding);
     attachQuizHandlers(
@@ -2210,13 +2267,30 @@ async function drawMap(regionKey) {
         .attr('d', path)
         .attr('fill', S.landColor)
         .attr('stroke', S.borderColor)
-        .attr('stroke-width', 0.6)
-        .attr('stroke-opacity', 0.8)
+        .attr('stroke-width', BORDER_W)
         .attr('stroke-linejoin', 'round'),
       path, 'poland');
     attachQuizHitTargets(g, plFeatures, path, 'poland');
     // Hover-outline overlay (same idea as the Japan / US / Spain quizzes)
     quizHoverOutline = g.append('path').attr('id', 'quizHoverOutline');
+  }
+
+  // Russia: land drawn from its federal subjects (oblasts, krais, republics,
+  // okrugs and the two federal cities), each with its own thin outline. The
+  // source is plain GeoJSON with no shared-border topology (building one at
+  // runtime would freeze the page, see the Poland note), so each subject
+  // carries its own stroke; opaque so shared borders don't look doubled.
+  // They live in #countries-g, so night mode, the colour pickers and Physical
+  // mode restyle them like every other map.
+  if (russiaShapes) {
+    russiaFeatures.forEach(fixInvertedWinding);
+    g.select('#countries-g').selectAll('path')
+      .data(russiaFeatures).join('path')
+      .attr('d', lightPath)
+      .attr('fill', S.landColor)
+      .attr('stroke', S.borderColor)
+      .attr('stroke-width', BORDER_W)
+      .attr('stroke-linejoin', 'round');
   }
 
   // For regional views, use d3's native translateExtent so the user can't drag
@@ -2680,6 +2754,7 @@ async function updatePhysicalLayer(g, W, H) {
     g.select('#nation-border').attr('stroke', S.borderColor);
     g.select('#pref-borders').attr('stroke', S.borderColor);
     g.select('#nation-border-jp').attr('stroke', S.borderColor);
+    g.selectAll('.region-outline').attr('stroke', S.borderColor);
     document.getElementById('mapWrap').style.background = S.seaColor;
     return;
   }
@@ -2690,6 +2765,7 @@ async function updatePhysicalLayer(g, W, H) {
   g.select('#nation-border').attr('stroke', 'none');
   g.select('#pref-borders').attr('stroke', 'none');
   g.select('#nation-border-jp').attr('stroke', 'none');
+  g.selectAll('.region-outline').attr('stroke', 'none');
   document.getElementById('mapWrap').style.background = '#05070c';
   setMsg('Loading satellite imagery…', 'info');
   try {
@@ -2709,6 +2785,7 @@ async function updatePhysicalLayer(g, W, H) {
     g.select('#nation-border').attr('stroke', S.borderColor);
     g.select('#pref-borders').attr('stroke', S.borderColor);
     g.select('#nation-border-jp').attr('stroke', S.borderColor);
+    g.selectAll('.region-outline').attr('stroke', S.borderColor);
     document.getElementById('mapWrap').style.background = S.seaColor;
   }
 }
@@ -4594,6 +4671,225 @@ const UN_COUNTRIES = new Set([
   'VA','PS','XK'
 ]);
 
+// ─── SPAIN / POLAND REGIONAL CAPITALS ───────────────────────────────────────────
+// For the stats "capitals" row on the Spain and Poland maps: the capital of each
+// province (+ Ceuta, Melilla) / voivodeship, keyed like ES_REGION_NAMES /
+// PL_VOIVODESHIP_NAMES, with the spellings the data may use. The city data only
+// carries the autonomous-community / voivodeship code, not the province, so a
+// capital is recognised by name: of all cities in the country with a matching
+// name, only the most populous one counts (so a small village that shares a
+// capital's name never does). A voivodeship with two seats (Kuyavian-Pomeranian,
+// Lubusz) counts once either seat is found.
+const ES_REGION_CAPITAL_NAMES = {
+  '01':['Vitoria-Gasteiz', 'Vitoria', 'Gasteiz'],
+  '02':['Albacete'],
+  '03':['Alicante', 'Alacant'],
+  '04':['Almería'],
+  '05':['Ávila'],
+  '06':['Badajoz'],
+  '07':['Palma', 'Palma de Mallorca'],
+  '08':['Barcelona'],
+  '09':['Burgos'],
+  '10':['Cáceres'],
+  '11':['Cádiz'],
+  '12':['Castelló de la Plana', 'Castellón de la Plana', 'Castellón'],
+  '13':['Ciudad Real'],
+  '14':['Córdoba'],
+  '15':['A Coruña', 'La Coruña', 'Coruña'],
+  '16':['Cuenca'],
+  '17':['Girona', 'Gerona'],
+  '18':['Granada'],
+  '19':['Guadalajara'],
+  '20':['San Sebastián', 'Donostia', 'Donostia-San Sebastián'],
+  '21':['Huelva'],
+  '22':['Huesca'],
+  '23':['Jaén'],
+  '24':['León'],
+  '25':['Lleida', 'Lérida'],
+  '26':['Logroño'],
+  '27':['Lugo'],
+  '28':['Madrid'],
+  '29':['Málaga'],
+  '30':['Murcia'],
+  '31':['Pamplona', 'Iruña'],
+  '32':['Ourense', 'Orense'],
+  '33':['Oviedo'],
+  '34':['Palencia'],
+  '35':['Las Palmas de Gran Canaria', 'Las Palmas'],
+  '36':['Pontevedra'],
+  '37':['Salamanca'],
+  '38':['Santa Cruz de Tenerife'],
+  '39':['Santander'],
+  '40':['Segovia'],
+  '41':['Sevilla', 'Seville'],
+  '42':['Soria'],
+  '43':['Tarragona'],
+  '44':['Teruel'],
+  '45':['Toledo'],
+  '46':['Valencia', 'València'],
+  '47':['Valladolid'],
+  '48':['Bilbao'],
+  '49':['Zamora'],
+  '50':['Zaragoza'],
+  '51':['Ceuta'],
+  '52':['Melilla'],
+};
+const PL_REGION_CAPITAL_NAMES = {
+  1:['Katowice'],
+  2:['Opole'],
+  3:['Poznań', 'Poznan'],
+  4:['Szczecin'],
+  5:['Kielce'],
+  6:['Bydgoszcz', 'Toruń', 'Torun'],
+  7:['Białystok', 'Bialystok'],
+  8:['Wrocław', 'Wroclaw'],
+  9:['Rzeszów', 'Rzeszow'],
+  10:['Kraków', 'Krakow', 'Cracow'],
+  11:['Gdańsk', 'Gdansk'],
+  12:['Olsztyn'],
+  13:['Łódź', 'Lodz'],
+  14:['Warsaw', 'Warszawa'],
+  15:['Lublin'],
+  16:['Gorzów Wielkopolski', 'Zielona Góra', 'Zielona Gora'],
+};
+const regCapKey = s => String(s || '').toLowerCase().replace(/ł/g, 'l').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, '');
+const _regCapCache = new Map();
+function regionCapitalCityKeys(country, table) {
+  const ck = country + ':' + cityDB.length;
+  if (_regCapCache.has(ck)) return _regCapCache.get(ck);
+  const cityKey = c => c.name + '|' + (c.admin1 || '') + '|' + c.country;
+  const byKey = new Map(); // normalised name -> most populous city of that name
+  cityDB.forEach(c => {
+    if (c.country !== country) return;
+    new Set([c.name, c.ascii_name, c.nameF, c.asciiF].map(regCapKey)).forEach(k => {
+      if (!k) return;
+      const cur = byKey.get(k);
+      if (!cur || (c.pop || 0) > (cur.pop || 0)) byKey.set(k, c);
+    });
+  });
+  const out = new Map(); // region id -> Set of city keys that are its capital
+  Object.entries(table).forEach(([id, names]) => {
+    const set = new Set();
+    names.forEach(n => { const c = byKey.get(regCapKey(n)); if (c) set.add(cityKey(c)); });
+    out.set(id, set);
+  });
+  _regCapCache.set(ck, out);
+  return out;
+}
+function regionCapitalsFound(country, table, foundList) {
+  const idx = regionCapitalCityKeys(country, table);
+  const foundKeys = new Set(foundList.filter(c => c.country === country).map(c => c.name + '|' + (c.admin1 || '') + '|' + c.country));
+  let got = 0;
+  idx.forEach(set => { for (const k of set) if (foundKeys.has(k)) { got++; break; } });
+  return got;
+}
+
+// ─── RUSSIA REGIONAL CAPITALS ─────────────────────────────────────────────────
+// The seat of each federal subject (oblast, krai, republic, autonomous okrug,
+// the Jewish autonomous oblast, and the federal cities Moscow and Saint
+// Petersburg), keyed by the subject's GeoNames admin1 code — the same "RU.xx"
+// codes ADMIN1_NAMES uses — with the spellings GeoNames/transliterations may
+// use for it. A city counts as a regional capital only if BOTH its name and its
+// admin1 code match: names like Kirov or Vladimir also exist as smaller towns in
+// other subjects. 82 entries for the 83 subjects in the data: Moscow Oblast
+// (RU.47) is left out because it has no official administrative centre (Moscow
+// hosts its government but is not designated as its seat).
+// Leningrad Oblast's official administrative centre is Gatchina.
+const RU_REGION_CAPITALS = {
+  '01':['Maykop', 'Maikop'],
+  '03':['Gorno-Altaysk', 'Gorno-Altaisk'],
+  '04':['Barnaul'],
+  '05':['Blagoveshchensk'],
+  '06':['Arkhangelsk', 'Arkhangel\'sk'],
+  '07':['Astrakhan'],
+  '08':['Ufa'],
+  '09':['Belgorod'],
+  '10':['Bryansk'],
+  '11':['Ulan-Ude'],
+  '12':['Grozny'],
+  '13':['Chelyabinsk'],
+  '15':['Anadyr'],
+  '16':['Cheboksary'],
+  '17':['Makhachkala'],
+  '19':['Magas'],
+  '20':['Irkutsk'],
+  '21':['Ivanovo'],
+  '22':['Nalchik'],
+  '23':['Kaliningrad'],
+  '24':['Elista'],
+  '25':['Kaluga'],
+  '27':['Cherkessk'],
+  '28':['Petrozavodsk'],
+  '29':['Kemerovo'],
+  '30':['Khabarovsk'],
+  '31':['Abakan'],
+  '32':['Khanty-Mansiysk', 'Khanty-Mansiisk'],
+  '33':['Kirov'],
+  '34':['Syktyvkar'],
+  '37':['Kostroma'],
+  '38':['Krasnodar'],
+  '40':['Kurgan'],
+  '41':['Kursk'],
+  '42':['Gatchina'],
+  '43':['Lipetsk'],
+  '44':['Magadan'],
+  '45':['Yoshkar-Ola'],
+  '46':['Saransk'],
+  '48':['Moscow', 'Moskva'],
+  '49':['Murmansk'],
+  '50':['Naryan-Mar'],
+  '51':['Nizhny Novgorod', 'Nizhniy Novgorod'],
+  '52':['Veliky Novgorod', 'Velikiy Novgorod'],
+  '53':['Novosibirsk'],
+  '54':['Omsk'],
+  '55':['Orenburg'],
+  '56':['Oryol', 'Orel'],
+  '57':['Penza'],
+  '59':['Vladivostok'],
+  '60':['Pskov'],
+  '61':['Rostov-on-Don', 'Rostov-na-Donu'],
+  '62':['Ryazan'],
+  '63':['Yakutsk'],
+  '64':['Yuzhno-Sakhalinsk'],
+  '65':['Samara'],
+  '66':['Saint Petersburg', 'Sankt-Peterburg', 'St Petersburg'],
+  '67':['Saratov'],
+  '68':['Vladikavkaz'],
+  '69':['Smolensk'],
+  '70':['Stavropol'],
+  '71':['Yekaterinburg', 'Ekaterinburg'],
+  '72':['Tambov'],
+  '73':['Kazan'],
+  '75':['Tomsk'],
+  '76':['Tula'],
+  '77':['Tver'],
+  '78':['Tyumen'],
+  '79':['Kyzyl'],
+  '80':['Izhevsk'],
+  '81':['Ulyanovsk'],
+  '83':['Vladimir'],
+  '84':['Volgograd'],
+  '85':['Vologda'],
+  '86':['Voronezh'],
+  '87':['Salekhard'],
+  '88':['Yaroslavl'],
+  '89':['Birobidzhan'],
+  '90':['Perm'],
+  '91':['Krasnoyarsk'],
+  '92':['Petropavlovsk-Kamchatsky', 'Petropavlovsk-Kamchatskiy', 'Petropavlovsk-Kamchatskij'],
+  '93':['Chita'],
+};
+const ruCapitalKey = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, '');
+const RU_CAPITAL_KEYS = new Map(Object.entries(RU_REGION_CAPITALS).map(([code, names]) => [code, new Set(names.map(ruCapitalKey))]));
+// Returns the admin1 code of the subject this city is the capital of, else null.
+function ruRegionCapitalOf(city) {
+  if (!city || city.country !== 'RU') return null;
+  const keys = RU_CAPITAL_KEYS.get(city.admin1 || '');
+  if (!keys) return null;
+  const mine = [city.name, city.ascii_name, city.nameF, city.asciiF].map(ruCapitalKey);
+  return mine.some(k => keys.has(k)) ? city.admin1 : null;
+}
+
 function renderOtherStats() {
   const el = document.getElementById('otherStatsList');
   if (!el) return;
@@ -4661,12 +4957,25 @@ function renderOtherStats() {
     const pctCountries = totalCountries ? ((gotCountries/totalCountries)*100).toFixed(1) : '0.0';
     rows.push({ label: 'countries', got: gotCountries, total: totalCountries, pct: pctCountries });
 
+    // Russia: "capitals" means the capitals of the federal subjects, not just Moscow.
+    if (currentRegion === 'spain' || currentRegion === 'poland') {
+      const isES = currentRegion === 'spain';
+      const table = isES ? ES_REGION_CAPITAL_NAMES : PL_REGION_CAPITAL_NAMES;
+      const totalRegCaps = Object.keys(table).length;
+      const gotRegCaps = regionCapitalsFound(isES ? 'ES' : 'PL', table, regionFound);
+      rows.push({ label: isES ? 'provincial capitals' : 'voivodeship capitals', got: gotRegCaps, total: totalRegCaps, pct: ((gotRegCaps / totalRegCaps) * 100).toFixed(1) });
+    } else if (currentRegion === 'russia') {
+      const totalRegCaps = Object.keys(RU_REGION_CAPITALS).length;
+      const gotRegCaps = new Set(regionFound.map(ruRegionCapitalOf).filter(Boolean)).size;
+      rows.push({ label: 'regional capitals', got: gotRegCaps, total: totalRegCaps, pct: ((gotRegCaps / totalRegCaps) * 100).toFixed(1) });
+    } else {
     // Capitals — one per country max (some countries have multiple PPLC entries)
     const capitalCountries = new Set(cityDB.filter(c => c.isCapital && UN_COUNTRIES.has(c.country) && cityInRegion(c, regionDef)).map(c => c.country));
     const totalCapitals = Math.min(capitalCountries.size, totalCountries);
     const gotCapitals   = new Set(regionFound.filter(c => c.isCapital && UN_COUNTRIES.has(c.country)).map(c => c.country)).size;
     const pctCapitals   = totalCapitals ? ((gotCapitals/totalCapitals)*100).toFixed(1) : '0.0';
     rows.push({ label: 'capitals', got: gotCapitals, total: totalCapitals, pct: pctCapitals });
+    }
   }
 
   el.innerHTML = '';
@@ -5350,6 +5659,7 @@ function applyMapColors() {
   svg.select('#nation-border').attr('stroke', borderStroke);
   svg.select('#pref-borders').attr('stroke', borderStroke);
   svg.select('#nation-border-jp').attr('stroke', borderStroke);
+  svg.selectAll('.region-outline').attr('stroke', borderStroke);
   svg.select('#sphere').attr('fill', S.physicalMode ? 'none' : S.seaColor);
   document.getElementById('mapWrap').style.background = S.physicalMode ? '#05070c' : S.seaColor;
 }
