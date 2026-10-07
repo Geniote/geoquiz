@@ -4002,7 +4002,7 @@ const CIRCLE_CFG = {
   usa: {
     title: 'Circle challenge',
     desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like New York. You play 3 circles, either relaxed (no timer) or in Hard mode (60 seconds per circle, and 5 typed cities that are not inside the circle end the round); your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
-    minR: 60, maxR: 450,             // km: the circle adapts its radius between these limits (small where there are many big cities, big where there are few)
+    minR: 130, maxR: 450,             // km: the circle adapts its radius between these limits (small where there are many big cities, big where there are few)
     bigCityPop: 50000,               // a "big city" for sizing the circle: population at or above this
     targetBigCities: [8, 14],        // the radius is set so that about this many big cities fall inside the circle (random in this range)
     nudgeKm: 150,                    // the centre is moved up to this far off the seed city so the biggest city isn't always in the middle
@@ -4015,7 +4015,7 @@ const CIRCLE_CFG = {
   japan: {
     title: 'Circle challenge',
     desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Tokyo. You play 3 circles, either relaxed (no timer) or in Hard mode (60 seconds per circle, and 5 typed cities that are not inside the circle end the round); your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
-    minR: 25, maxR: 350,             // km: Japan is dense, so circles are much smaller than in the US
+    minR: 65, maxR: 350,             // km: Japan is dense, so circles are much smaller than in the US
     bigCityPop: 50000,
     targetBigCities: [8, 14],
     nudgeKm: 60,
@@ -4028,7 +4028,7 @@ const CIRCLE_CFG = {
   russia: {
     title: 'Circle challenge',
     desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many, so Siberian circles are huge). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Moscow. You play 3 circles, either relaxed (no timer) or in Hard mode (60 seconds per circle, and 5 typed cities that are not inside the circle end the round); your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
-    minR: 80, maxR: 1500,            // km: European Russia is dense, Siberia and the Far East are very sparse
+    minR: 160, maxR: 1500,            // km: European Russia is dense, Siberia and the Far East are very sparse
     bigCityPop: 50000,
     targetBigCities: [6, 12],
     nudgeKm: 250,
@@ -4042,7 +4042,7 @@ const CIRCLE_CFG = {
   poland: {
     title: 'Circle challenge',
     desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Warsaw. You play 3 circles, either relaxed (no timer) or in Hard mode (60 seconds per circle, and 5 typed cities that are not inside the circle end the round); your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
-    minR: 25, maxR: 180,             // km: Poland is small, so circles stay modest
+    minR: 60, maxR: 180,             // km: Poland is small, so circles stay modest
     bigCityPop: 20000,               // Poland has fewer large cities, so smaller ones set the circle size too
     targetBigCities: [6, 10],
     nudgeKm: 40,
@@ -4055,7 +4055,7 @@ const CIRCLE_CFG = {
   spain: {
     title: 'Circle challenge',
     desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Madrid. You play 3 circles, either relaxed (no timer) or in Hard mode (60 seconds per circle, and 5 typed cities that are not inside the circle end the round); your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
-    minR: 40, maxR: 350,             // km: smaller around Madrid and the coasts, bigger in the empty interior and the islands
+    minR: 90, maxR: 350,             // km: smaller around Madrid and the coasts, bigger in the empty interior and the islands
     bigCityPop: 50000,
     targetBigCities: [8, 14],
     nudgeKm: 80,
@@ -4068,7 +4068,7 @@ const CIRCLE_CFG = {
   europe: {
     title: 'Circle challenge',
     desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Moscow. You play 3 circles, either relaxed (no timer) or in Hard mode (60 seconds per circle, and 5 typed cities that are not inside the circle end the round); your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
-    minR: 40, maxR: 650,             // km: dense in Central/Western Europe, big in Scandinavia, Iceland and Eastern Europe
+    minR: 100, maxR: 650,             // km: dense in Central/Western Europe, big in Scandinavia, Iceland and Eastern Europe
     bigCityPop: 50000,
     targetBigCities: [8, 14],
     nudgeKm: 100,
@@ -4082,7 +4082,7 @@ const CIRCLE_CFG = {
   world: {
     title: 'Circle challenge',
     desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many, so Siberian and Saharan circles are huge). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Tokyo. You play 3 circles, either relaxed (no timer) or in Hard mode (60 seconds per circle, and 5 typed cities that are not inside the circle end the round); your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
-    minR: 80, maxR: 2200,            // km: tiny circles in India or China, huge ones over Siberia, the Sahara or the Amazon
+    minR: 200, maxR: 2200,            // km: tiny circles in India or China, huge ones over Siberia, the Sahara or the Amazon
     bigCityPop: 150000,              // a world-wide city list is huge, so only larger cities decide the circle size
     targetBigCities: [8, 14],
     nudgeKm: 150,
@@ -4204,6 +4204,7 @@ function circleNewRound(retry) {
     const n = Math.min(bigD.length, tMin + Math.floor(Math.random() * (tMax - tMin + 1)));
     let r = bigD.length ? Math.min(cfg.maxR, Math.max(cfg.minR, bigD[n - 1] * 1.05)) : cfg.maxR;
     if (!tooClose && r > room - 1) r = Math.max(cfg.minR, room - 1); // pull the edge back so it stops short of the nearest already-guessed city
+    r = Math.min(cfg.maxR, Math.max(cfg.minR, r)); // hard limits: a circle is never smaller than minR or bigger than maxR
     if (cfg.noWrap) { // keep the circle clear of the antimeridian and the poles (a wrapped circle can't be framed or drawn cleanly)
       const rDeg = r / 111, cosL = Math.max(0.2, Math.cos((Math.abs(lat) + rDeg) * Math.PI / 180));
       if (Math.abs(lon) + rDeg / cosL > 179 || Math.abs(lat) + rDeg > 84) { if (best || t < 120) continue; }
