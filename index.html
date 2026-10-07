@@ -1557,7 +1557,7 @@ function clipLineByLon(coords, lonThreshold, keepEast) {
 // map and the city-typing bar come back exactly as they were before the quiz
 // started (see setQuizMode).
 let quizMode = false;
-let quizRegion = null;             // 'japan' | 'usa' | 'spain' | 'poland' while quizMode is on, else null (selects the entry in QUIZ_CFG)
+let quizRegion = null;             // 'japan' | 'usa' | 'spain' | 'poland' | 'russia' while quizMode is on, else null (selects the entry in QUIZ_CFG)
 const quizSolved = new Set();      // region keys answered correctly so far (numbers for Japan, state abbreviations for the US)
 const quizSolvedTier = new Map();  // key -> 'yellow'|'red' for a solved region that took extra guesses (absent = solved on the first try, plain blue)
 let quizWrongCount = 0;            // wrong guesses made so far while hunting for the CURRENT target; resets each time a new target is picked
@@ -1944,7 +1944,8 @@ async function drawMap(regionKey) {
   // Federal-subject outlines for the Russia map. A failed download must never
   // break the map itself, so on failure an empty collection is cached (no
   // retry loop on every redraw) and the map just shows without the outlines.
-  const russiaRegionData = isRussia ? await softGeo('ru-regions') : null;
+  const russiaQuizOn = isRussia && quizMode && quizRegion === 'russia'; // Russia quiz: the same subject shapes, made clickable
+  const russiaRegionData = isRussia ? (russiaQuizOn ? await getGeoData('ru-regions') : await softGeo('ru-regions')) : null;
   // Normal mode on these maps now uses the same shapes as their quiz (Spain,
   // Poland) or the same approach (Russia) as Japan: the country's land is the
   // union of its regions, drawn from the region data itself with the region
@@ -2284,13 +2285,19 @@ async function drawMap(regionKey) {
   // mode restyle them like every other map.
   if (russiaShapes) {
     russiaFeatures.forEach(fixInvertedWinding);
-    g.select('#countries-g').selectAll('path')
-      .data(russiaFeatures).join('path')
-      .attr('d', lightPath)
-      .attr('fill', S.landColor)
-      .attr('stroke', S.borderColor)
-      .attr('stroke-width', BORDER_W)
-      .attr('stroke-linejoin', 'round');
+    ruQuizFeatures = russiaFeatures;
+    attachQuizHandlers(
+      g.select('#countries-g').selectAll('path')
+        .data(russiaFeatures).join('path')
+        .attr('d', lightPath)
+        .attr('fill', S.landColor)
+        .attr('stroke', S.borderColor)
+        .attr('stroke-width', BORDER_W)
+        .attr('stroke-linejoin', 'round'),
+      path, 'russia');
+    attachQuizHitTargets(g, russiaFeatures, path, 'russia');
+    // Hover-outline overlay (same idea as the Japan / US / Spain / Poland quizzes)
+    quizHoverOutline = g.append('path').attr('id', 'quizHoverOutline');
   }
 
   // For regional views, use d3's native translateExtent so the user can't drag
@@ -4913,6 +4920,132 @@ function regionalCapitalLabel(city) {
   }
   return flat.has(city.name + '|' + (city.admin1 || '') + '|' + city.country) ? (isES ? 'Provincial capital' : 'Voivodeship capital') : null;
 }
+
+// ─── RUSSIA FEDERAL-SUBJECT QUIZ ──────────────────────────────────────────────
+// Same find-and-click mode as the Japan / US / Spain / Poland maps, over the 83
+// federal subjects of the Russia map, keyed by the same admin1 code as
+// RU_REGION_CAPITALS / ADMIN1_NAMES ('01'…'93').
+const RU_SUBJECT_NAMES = {
+  '01':'Adygea', '03':'Altai Republic', '04':'Altai Krai', '05':'Amur Oblast', '06':'Arkhangelsk Oblast',
+  '07':'Astrakhan Oblast', '08':'Bashkortostan', '09':'Belgorod Oblast', '10':'Bryansk Oblast', '11':'Buryatia',
+  '12':'Chechnya', '13':'Chelyabinsk Oblast', '15':'Chukotka', '16':'Chuvashia', '17':'Dagestan',
+  '19':'Ingushetia', '20':'Irkutsk Oblast', '21':'Ivanovo Oblast', '22':'Kabardino-Balkaria', '23':'Kaliningrad Oblast',
+  '24':'Kalmykia', '25':'Kaluga Oblast', '27':'Karachay-Cherkessia', '28':'Karelia', '29':'Kemerovo Oblast (Kuzbass)',
+  '30':'Khabarovsk Krai', '31':'Khakassia', '32':'Khanty-Mansi Autonomous Okrug', '33':'Kirov Oblast', '34':'Komi',
+  '37':'Kostroma Oblast', '38':'Krasnodar Krai', '40':'Kurgan Oblast', '41':'Kursk Oblast', '42':'Leningrad Oblast',
+  '43':'Lipetsk Oblast', '44':'Magadan Oblast', '45':'Mari El', '46':'Mordovia', '47':'Moscow Oblast',
+  '48':'Moscow', '49':'Murmansk Oblast', '50':'Nenets Autonomous Okrug', '51':'Nizhny Novgorod Oblast', '52':'Novgorod Oblast',
+  '53':'Novosibirsk Oblast', '54':'Omsk Oblast', '55':'Orenburg Oblast', '56':'Oryol Oblast', '57':'Penza Oblast',
+  '59':'Primorsky Krai', '60':'Pskov Oblast', '61':'Rostov Oblast', '62':'Ryazan Oblast', '63':'Sakha (Yakutia)',
+  '64':'Sakhalin Oblast', '65':'Samara Oblast', '66':'Saint Petersburg', '67':'Saratov Oblast', '68':'North Ossetia–Alania',
+  '69':'Smolensk Oblast', '70':'Stavropol Krai', '71':'Sverdlovsk Oblast', '72':'Tambov Oblast', '73':'Tatarstan',
+  '75':'Tomsk Oblast', '76':'Tula Oblast', '77':'Tver Oblast', '78':'Tyumen Oblast', '79':'Tuva',
+  '80':'Udmurtia', '81':'Ulyanovsk Oblast', '83':'Vladimir Oblast', '84':'Volgograd Oblast', '85':'Vologda Oblast',
+  '86':'Voronezh Oblast', '87':'Yamalo-Nenets Autonomous Okrug', '88':'Yaroslavl Oblast', '89':'Jewish Autonomous Oblast', '90':'Perm Krai',
+  '91':'Krasnoyarsk Krai', '92':'Kamchatka Krai', '93':'Zabaykalsky Krai',
+};
+// Seat of each subject for the solved-list panel (Moscow Oblast has none, so it
+// shows "—"). Taken from the first spelling in RU_REGION_CAPITALS.
+const RU_SUBJECT_CAPITAL_DISPLAY = {};
+Object.entries(RU_REGION_CAPITALS).forEach(([code, names]) => { RU_SUBJECT_CAPITAL_DISPLAY[code] = names[0]; });
+// Resident population, approximate (2021 census, rounded to the nearest 10,000).
+const RU_SUBJECT_POPULATION = {
+  '01':500000, '03':210000, '04':2160000, '05':770000, '06':1010000, '07':960000, '08':4090000, '09':1550000,
+  '10':1170000, '11':980000, '12':1510000, '13':3420000, '15':50000, '16':1190000, '17':3180000, '19':510000,
+  '20':2370000, '21':930000, '22':900000, '23':1030000, '24':270000, '25':1000000, '27':470000, '28':530000,
+  '29':2600000, '30':1290000, '31':530000, '32':1710000, '33':1150000, '34':740000, '37':640000, '38':5840000,
+  '40':780000, '41':1080000, '42':2000000, '43':1140000, '44':140000, '45':670000, '46':750000, '47':8520000,
+  '48':13010000, '49':670000, '50':40000, '51':3200000, '52':580000, '53':2800000, '54':1830000, '55':1750000,
+  '56':710000, '57':1270000, '59':1840000, '60':600000, '61':4100000, '62':1100000, '63':1000000, '64':470000,
+  '65':3170000, '66':5600000, '67':2310000, '68':690000, '69':890000, '70':2890000, '71':4270000, '72':1000000,
+  '73':4000000, '75':1070000, '76':1500000, '77':1200000, '78':1530000, '79':340000, '80':1400000, '81':1200000,
+  '83':1350000, '84':2450000, '85':1100000, '86':2300000, '87':510000, '88':1200000, '89':150000, '90':2500000,
+  '91':2850000, '92':290000, '93':1000000,
+};
+// One reference point [lon, lat] inside each subject (its capital; Podolsk for
+// Moscow Oblast). The boundary file's property names aren't relied on: a shape
+// is matched to its subject by which shape contains that subject's point, so it
+// works with whatever naming the data uses.
+const RU_QUIZ_POINTS = {
+  '01':[40.10,44.61], '03':[85.96,51.96], '04':[83.78,53.35], '05':[127.53,50.29], '06':[40.54,64.54],
+  '07':[48.04,46.35], '08':[55.97,54.74], '09':[36.59,50.60], '10':[34.36,53.24], '11':[107.61,51.83],
+  '12':[45.69,43.32], '13':[61.40,55.16], '15':[177.51,64.73], '16':[47.25,56.13], '17':[47.50,42.98],
+  '19':[44.82,43.17], '20':[104.28,52.29], '21':[40.97,57.00], '22':[43.62,43.50], '23':[20.51,54.71],
+  '24':[44.27,46.31], '25':[36.26,54.51], '27':[42.06,44.22], '28':[34.35,61.78], '29':[86.09,55.35],
+  '30':[135.08,48.48], '31':[91.44,53.72], '32':[69.02,61.00], '33':[49.66,58.60], '34':[50.84,61.67],
+  '37':[40.93,57.77], '38':[38.98,45.04], '40':[65.34,55.44], '41':[36.19,51.73], '42':[30.13,59.58],
+  '43':[39.57,52.61], '44':[150.81,59.56], '45':[47.89,56.63], '46':[45.18,54.19], '47':[37.55,55.43],
+  '48':[37.62,55.75], '49':[33.08,68.97], '50':[53.01,67.64], '51':[44.00,56.33], '52':[31.27,58.52],
+  '53':[82.92,55.03], '54':[73.37,54.99], '55':[55.10,51.77], '56':[36.08,52.97], '57':[45.00,53.20],
+  '59':[131.89,43.12], '60':[28.33,57.82], '61':[39.72,47.24], '62':[39.74,54.63], '63':[129.73,62.03],
+  '64':[142.74,46.96], '65':[50.15,53.20], '66':[30.32,59.94], '67':[46.03,51.53], '68':[44.67,43.02],
+  '69':[32.04,54.78], '70':[41.97,45.04], '71':[60.60,56.84], '72':[41.45,52.72], '73':[49.12,55.79],
+  '75':[84.95,56.50], '76':[37.62,54.19], '77':[35.91,56.86], '78':[65.53,57.15], '79':[94.45,51.72],
+  '80':[53.20,56.85], '81':[48.40,54.32], '83':[40.41,56.13], '84':[44.52,48.71], '85':[39.89,59.22],
+  '86':[39.20,51.67], '87':[66.60,66.53], '88':[39.89,57.63], '89':[132.92,48.79], '90':[56.25,58.01],
+  '91':[92.87,56.01], '92':[158.65,53.04], '93':[113.50,52.03],
+};
+let ruQuizFeatures = [];            // the Russia shapes currently drawn (set in drawMap)
+let _ruCodeSrc = null;              // the feature list _ruCodeOfFeature was built for
+const _ruCodeOfFeature = new Map(); // shape -> subject code
+function ruQuizBuildAssignment() {
+  _ruCodeSrc = ruQuizFeatures;
+  _ruCodeOfFeature.clear();
+  const info = ruQuizFeatures.map(f => {
+    let b = null, a = Infinity;
+    try { b = d3.geoBounds(f); a = d3.geoArea(f); } catch (e) {}
+    return { f, b, a };
+  });
+  const inBounds = (b, pt) => !!b && pt[1] >= b[0][1] && pt[1] <= b[1][1] &&
+    (b[0][0] <= b[1][0] ? (pt[0] >= b[0][0] && pt[0] <= b[1][0]) : (pt[0] >= b[0][0] || pt[0] <= b[1][0]));
+  const taken = new Set();
+  const pending = [];
+  Object.entries(RU_QUIZ_POINTS).forEach(([code, pt]) => {
+    // Several shapes can contain a point (an okrug sits inside its oblast's
+    // outline in some datasets): the smallest one is the right one.
+    const hits = info.filter(x => !taken.has(x.f) && inBounds(x.b, pt) && d3.geoContains(x.f, pt)).sort((p, q) => p.a - q.a);
+    if (hits.length) { taken.add(hits[0].f); _ruCodeOfFeature.set(hits[0].f, code); }
+    else pending.push(code);
+  });
+  // A coastal capital can fall just outside a simplified outline: give it the
+  // nearest still-unmatched shape (within ~300 km), nothing else.
+  const nearest = (f, pt) => {
+    let best = Infinity;
+    const walk = c => { if (typeof c[0] === 'number') { const d = d3.geoDistance(pt, c); if (d < best) best = d; } else c.forEach(walk); };
+    if (f.geometry && f.geometry.coordinates) walk(f.geometry.coordinates);
+    return best;
+  };
+  // Closest capital/shape pairs are settled first, so a subject can't grab a
+  // shape that really belongs to a nearer one.
+  const pairs = [];
+  pending.forEach(code => info.forEach(x => {
+    if (taken.has(x.f)) return;
+    const d = nearest(x.f, RU_QUIZ_POINTS[code]);
+    if (d < 0.05) pairs.push({ code, f: x.f, d });
+  }));
+  pairs.sort((p, q) => p.d - q.d);
+  const doneCodes = new Set();
+  pairs.forEach(pr => {
+    if (doneCodes.has(pr.code) || taken.has(pr.f)) return;
+    doneCodes.add(pr.code); taken.add(pr.f); _ruCodeOfFeature.set(pr.f, pr.code);
+  });
+}
+QUIZ_CFG.russia = {
+  icon: '🇷🇺', noun: 'federal subject', Nouns: 'Federal subjects', label: 'Russia — Federal subjects',
+  indicatorTitle: 'Federal subject quiz — find the named subject and click it',
+  modalTitle: '🇷🇺 Russia — choose a mode',
+  normalDesc: 'Find and type Russian cities, same as any other map.',
+  quizTitle: 'Federal subjects', quizDesc: 'Find and click each of the 83 federal subjects (oblasts, krais, republics, okrugs and federal cities) by name.',
+  names: RU_SUBJECT_NAMES, capitals: RU_SUBJECT_CAPITAL_DISPLAY, pop: RU_SUBJECT_POPULATION,
+  ids: Object.keys(RU_SUBJECT_NAMES),
+  // Shapes that aren't one of the 83 (e.g. Crimea / Sevastopol, if the data
+  // draws them) are drawn but never asked about, clicking them is ignored.
+  keyOf: d => {
+    if (_ruCodeSrc !== ruQuizFeatures) ruQuizBuildAssignment();
+    return _ruCodeOfFeature.get(d) || null;
+  },
+  geometryDiffers: false,
+};
 
 function renderOtherStats() {
   const el = document.getElementById('otherStatsList');
