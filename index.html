@@ -718,8 +718,159 @@ input[type=checkbox]{accent-color:var(--accent2);cursor:pointer;width:14px;heigh
   .shape-card{flex:1 1 40%}
 }
 
+
+/* ───────── SKINS ─────────
+   "Sky" skin: glossy light-blue pill UI on a soft sky-blue sea with cream land (the look of the reference
+   screenshot). Selected in the Appearance popover; body.skin-sky is toggled by setSkin(). It is scoped with
+   :not(.night-mode) so Night mode still gets its own dark chrome while the skin stays selected. */
+body.skin-sky:not(.night-mode){--bg:#e3f1fe;--surface:#fff;--border:#c6dcf3;--text:#15356b;--text2:#58709a;--text3:#8aa1c4;--accent:#ec6b4c;--accent2:#2a6fe0;--glass:rgba(206,232,253,.55);--glass-border:rgba(255,255,255,.7);--sky-shadow:0 4px 12px rgba(60,125,205,.24),inset 0 1px 0 #fff;--sky-pill:linear-gradient(180deg,#fff,#e9f4fe);font-family:'Nunito',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+body.skin-sky:not(.night-mode) button,body.skin-sky:not(.night-mode) input,body.skin-sky:not(.night-mode) select{font-family:inherit}
+body.skin-sky:not(.night-mode) #bottomPanels{border-top-color:#9cc9f3}
+/* top bar */
+body.skin-sky:not(.night-mode) #sessionBar{gap:14px;padding:12px 18px;background:linear-gradient(180deg,rgba(220,239,254,.94),rgba(193,224,252,.9));border-bottom:1px solid rgba(255,255,255,.8);border-radius:0 0 22px 22px;box-shadow:0 6px 18px rgba(70,140,220,.2),inset 0 -1px 0 rgba(255,255,255,.6)}
+body.skin-sky:not(.night-mode) #sessNameWrap{gap:4px;flex:0 0 auto}
+body.skin-sky:not(.night-mode) #sessionName{flex:0 0 auto;overflow:visible}
+body.skin-sky:not(.night-mode) #inputControls{gap:12px}
+body.skin-sky:not(.night-mode) #sessionName{position:relative;display:inline-flex;align-items:center;height:34px;padding:0 16px 0 36px;max-width:170px;border-radius:999px;color:#fff;font-size:14px;font-weight:800;background:linear-gradient(180deg,#4aa6ff,#2a6fe8);box-shadow:0 3px 9px rgba(42,111,232,.38),inset 0 1px 0 rgba(255,255,255,.5)}
+body.skin-sky:not(.night-mode) #sessionName:hover{background:linear-gradient(180deg,#5cb2ff,#3a7cf0)}
+body.skin-sky:not(.night-mode) #sessionName::before{content:'';position:absolute;left:11px;top:50%;width:17px;height:17px;transform:translateY(-50%);background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffd23f' d='M12 1.5l2.6 7.9 7.9 2.6-7.9 2.6L12 22.5l-2.6-7.9L1.5 12l7.9-2.6z'/%3E%3C/svg%3E") center/contain no-repeat}
+body.skin-sky:not(.night-mode) .sess-dot,body.skin-sky:not(.night-mode) .sess-dot.saved{position:relative;width:12px;height:24px;background:none;box-shadow:none}
+body.skin-sky:not(.night-mode) .sess-dot::before,body.skin-sky:not(.night-mode) .sess-dot::after{content:'';position:absolute;left:2px;width:8px;height:2px;border-radius:2px;background:#2a6fe8}
+body.skin-sky:not(.night-mode) .sess-dot::before{top:5px;transform:rotate(28deg)}
+body.skin-sky:not(.night-mode) .sess-dot::after{bottom:5px;transform:rotate(-28deg)}
+body.skin-sky:not(.night-mode) .sess-dot.saved::before,body.skin-sky:not(.night-mode) .sess-dot.saved::after{background:#2e9d5a}
+body.skin-sky:not(.night-mode) #mapPickBtn{height:44px;padding:0 20px 0 7px;gap:10px;font-size:0;border:none;border-radius:999px;background:var(--sky-pill);box-shadow:var(--sky-shadow);color:#0f2f66}
+body.skin-sky:not(.night-mode) #mapPickBtn:hover{background:linear-gradient(180deg,#fff,#dcecfd)}
+body.skin-sky:not(.night-mode) #mapPickBtn::before{content:'';flex:0 0 auto;width:34px;height:34px;border-radius:50%;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3CradialGradient id='o' cx='35%25' cy='30%25' r='80%25'%3E%3Cstop offset='0' stop-color='%237cc4f5'/%3E%3Cstop offset='.55' stop-color='%232f86d6'/%3E%3Cstop offset='1' stop-color='%2314498f'/%3E%3C/radialGradient%3E%3CclipPath id='c'%3E%3Ccircle cx='32' cy='32' r='30'/%3E%3C/clipPath%3E%3C/defs%3E%3Ccircle cx='32' cy='32' r='30' fill='url(%23o)'/%3E%3Cg clip-path='url(%23c)'%3E%3Cpath fill='%235cbf6e' d='M12 14c6-5 15-4 17 2 1 5-5 7-4 12 1 5 8 6 6 13-2 6-8 10-12 6-3-3 0-7-3-11-3-5-9-6-8-12 1-4 2-7 4-10z'/%3E%3Cpath fill='%235cbf6e' d='M37 11c5-2 11 1 12 6 1 4-3 4-3 8 1 5 7 6 5 12-2 5-8 6-11 3-3-3-1-7-4-10-3-3-7-3-6-8 1-5 3-9 7-11z'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat}
+body.skin-sky:not(.night-mode) #mapPickDot{display:none}
+body.skin-sky:not(.night-mode) #mapPickLabel{font-size:21px;font-weight:800;color:#0f2f66}
+body.skin-sky:not(.night-mode) #mapPickBtn::after{content:'';flex:0 0 auto;width:8px;height:8px;margin:-4px 2px 0 8px;border-right:2.5px solid #15356b;border-bottom:2.5px solid #15356b;transform:rotate(45deg)}
+/* city input */
+body.skin-sky:not(.night-mode) #cityInputWrap{height:48px;width:540px;flex:1 1 300px;min-width:240px;border:none;border-radius:999px;background:linear-gradient(180deg,#f7fbff,#e6f2fe);box-shadow:0 0 0 3px rgba(255,255,255,.92),0 0 0 5px rgba(140,188,238,.55),0 6px 14px rgba(70,140,220,.2),inset 0 2px 5px rgba(120,170,225,.22)}
+body.skin-sky:not(.night-mode) #cityInputWrap:focus-within{background:#fff;box-shadow:0 0 0 3px #fff,0 0 0 5px rgba(42,111,224,.65),0 6px 14px rgba(70,140,220,.25)}
+body.skin-sky:not(.night-mode) #cityInputWrap::before{content:'';position:absolute;left:17px;top:50%;width:22px;height:26px;transform:translateY(-50%);pointer-events:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 28'%3E%3Cpath fill='%2312316b' d='M12 0C5.9 0 1 4.8 1 10.8 1 18.6 12 28 12 28s11-9.4 11-17.2C23 4.8 18.1 0 12 0z'/%3E%3Ccircle cx='12' cy='10.6' r='4.2' fill='%23fff'/%3E%3C/svg%3E") center/contain no-repeat}
+body.skin-sky:not(.night-mode) #cityInput{padding:0 184px 0 54px;text-overflow:ellipsis;font-size:16px;font-weight:700;color:#15356b;border-radius:999px}
+body.skin-sky:not(.night-mode) #cityInput::placeholder{color:#7f93b8;font-weight:700}
+body.skin-sky:not(.night-mode) #countryFilterBtn{right:5px;top:5px;bottom:5px;width:172px;padding:0 14px 0 42px;border:none;border-radius:999px;background:linear-gradient(180deg,#eaf4fe,#d5e8fa);box-shadow:inset 0 1px 0 #fff,0 1px 3px rgba(70,140,220,.22);font-size:15px;font-weight:800;color:#2a4b82}
+body.skin-sky:not(.night-mode) #countryFilterBtn:hover{background:linear-gradient(180deg,#f2f8ff,#cfe3f8);color:#15356b}
+body.skin-sky:not(.night-mode) #countryFilterBtn.filtering{color:#1a5fd6}
+body.skin-sky:not(.night-mode) #countryFilterBtn::before{content:'';position:absolute;left:13px;top:50%;width:20px;height:20px;transform:translateY(-50%);background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232a4b82' stroke-width='1.8'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cellipse cx='12' cy='12' rx='4.2' ry='10'/%3E%3Cpath d='M2 12h20'/%3E%3C/svg%3E") center/contain no-repeat}
+body.skin-sky:not(.night-mode) #cfCaret{border-left-width:4.5px;border-right-width:4.5px;border-top-width:5.5px}
+/* Find / Clear all / Sessions pills */
+body.skin-sky:not(.night-mode) #guessBtn,body.skin-sky:not(.night-mode) #clearBtn,body.skin-sky:not(.night-mode) #sessManagerBtn{display:inline-flex;align-items:center;gap:9px;height:46px;border:none;border-radius:999px;font-size:0;white-space:nowrap;box-shadow:0 0 0 3px rgba(255,255,255,.55),0 5px 13px rgba(40,100,180,.28),inset 0 1px 0 rgba(255,255,255,.5),inset 0 -3px 5px rgba(0,0,0,.08)}
+body.skin-sky:not(.night-mode) #guessBtn::before,body.skin-sky:not(.night-mode) #clearBtn::before,body.skin-sky:not(.night-mode) #sessManagerBtn::before{content:'';flex:0 0 auto;width:22px;height:22px;background-position:center;background-repeat:no-repeat;background-size:contain}
+body.skin-sky:not(.night-mode) #guessBtn::after,body.skin-sky:not(.night-mode) #clearBtn::after,body.skin-sky:not(.night-mode) #sessManagerBtn::after{font-size:17px;font-weight:800;letter-spacing:.01em}
+body.skin-sky:not(.night-mode) #guessBtn{padding:0 24px 0 20px;background:linear-gradient(180deg,#1fcb83,#08a65f);color:#fff}
+body.skin-sky:not(.night-mode) #guessBtn:hover{filter:brightness(1.07);background:linear-gradient(180deg,#1fcb83,#08a65f)}
+body.skin-sky:not(.night-mode) #guessBtn::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2.8' stroke-linecap='round'%3E%3Ccircle cx='10' cy='10' r='6.5'/%3E%3Cpath d='M15.2 15.2L21 21'/%3E%3C/svg%3E")}
+body.skin-sky:not(.night-mode) #guessBtn::after{content:'Find';color:#fff}
+body.skin-sky:not(.night-mode) #clearBtn{padding:0 24px 0 20px;background:linear-gradient(180deg,#f46a82,#dc4560);color:#fff}
+body.skin-sky:not(.night-mode) #clearBtn:hover{filter:brightness(1.06);background:linear-gradient(180deg,#f46a82,#dc4560)}
+body.skin-sky:not(.night-mode) #clearBtn::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fff'%3E%3Cpath d='M9 2h6l1 2h5v2H3V4h5zM5 8h14l-1.2 13a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8zm4 3v8h1.6v-8zm4.4 0v8H15v-8z'/%3E%3C/svg%3E")}
+body.skin-sky:not(.night-mode) #clearBtn::after{content:'Clear all';color:#fff}
+body.skin-sky:not(.night-mode) #sessManagerBtn{padding:0 44px 0 18px;color:#15356b;background:var(--sky-pill) no-repeat right 18px center/10px,var(--sky-pill);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 16' fill='none' stroke='%2312316b' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 2l6 6-6 6'/%3E%3C/svg%3E"),linear-gradient(180deg,#fff,#e9f4fe)}
+body.skin-sky:not(.night-mode) #sessManagerBtn:hover{color:#15356b}
+body.skin-sky:not(.night-mode) #sessManagerBtn::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2312316b' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='4' width='16' height='18' rx='2.5'/%3E%3Crect x='8.5' y='2' width='7' height='4' rx='1.4' fill='%2312316b'/%3E%3Cpath d='M8 11h1.5M12 11h4M8 15h1.5M12 15h4'/%3E%3C/svg%3E")}
+body.skin-sky:not(.night-mode) #sessManagerBtn::after{content:'Sessions';color:#15356b}
+/* summary pill + message pill */
+body.skin-sky:not(.night-mode) #statusRow{background:transparent;border-bottom:none;backdrop-filter:none;-webkit-backdrop-filter:none;padding:10px 12px 0}
+body.skin-sky:not(.night-mode) #summaryBar{padding:7px 30px 7px 9px;border-radius:999px;background:var(--sky-pill);box-shadow:var(--sky-shadow);font-size:20px;font-weight:600;color:#1d3f78}
+body.skin-sky:not(.night-mode) #summaryBar::before{content:'';display:inline-block;vertical-align:middle;width:44px;height:44px;margin-right:14px;border-radius:50%;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fff'%3E%3Ccircle cx='9' cy='8.5' r='3.3'/%3E%3Cpath d='M2.8 19c.4-3.6 3-5.6 6.2-5.6s5.8 2 6.2 5.6z'/%3E%3Ccircle cx='17' cy='9.5' r='2.5'/%3E%3Cpath d='M16.6 13.6c2.7-.2 4.5 1.4 4.8 4.4h-4.3c-.1-1.8-.1-3.3-.5-4.4z'/%3E%3C/svg%3E") center/26px no-repeat,linear-gradient(180deg,#19c77f,#09985a);box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 2px 5px rgba(9,152,90,.35)}
+body.skin-sky:not(.night-mode) #summaryBar strong{color:#15356b;font-size:22px;font-weight:800}
+body.skin-sky:not(.night-mode) #summaryBar .pop-total{color:#1a6bea;font-size:22px;font-weight:800}
+body.skin-sky:not(.night-mode) #msg:empty{display:none}
+body.skin-sky:not(.night-mode) #msg{top:104px;left:20px;min-height:38px;display:flex;align-items:center;padding:6px 20px 6px 46px;border:none;border-radius:999px;background:var(--sky-pill);box-shadow:var(--sky-shadow);font-size:15px;font-weight:700;color:#15356b}
+body.skin-sky:not(.night-mode) #msg.ok{color:#0b8a2a}body.skin-sky:not(.night-mode) #msg.err{color:#d12b45}body.skin-sky:not(.night-mode) #msg.dup{color:#c06500}body.skin-sky:not(.night-mode) #msg.info{color:#34527f}
+body.skin-sky:not(.night-mode) #msg::before{content:'';position:absolute;left:10px;top:50%;width:24px;height:24px;transform:translateY(-50%);border-radius:50%;background:center/16px no-repeat #2a6fe0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.4' stroke-linecap='round'%3E%3Cpath d='M12 11v6'/%3E%3Cpath d='M12 6.6v.1'/%3E%3C/svg%3E")}
+body.skin-sky:not(.night-mode) #msg.ok::before{background-color:#38b457;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.6 4.6L19 7.6'/%3E%3C/svg%3E")}
+body.skin-sky:not(.night-mode) #msg.err::before{background-color:#e0455f;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.4' stroke-linecap='round'%3E%3Cpath d='M7 7l10 10M17 7L7 17'/%3E%3C/svg%3E")}
+body.skin-sky:not(.night-mode) #msg.dup::before{background-color:#f09a1a}
+/* map controls */
+body.skin-sky:not(.night-mode) .zbtn-wrap{bottom:18px;gap:8px}
+@media (min-width:861px){ body.skin-sky:not(.night-mode) .zbtn-wrap{right:calc(24px + var(--list-w))} }
+@media (max-width:860px){ body.skin-sky:not(.night-mode) .zbtn-wrap{right:calc(14px + env(safe-area-inset-right))} }
+body.skin-sky:not(.night-mode) #zoomLbl{padding:4px 14px;border:none;border-radius:999px;background:rgba(255,255,255,.88);box-shadow:var(--sky-shadow);font-size:14px;font-weight:800;color:#7388ae}
+body.skin-sky:not(.night-mode) .zbtn{width:42px;height:42px;border:none;border-radius:15px;background:var(--sky-pill);box-shadow:var(--sky-shadow);color:#15356b;font-size:26px;font-weight:900}
+body.skin-sky:not(.night-mode) .zbtn:hover{background:linear-gradient(180deg,#fff,#d9ebfd)}
+body.skin-sky:not(.night-mode) #resetViewBtn svg{display:none}
+body.skin-sky:not(.night-mode) #resetViewBtn::before{content:'';width:24px;height:24px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2312316b' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='6.5'/%3E%3Cpath d='M12 1.5v5M12 17.5v5M1.5 12h5M17.5 12h5'/%3E%3C/svg%3E") center/contain no-repeat}
+body.skin-sky:not(.night-mode) #mapColorsBtn,body.skin-sky:not(.night-mode) #dotAppearanceBtn{left:18px;width:46px;height:46px;padding:0;gap:0;justify-content:center;border:none;border-radius:16px;background:var(--sky-pill);box-shadow:var(--sky-shadow);font-size:0;overflow:hidden}
+body.skin-sky:not(.night-mode) #mapColorsBtn:hover,body.skin-sky:not(.night-mode) #dotAppearanceBtn:hover{background:linear-gradient(180deg,#fff,#d9ebfd)}
+body.skin-sky:not(.night-mode) #mapColorsBtn.active,body.skin-sky:not(.night-mode) #dotAppearanceBtn.active{box-shadow:0 0 0 3px rgba(42,111,224,.55),var(--sky-shadow)}
+body.skin-sky:not(.night-mode) #mapColorsBtn{bottom:18px}
+body.skin-sky:not(.night-mode) #dotAppearanceBtn{bottom:76px}
+body.skin-sky:not(.night-mode) #dotAppearanceBtn svg{width:28px;height:28px}
+body.skin-sky:not(.night-mode) #mapColorsBtn::before{content:'';width:28px;height:28px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 24' fill='%23566a96'%3E%3Cpath d='M2 3l6-1 6 1 3 3-1 3-3 1-2 4-3 1-2-4-4-2zM18 2l5-1 4 2-1 3-4 1-2 3-3-1zM20 12l4-1 3 3 1 5-3 2-3-3zM28 4l6-1 4 3-1 3-5 1-3 3-3-2zM33 15l4 1 1 3-3 1z'/%3E%3C/svg%3E") center/contain no-repeat}
+body.skin-sky:not(.night-mode) #mapColorsPopover,body.skin-sky:not(.night-mode) #dotAppearancePopover{left:76px;bottom:18px;border:none;border-radius:18px;padding:12px 14px;box-shadow:0 10px 30px rgba(50,110,190,.32),0 0 0 1px rgba(255,255,255,.8)}
+body.skin-sky:not(.night-mode) .scale-preset-btn,body.skin-sky:not(.night-mode) .reset-icon-btn,body.skin-sky:not(.night-mode) .mode-toggle,body.skin-sky:not(.night-mode) select,body.skin-sky:not(.night-mode) input[type=color]{border-color:#c6dcf3;border-radius:999px}
+body.skin-sky:not(.night-mode) .reset-icon-btn,body.skin-sky:not(.night-mode) input[type=color]{border-radius:8px}
+body.skin-sky:not(.night-mode) .mode-toggle{border-radius:12px}
+body.skin-sky:not(.night-mode) .scale-preset-btn.active{background:linear-gradient(180deg,#4aa6ff,#2a6fe8);border-color:#2a6fe8}
+
+/* SKIN PICKER MODAL */
+#skinModal{display:none;position:fixed;inset:0;z-index:125;background:rgba(0,0,0,.45);align-items:center;justify-content:center}
+#skinModal.open{display:flex}
+#skinBox{background:var(--surface);border-radius:12px;width:460px;max-width:94vw;box-shadow:0 8px 40px rgba(0,0,0,.22);overflow:hidden}
+#skinHead{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)}
+#skinHead h2{font-size:15px;font-weight:700;color:var(--accent2)}
+#skinClose{border:none;background:transparent;font-size:18px;cursor:pointer;color:var(--text2);line-height:1;padding:2px 6px;border-radius:4px}
+#skinClose:hover{background:var(--bg)}
+#skinList{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px 18px 18px}
+.skin-card{display:flex;flex-direction:column;gap:6px;align-items:stretch;padding:8px;border:2px solid var(--border);border-radius:10px;background:var(--surface);cursor:pointer;text-align:left;color:var(--text);font:inherit}
+.skin-card:hover{border-color:var(--accent2);box-shadow:0 2px 8px rgba(43,76,126,.14)}
+.skin-card.current{border-color:var(--accent2);background:rgba(42,111,224,.07)}
+.skin-name{display:flex;justify-content:space-between;font-size:13px;font-weight:700}
+.skin-check{color:var(--accent2);visibility:hidden}
+.skin-card.current .skin-check{visibility:visible}
+.skin-desc{font-size:11px;color:var(--text2);line-height:1.35}
+.skin-thumb{position:relative;display:block;height:92px;border-radius:7px;overflow:hidden}
+.skin-thumb i{position:absolute;display:block}
+.sk-classic{background:#c8dff0}
+.sk-classic .sk-bar{left:0;right:0;top:0;height:16px;background:#f1f1ec;border-bottom:1px solid #d8d8d0}
+.sk-classic .sk-land{left:26%;top:34px;width:50%;height:38px;border-radius:40% 55% 45% 60%;background:#e8e4da}
+.sk-classic .sk-dot{left:48%;top:48px;width:9px;height:9px;border-radius:50%;background:#cb6543;opacity:.8}
+.sk-sky{background:#acdcfd}
+.sk-sky .sk-bar{left:6px;right:6px;top:5px;height:17px;border-radius:9px;background:linear-gradient(90deg,#2a6fe8 0 16%,#fff 16% 24%,#eef6ff 24% 58%,#19c77f 58% 70%,#f0627b 70% 84%,#fff 84%);box-shadow:0 2px 5px rgba(60,125,205,.3)}
+.sk-sky .sk-land{left:26%;top:34px;width:50%;height:38px;border-radius:40% 55% 45% 60%;background:#efeada}
+.sk-sky .sk-dot{left:48%;top:46px;width:12px;height:12px;border-radius:50%;background:#ec6b4c;box-shadow:0 0 0 3px rgba(255,255,255,.85)}
+
+/* ── Sky skin: right-hand city list as a floating glass card ── */
+body.skin-sky:not(.night-mode){--pw:300px}
+body.skin-sky:not(.night-mode) #panel{border:none;border-radius:24px;background:linear-gradient(180deg,rgba(247,251,255,.94),rgba(228,241,254,.92));box-shadow:0 10px 30px rgba(50,110,190,.25),0 0 0 1px rgba(255,255,255,.8) inset}
+@media (min-width:861px){
+  body.skin-sky:not(.night-mode) #panel{top:calc(var(--bar-h,72px) + 12px);bottom:12px;right:calc(var(--sbw,0px) + var(--list-w) - var(--pw) + 12px)}
+  /* the top row spans the whole width; the city list starts right under it */
+  body.skin-sky:not(.night-mode) #sessionBar{margin-right:0}
+  body.skin-sky:not(.night-mode) #listCollapseBtn{top:calc(50% + var(--bar-h,72px) / 2)}
+  body.skin-sky:not(.night-mode) #listCollapseBtn{border:none;border-radius:12px 0 0 12px;box-shadow:-3px 2px 10px rgba(60,125,205,.25);background:var(--sky-pill);color:#15356b}
+}
+@media (max-width:860px){ body.skin-sky:not(.night-mode) #panel{margin:10px;width:auto} }
+body.skin-sky:not(.night-mode) #panelHeader{padding:16px 14px 10px 16px;border-bottom:none;background:transparent}
+body.skin-sky:not(.night-mode) #panelTitle{display:flex;align-items:center;gap:8px;font-size:19px;font-weight:800;color:#15356b;text-transform:none;letter-spacing:0}
+body.skin-sky:not(.night-mode) #panelTitle::before{content:'';width:26px;height:26px;flex:0 0 auto;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26' fill='%232a6fe0'%3E%3Cpath d='M3 24V12h6v12zM10 24V4h7v20zM18 24V9h5v15z'/%3E%3Cg fill='%23e9f4fe'%3E%3Cpath d='M12 7h1.6v1.8H12zM14.4 7H16v1.8h-1.6zM12 11h1.6v1.8H12zM14.4 11H16v1.8h-1.6zM12 15h1.6v1.8H12zM14.4 15H16v1.8h-1.6zM4.6 15h1.6v1.8H4.6zM19.6 13h1.6v1.8h-1.6z'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat}
+body.skin-sky:not(.night-mode) #sortLabel{gap:6px;font-size:13px;font-weight:600;color:#3e5a8a}
+body.skin-sky:not(.night-mode) #sortLabel::after{content:'';flex:0 0 auto;width:7px;height:7px;margin:-3px 0 0 2px;border-right:2px solid #3e5a8a;border-bottom:2px solid #3e5a8a;transform:rotate(45deg)}
+body.skin-sky:not(.night-mode) #sortLabel input{appearance:none;-webkit-appearance:none;width:20px;height:20px;margin:0;border:2px solid #a9c4e6;border-radius:6px;background:#fff;display:inline-grid;place-content:center}
+body.skin-sky:not(.night-mode) #sortLabel input:checked{background:#2a6fe0;border-color:#2a6fe0}
+body.skin-sky:not(.night-mode) #sortLabel input:checked::before{content:'';width:9px;height:5px;border-left:2.5px solid #fff;border-bottom:2.5px solid #fff;transform:rotate(-45deg) translate(1px,-1px)}
+body.skin-sky:not(.night-mode) #foundGrid{gap:7px;padding:4px 12px 14px}
+body.skin-sky:not(.night-mode) .fi,body.skin-sky:not(.night-mode) .fi-empty{padding:8px 10px 8px 9px;gap:12px;border:none;border-radius:16px;background:rgba(255,255,255,.62);box-shadow:0 1px 0 rgba(255,255,255,.9) inset}
+body.skin-sky:not(.night-mode) .fi:hover{background:#fff}
+body.skin-sky:not(.night-mode) .fi.highlighted{background:#fff;box-shadow:0 0 0 2px rgba(42,111,224,.45)}
+body.skin-sky:not(.night-mode) .fi.fi-is-capital{background:#d9eafc}
+body.skin-sky:not(.night-mode) .fi.fi-pref{background:#fff3cf;padding-left:12px}
+body.skin-sky:not(.night-mode) .fi-num{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:38px;height:38px;min-width:38px;border-radius:50%;background:#dcebfc;color:#15356b;font-size:15px;font-weight:800;text-align:center}
+body.skin-sky:not(.night-mode) .fi-dot{display:none}
+body.skin-sky:not(.night-mode) .fi-name{font-size:15px;font-weight:800;color:#15356b}
+body.skin-sky:not(.night-mode) .fi-pop{font-size:15px;font-weight:600;color:#7a8aa6}
+body.skin-sky:not(.night-mode) .fi-capital{color:#15356b;font-size:14px}
+body.skin-sky:not(.night-mode) .fi-meta{display:flex;align-items:center;gap:5px;font-size:14px;font-weight:600;color:#7f8fa9}
+body.skin-sky:not(.night-mode) .fi-meta::before{content:'';flex:0 0 auto;width:12px;height:14px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 28'%3E%3Cpath fill='%23a2b0c6' d='M12 0C5.9 0 1 4.8 1 10.8 1 18.6 12 28 12 28s11-9.4 11-17.2C23 4.8 18.1 0 12 0z'/%3E%3Ccircle cx='12' cy='10.6' r='4' fill='%23fff'/%3E%3C/svg%3E") center/contain no-repeat}
+body.skin-sky:not(.night-mode) .rm{width:26px;height:26px;border-radius:50%;font-size:17px;color:#a3b3cc}
+body.skin-sky:not(.night-mode) .rm:hover{color:#d12b45;background:#ffe5ea}
+body.skin-sky:not(.night-mode) .fi-empty-bar{background:rgba(42,111,224,.12)}
 </style>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -830,7 +981,7 @@ input[type=checkbox]{accent-color:var(--accent2);cursor:pointer;width:14px;heigh
       <button class="zbtn" id="zoomOut">−</button>
       <button class="zbtn" id="resetViewBtn" title="Reset view"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M16.5 10a6.5 6.5 0 1 1-2.1-4.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16.8 3.5v4.2h-4.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     </div>
-    <button type="button" id="dotAppearanceBtn" title="Dot appearance"><svg width="15" height="15" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><defs><clipPath id="ballClipBtn"><circle cx="10" cy="10" r="9"/></clipPath><radialGradient id="ballGlossBtn" cx="35%" cy="30%" r="70%"><stop offset="0%" stop-color="#fff" stop-opacity="0.6"/><stop offset="45%" stop-color="#fff" stop-opacity="0.1"/><stop offset="100%" stop-color="#000" stop-opacity="0.2"/></radialGradient></defs><g clip-path="url(#ballClipBtn)"><rect x="0" y="0" width="20" height="20" fill="#f4c531"/><path d="M10 10 L20 10 A10 10 0 0 1 10 20 Z" fill="#3fb84f"/><path d="M10 10 L10 20 A10 10 0 0 1 0 10 Z" fill="#3b82f6"/><path d="M10 10 L0 10 A10 10 0 0 1 10 0 Z" fill="#e63946"/></g><circle cx="10" cy="10" r="9" fill="url(#ballGlossBtn)"/></svg> <span class="btn-label">Dot appearance</span></button>
+    <button type="button" id="dotAppearanceBtn" title="Appearance"><svg width="15" height="15" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><defs><clipPath id="ballClipBtn"><circle cx="10" cy="10" r="9"/></clipPath><radialGradient id="ballGlossBtn" cx="35%" cy="30%" r="70%"><stop offset="0%" stop-color="#fff" stop-opacity="0.6"/><stop offset="45%" stop-color="#fff" stop-opacity="0.1"/><stop offset="100%" stop-color="#000" stop-opacity="0.2"/></radialGradient></defs><g clip-path="url(#ballClipBtn)"><rect x="0" y="0" width="20" height="20" fill="#f4c531"/><path d="M10 10 L20 10 A10 10 0 0 1 10 20 Z" fill="#3fb84f"/><path d="M10 10 L10 20 A10 10 0 0 1 0 10 Z" fill="#3b82f6"/><path d="M10 10 L0 10 A10 10 0 0 1 10 0 Z" fill="#e63946"/></g><circle cx="10" cy="10" r="9" fill="url(#ballGlossBtn)"/></svg> <span class="btn-label">Appearance</span></button>
     <button type="button" id="mapColorsBtn" title="Map settings">🗺 <span class="btn-label">Map settings</span></button>
     <button type="button" id="panelToggleBtn" title="Hide/show the city list">▾ Hide list</button>
     <div id="mapColorsPopover">
@@ -840,7 +991,11 @@ input[type=checkbox]{accent-color:var(--accent2);cursor:pointer;width:14px;heigh
       <div class="row"><span class="lbl">Borders</span><input type="color" id="borderColor" value="#aaaaaa"/></div>
     </div>
     <div id="dotAppearancePopover">
-      <div class="pop-title-row"><span class="pop-title"><svg width="12" height="12" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-1px"><defs><clipPath id="ballClipPop"><circle cx="10" cy="10" r="9"/></clipPath><radialGradient id="ballGlossPop" cx="35%" cy="30%" r="70%"><stop offset="0%" stop-color="#fff" stop-opacity="0.6"/><stop offset="45%" stop-color="#fff" stop-opacity="0.1"/><stop offset="100%" stop-color="#000" stop-opacity="0.2"/></radialGradient></defs><g clip-path="url(#ballClipPop)"><rect x="0" y="0" width="20" height="20" fill="#f4c531"/><path d="M10 10 L20 10 A10 10 0 0 1 10 20 Z" fill="#3fb84f"/><path d="M10 10 L10 20 A10 10 0 0 1 0 10 Z" fill="#3b82f6"/><path d="M10 10 L0 10 A10 10 0 0 1 10 0 Z" fill="#e63946"/></g><circle cx="10" cy="10" r="9" fill="url(#ballGlossPop)"/></svg> Dot Appearance</span></div>
+      <div class="pop-title-row"><span class="pop-title"><svg width="12" height="12" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-1px"><defs><clipPath id="ballClipPop"><circle cx="10" cy="10" r="9"/></clipPath><radialGradient id="ballGlossPop" cx="35%" cy="30%" r="70%"><stop offset="0%" stop-color="#fff" stop-opacity="0.6"/><stop offset="45%" stop-color="#fff" stop-opacity="0.1"/><stop offset="100%" stop-color="#000" stop-opacity="0.2"/></radialGradient></defs><g clip-path="url(#ballClipPop)"><rect x="0" y="0" width="20" height="20" fill="#f4c531"/><path d="M10 10 L20 10 A10 10 0 0 1 10 20 Z" fill="#3fb84f"/><path d="M10 10 L10 20 A10 10 0 0 1 0 10 Z" fill="#3b82f6"/><path d="M10 10 L0 10 A10 10 0 0 1 10 0 Z" fill="#e63946"/></g><circle cx="10" cy="10" r="9" fill="url(#ballGlossPop)"/></svg> Appearance</span></div>
+      <div class="row">
+        <span class="lbl">Skin</span>
+        <button type="button" id="skinOpenBtn" class="scale-preset-btn" title="Choose a skin" style="flex:1">🎨 <span id="skinOpenName">Classic</span> ▸</button>
+      </div>
       <div class="row mode-toggles">
         <label class="mode-toggle" title="Night mode" aria-label="Night mode"><input type="checkbox" id="nightMode"><span class="mode-ico">🌙</span></label>
         <label class="mode-toggle" title="Physical mode" aria-label="Physical mode"><input type="checkbox" id="physicalMode"><span class="mode-ico">🛰️</span></label>
@@ -867,6 +1022,25 @@ input[type=checkbox]{accent-color:var(--accent2);cursor:pointer;width:14px;heigh
     <div class="quiz-tooltip" id="quizTooltip"></div>
   </div>
 </div><!-- end main (top screen) -->
+
+<!-- SKIN PICKER — opened from the Appearance popover -->
+<div id="skinModal">
+  <div id="skinBox" role="dialog" aria-modal="true" aria-labelledby="skinTitle">
+    <div id="skinHead"><h2 id="skinTitle">🎨 Choose a skin</h2><button id="skinClose" aria-label="Close">✕</button></div>
+    <div id="skinList">
+      <button type="button" class="skin-card" data-skin="classic">
+        <span class="skin-thumb sk-classic"><i class="sk-bar"></i><i class="sk-land"></i><i class="sk-dot"></i></span>
+        <span class="skin-name">Classic<span class="skin-check">✓</span></span>
+        <span class="skin-desc">The original look: flat controls, pale sea.</span>
+      </button>
+      <button type="button" class="skin-card" data-skin="sky">
+        <span class="skin-thumb sk-sky"><i class="sk-bar"></i><i class="sk-land"></i><i class="sk-dot"></i></span>
+        <span class="skin-name">Glossy Blue<span class="skin-check">✓</span></span>
+        <span class="skin-desc">Glossy pill buttons, sky-blue sea and cream land.</span>
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- SESSION MODAL -->
 <div id="sessModal">
@@ -1244,6 +1418,7 @@ const S = {
   countryMode:'any', specificCountry:'', specificAdmin1:'',
   nightMode:false, _preNight:null, // _preNight: colours saved when night mode is switched on, restored when switched off
   physicalMode:false, // shows a real satellite-image basemap instead of flat land/sea colours
+  skin:'classic', _preSkin:null, // skin: 'classic' | 'sky' (see SKINS); _preSkin: palette saved when a skin is applied, restored on Classic
   pinMode:false, // Pin mode: dots render as 3D-style map pins instead of flat circles
 };
 
@@ -1265,6 +1440,12 @@ const NIGHT_PRESET = { landColor:'#0d1420', seaColor:'#020409', borderColor:'#25
 // touched by the reset button).
 const DOT_DEFAULTS = { dotColor:'#cb6543', dotAlpha:0.75, uniformSize:false, uniformR:0, dotSizeMode:'normal' };
 const MAP_DEFAULTS = { landColor:'#e8e4da', seaColor:'#c8dff0', borderColor:'#aaaaaa' };
+// Skins: a palette applied together with a body class that restyles the interface (CSS section "SKINS").
+const SKIN_PRESETS = {
+  sky: { landColor:'#efeada', seaColor:'#acdcfd', borderColor:'#d9d3c1', dotColor:'#ec6b4c', dotAlpha:0.85 }
+};
+function mapDef() { const k = SKIN_PRESETS[S.skin]; return k ? { landColor:k.landColor, seaColor:k.seaColor, borderColor:k.borderColor } : MAP_DEFAULTS; }
+function dotDef() { const k = SKIN_PRESETS[S.skin]; return k ? Object.assign({}, DOT_DEFAULTS, { dotColor:k.dotColor, dotAlpha:k.dotAlpha }) : DOT_DEFAULTS; }
 
 // The four dot-size presets. "normal" sizes dots by population, same as
 // before. Small/Smaller/Tiny instead fix every dot to the same size
@@ -4734,6 +4915,7 @@ document.getElementById('mapWrap').addEventListener('mouseleave', () => {
 
 // ─── DOTS ─────────────────────────────────────────────────────────────────────
 function dotStroke() {
+  if (S.skin === 'sky' && !S.nightMode) return 'rgba(255,255,255,.92)'; // soft white halo, like the reference look
   return S.nightMode ? 'none' : 'rgba(0,0,0,1)';
 }
 const DOT_STROKE_WIDTH_BY_MODE = { normal: 0.2, small: 0.2, smaller: 0.2, tiny: 0.05 };
@@ -4742,6 +4924,7 @@ function dotStrokeWidth(pop) {
   // Outline thickness steps down together with dot size across all four
   // presets, so it never overwhelms a smaller dot or looks like an abrupt
   // change relative to everything else.
+  if (S.skin === 'sky') return ({ normal: 0.7, small: 0.55, smaller: 0.4, tiny: 0.15 })[S.dotSizeMode] || 0.7;
   return DOT_STROKE_WIDTH_BY_MODE[S.dotSizeMode] || 0.2;
 }
 function dotFill() {
@@ -4870,7 +5053,7 @@ function renderFoundGrid() {
     const capitalStar = isCapitalItem
       ? `<span class="fi-capital" title="${isStateCapital ? 'State capital' : (isPrefCapital ? 'Prefecture capital' : (regCapLabel || 'Capital'))}">★</span>` : '';
     const guessNum = found.indexOf(city) + 1;
-    div.innerHTML=`<span class="fi-num">${guessNum}.</span><div class="fi-info"><span class="fi-name">${displayName(city)}${city.pop?` <span class="fi-pop">(${fmtPop(city.pop)})</span>`:''}${capitalStar}</span><span class="fi-meta">${fmtLocation(city)}</span></div><button class="rm" title="Remove">✕</button>`;
+    div.innerHTML=`<span class="fi-num">${guessNum}<span class="fi-dot">.</span></span><div class="fi-info"><span class="fi-name">${displayName(city)}${city.pop?` <span class="fi-pop">(${fmtPop(city.pop)})</span>`:''}${capitalStar}</span><span class="fi-meta">${fmtLocation(city)}</span></div><button class="rm" title="Remove">✕</button>`;
     div.querySelector('.rm').onclick = (e) => { e.stopPropagation(); removeCity(city); };
     div.onclick = () => highlightCity(city);
     grid.appendChild(div);
@@ -4936,7 +5119,7 @@ function renderQuizFoundGrid(grid) {
     const capital = cfg.capitals[id] || '—';
     const pop = cfg.pop[id]; // whole-region population, NOT the capital city's
     div.className = 'fi fi-pref';
-    div.innerHTML = `<span class="fi-num">${guessNum}.</span><div class="fi-info"><span class="fi-name">${name}</span><span class="fi-meta">Capital: ${capital}</span>${pop ? `<span class="fi-meta fi-pref-pop">Population: ${fmtPop(pop)}</span>` : ''}</div>`;
+    div.innerHTML = `<span class="fi-num">${guessNum}<span class="fi-dot">.</span></span><div class="fi-info"><span class="fi-name">${name}</span><span class="fi-meta">Capital: ${capital}</span>${pop ? `<span class="fi-meta fi-pref-pop">Population: ${fmtPop(pop)}</span>` : ''}</div>`;
     grid.appendChild(div);
   });
 }
@@ -6562,11 +6745,11 @@ document.getElementById('resetDotColorAlpha').onclick = () => {
   // and only take effect again once Night mode is switched off. Reset those
   // instead, so Night mode's look is undisturbed but reverts to defaults later.
   if (S.nightMode && S._preNight) {
-    S._preNight.dotColor = DOT_DEFAULTS.dotColor;
-    S._preNight.dotAlpha = DOT_DEFAULTS.dotAlpha;
+    S._preNight.dotColor = dotDef().dotColor;
+    S._preNight.dotAlpha = dotDef().dotAlpha;
   } else {
-    S.dotColor = DOT_DEFAULTS.dotColor;
-    S.dotAlpha = DOT_DEFAULTS.dotAlpha;
+    S.dotColor = dotDef().dotColor;
+    S.dotAlpha = dotDef().dotAlpha;
     document.getElementById('dotColor').value = S.dotColor;
     document.getElementById('dotAlpha').value = Math.round(S.dotAlpha * 100);
     document.getElementById('dotAlphaVal').textContent = Math.round(S.dotAlpha * 100) + '%';
@@ -6581,13 +6764,13 @@ document.getElementById('resetMapColors').onclick = () => {
   // NIGHT_PRESET values, not the user's normal palette — that lives in
   // S._preNight and only takes effect again once Night mode is switched off.
   if (S.nightMode && S._preNight) {
-    S._preNight.landColor = MAP_DEFAULTS.landColor;
-    S._preNight.seaColor = MAP_DEFAULTS.seaColor;
-    S._preNight.borderColor = MAP_DEFAULTS.borderColor;
+    S._preNight.landColor = mapDef().landColor;
+    S._preNight.seaColor = mapDef().seaColor;
+    S._preNight.borderColor = mapDef().borderColor;
   } else {
-    S.landColor = MAP_DEFAULTS.landColor;
-    S.seaColor = MAP_DEFAULTS.seaColor;
-    S.borderColor = MAP_DEFAULTS.borderColor;
+    S.landColor = mapDef().landColor;
+    S.seaColor = mapDef().seaColor;
+    S.borderColor = mapDef().borderColor;
     document.getElementById('landColor').value = S.landColor;
     document.getElementById('seaColor').value = S.seaColor;
     document.getElementById('borderColor').value = S.borderColor;
@@ -6595,6 +6778,54 @@ document.getElementById('resetMapColors').onclick = () => {
   }
   persistSession();
 };
+
+// Skins (Appearance popover). Choosing one applies its palette (the previous palette is remembered and
+// comes back when Classic is chosen again) and toggles body.skin-sky, which restyles the whole interface.
+function syncSkinUI() {
+  document.body.classList.toggle('skin-sky', S.skin === 'sky');
+  const cur = S.skin || 'classic';
+  document.querySelectorAll('#skinList .skin-card').forEach(b => b.classList.toggle('current', b.dataset.skin === cur));
+  const nm = document.querySelector('#skinList .skin-card[data-skin="' + cur + '"] .skin-name');
+  document.getElementById('skinOpenName').textContent = nm ? nm.firstChild.textContent : 'Classic';
+}
+function setSkin(name) {
+  name = SKIN_PRESETS[name] ? name : 'classic';
+  if (name === (S.skin || 'classic')) { syncSkinUI(); return; }
+  if (S.nightMode) { const nm = document.getElementById('nightMode'); nm.checked = false; nm.dispatchEvent(new Event('change')); } // skins and Night mode don't mix
+  if (name === 'classic') {
+    if (S._preSkin) Object.assign(S, S._preSkin);
+    S._preSkin = null; S.skin = 'classic';
+  } else {
+    if (!S._preSkin) S._preSkin = { landColor:S.landColor, seaColor:S.seaColor, borderColor:S.borderColor, dotColor:S.dotColor, dotAlpha:S.dotAlpha };
+    Object.assign(S, SKIN_PRESETS[name]); S.skin = name;
+  }
+  document.getElementById('landColor').value = S.landColor;
+  document.getElementById('seaColor').value = S.seaColor;
+  document.getElementById('borderColor').value = S.borderColor;
+  document.getElementById('dotColor').value = S.dotColor;
+  document.getElementById('dotAlpha').value = Math.round(S.dotAlpha * 100);
+  document.getElementById('dotAlphaVal').textContent = Math.round(S.dotAlpha * 100) + '%';
+  syncSkinUI();
+  applyMapColors();
+  applyDotStyles();
+  persistSession();
+}
+const skinModal = document.getElementById('skinModal');
+const closeSkinModal = () => skinModal.classList.remove('open');
+document.getElementById('skinOpenBtn').onclick = () => { syncSkinUI(); skinModal.classList.add('open'); };
+document.getElementById('skinClose').onclick = closeSkinModal;
+skinModal.addEventListener('mousedown', e => { if (e.target === skinModal) closeSkinModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && skinModal.classList.contains('open')) closeSkinModal(); });
+// The Sky skin's city list starts right under the top row, so keep its height available to CSS (--bar-h).
+(function () {
+  const bar = document.getElementById('sessionBar');
+  const sync = () => document.documentElement.style.setProperty('--bar-h', bar.offsetHeight + 'px');
+  sync();
+  if (window.ResizeObserver) new ResizeObserver(sync).observe(bar);
+  window.addEventListener('resize', sync);
+})();
+document.querySelectorAll('#skinList .skin-card').forEach(b => { b.onclick = () => { setSkin(b.dataset.skin); closeSkinModal(); }; });
+syncSkinUI();
 
 document.getElementById('physicalMode').onchange = async e => {
   S.physicalMode = e.target.checked;
@@ -6720,6 +6951,8 @@ async function restoreState(snap) {
   document.getElementById('borderColor').value  = S.borderColor;
   document.getElementById('nightMode').checked  = !!S.nightMode;
   document.getElementById('physicalMode').checked = !!S.physicalMode;
+  S.skin = (snap.S && snap.S.skin) || 'classic';
+  syncSkinUI();
   document.body.classList.toggle('night-mode', !!S.nightMode);
   document.getElementById('pinMode').checked = !!S.pinMode;
   document.body.classList.toggle('pin-mode', !!S.pinMode);
