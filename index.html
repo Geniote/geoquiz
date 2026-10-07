@@ -451,6 +451,82 @@ body.map-zooming #map-g path{shape-rendering:optimizeSpeed}
    Prefectures quiz, so it's hidden for the duration of that mode — see
    setQuizMode. */
 body.quiz-mode #bottomPanels{display:none}
+body.circle-mode #bottomPanels,body.circle-mode #nightCanvas{display:none !important}
+/* Circle challenge always accepts every matching city, so the Any/Every country filter is hidden and the text box gets its full width back. */
+body.circle-mode #countryFilterBtn,body.circle-mode #countryFilterPanel{display:none !important}
+body.circle-mode #cityInput{padding-right:16px}
+body.circle-mode .city-dot:not(.circle-dot),body.circle-mode .city-dot.force-visible:not(.circle-dot){display:none !important}
+body .circle-missed .main-dot{fill:#9aa0a6;fill-opacity:.8;stroke:#fff}
+/* Circle challenge: found cities are solid blue dots with no outline */
+body.circle-mode .circle-dot:not(.circle-missed) circle.main-dot{fill:#1976d2 !important;fill-opacity:var(--dot-alpha,.75) !important;stroke:none !important;stroke-width:0 !important}
+body.circle-mode .circle-dot.circle-old:not(.circle-missed) circle.main-dot{fill:#9aa0a6 !important;fill-opacity:.7 !important}
+.circle-old-overlay{fill:rgba(130,135,145,.08);stroke:#8a8f98;stroke-width:1.5;stroke-dasharray:7 5;vector-effect:non-scaling-stroke;pointer-events:none}
+#circle-overlay{fill:rgba(57,73,171,.12);stroke:#3949AB;stroke-width:2;stroke-dasharray:7 5;vector-effect:non-scaling-stroke;pointer-events:none}
+#circleHud{display:none;position:absolute;top:var(--circle-top,58px);left:10px;z-index:5;width:min(290px,64vw);max-height:min(330px,calc(100% - var(--circle-top,58px) - 110px));flex-direction:column;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:11px;box-shadow:0 4px 18px rgba(0,0,0,.18);overflow:hidden;font-size:13px}
+body.circle-mode #circleHud{display:flex}
+/* The info text moves to the right of the panel so the panel can sit in the top-left corner without covering it */
+body.circle-mode #msg{top:var(--circle-top,58px);left:calc(min(290px,64vw) + 20px);max-width:calc(100% - min(290px,64vw) - 30px)}
+@media (max-width:700px){body.circle-mode #msg{white-space:normal}}
+#circleHud .ch-head{padding:10px 12px 8px;border-bottom:1px solid var(--border)}
+#circleHud .ch-title{font-weight:700;font-size:13.5px}
+#circleHud .ch-pass.ok{color:#2e7d32;font-weight:700}
+#circleHud .ch-exit{position:absolute;top:8px;right:8px;width:22px;height:22px;padding:0;border-radius:50%;border:1px solid var(--border);background:var(--bg);color:var(--text2);font-size:11px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:1}
+#circleHud .ch-exit:hover{background:var(--text);color:var(--surface)}
+#circleHud .ch-title{padding-right:28px}
+#circleHud .ch-btns{display:flex;gap:6px;padding:8px 12px;border-bottom:1px solid var(--border)}
+#circleHud .ch-btns button{flex:1;padding:6px 4px;font-size:11.5px;font-weight:600;border:1px solid var(--border);border-radius:7px;background:var(--bg);color:var(--text);cursor:pointer}
+#circleHud .ch-btns button:disabled{opacity:.45;cursor:not-allowed}
+#circleHud .ch-btns button.primary{background:var(--accent2);border-color:var(--accent2);color:#fff}
+#foundGrid .cp-head{position:sticky;top:0;z-index:1;padding:8px 12px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+#foundGrid .cp-score{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}
+#foundGrid .cp-max{font-size:13px;font-weight:600;color:var(--text3)}
+#foundGrid .cp-head.won{background:rgba(46,125,50,.12)}
+#foundGrid .cp-win{margin-left:10px;font-size:12px;font-weight:700;color:#2e7d32}
+#foundGrid .cp-goal{font-size:11.5px;color:var(--text2);margin-top:3px}
+#foundGrid .cp-sub{color:var(--text3);font-size:12px;margin-top:1px}
+#foundGrid .cp-pts{font-weight:700;font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap;flex-shrink:0}
+#foundGrid .cp-empty{padding:14px 12px;font-size:12px;color:var(--text3);font-style:italic}
+#foundGrid .fi.fi-missed{background:var(--bg);color:var(--text3)}
+#circleHud .ch-pts{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+/* Circle challenge: end-of-game results + scoreboard modals */
+#circleEndModal,#circleBoardModal{display:none;position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.45);align-items:center;justify-content:center}
+#circleEndModal.open,#circleBoardModal.open{display:flex}
+.cm-box{background:var(--surface);color:var(--text);border-radius:12px;width:440px;max-width:94vw;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.28);overflow:hidden}
+#circleBoardModal .cm-box{width:560px}
+.cm-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);flex-shrink:0}
+.cm-head h2{font-size:15px;font-weight:700;color:var(--accent2)}
+.cm-x{border:none;background:transparent;font-size:18px;cursor:pointer;color:var(--text2);line-height:1;padding:2px 6px;border-radius:4px}
+.cm-x:hover{background:var(--bg)}
+.cm-body{padding:16px 18px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
+.cm-total{text-align:center}
+.cm-total .cm-big{font-size:38px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
+.cm-total .cm-lbl{font-size:12px;color:var(--text2)}
+.cm-rounds{display:flex;flex-direction:column;border:1px solid var(--border);border-radius:9px;overflow:hidden}
+.cm-rounds div{display:flex;justify-content:space-between;gap:10px;padding:8px 12px;font-size:13px;border-bottom:1px solid var(--border)}
+.cm-rounds div:last-child{border-bottom:none}
+.cm-rounds .cm-pts{font-weight:700;font-variant-numeric:tabular-nums}
+.cm-rounds small{color:var(--text3)}
+.cm-save{display:flex;gap:8px}
+.cm-save input{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--border);border-radius:7px;background:var(--bg);color:var(--text);font-size:13px}
+.cm-btn{padding:8px 12px;font-size:12.5px;font-weight:600;border:1px solid var(--border);border-radius:7px;background:var(--bg);color:var(--text);cursor:pointer}
+.cm-btn:hover:not(:disabled){border-color:var(--accent2)}
+.cm-btn:disabled{opacity:.55;cursor:default}
+.cm-btn.primary{background:var(--accent2);border-color:var(--accent2);color:#fff}
+.cm-actions{display:flex;gap:8px;flex-wrap:wrap}
+.cm-actions .cm-btn{flex:1;white-space:nowrap}
+.cm-note{font-size:12px;color:var(--text2);text-align:center;min-height:16px}
+.cm-note.ok{color:var(--success);font-weight:700}
+.cb-table{width:100%;border-collapse:collapse;font-size:13px}
+.cb-table th{position:sticky;top:0;background:var(--surface);text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--text3);padding:6px 8px;border-bottom:1px solid var(--border)}
+.cb-table td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
+.cb-table .num{text-align:right;font-variant-numeric:tabular-nums}
+.cb-table .cb-total{font-weight:800}
+.cb-table .cb-rounds{color:var(--text3);font-size:11.5px;white-space:nowrap}
+.cb-table tr.me td{background:rgba(46,125,50,.12)}
+.cb-table .cb-del{border:none;background:none;color:var(--text3);cursor:pointer;font-size:12px;padding:2px 5px;border-radius:4px}
+.cb-table .cb-del:hover{color:var(--danger);background:var(--bg)}
+.cb-empty{padding:22px 10px;text-align:center;color:var(--text3);font-size:13px;font-style:italic}
+
 /* Cities typed in the normal Japan mode stay in memory (found[]) but are hidden
    for the whole time the Prefectures quiz is active, then reappear as soon as
    the quiz is left. !important so it also beats the Night-mode
@@ -700,6 +776,7 @@ input[type=checkbox]{accent-color:var(--accent2);cursor:pointer;width:14px;heigh
 
   <div id="mapWrap">
     <div id="msg" class="overlayMsg"></div>
+    <div id="circleHud"></div>
     <svg id="map" preserveAspectRatio="xMidYMid meet">
       <defs>
         <!-- Soft glow used for city dots in Night mode, so they read like lights seen from space.
@@ -869,7 +946,25 @@ input[type=checkbox]{accent-color:var(--accent2);cursor:pointer;width:14px;heigh
         <span class="modepick-row"><span class="modepick-title" id="modePickQuizTitle"></span><span class="modepick-check"></span></span>
         <span class="modepick-desc" id="modePickQuizDesc"></span>
       </button>
+      <button type="button" class="modepick-opt" data-quiz="2" id="modePickCircleBtn" style="display:none">
+        <span class="modepick-row"><span class="modepick-title" id="modePickCircleTitle"></span><span class="modepick-check"></span></span>
+        <span class="modepick-desc" id="modePickCircleDesc"></span>
+      </button>
     </div>
+  </div>
+</div>
+
+<!-- CIRCLE CHALLENGE: RESULTS + SCOREBOARD MODALS -->
+<div id="circleEndModal">
+  <div class="cm-box">
+    <div class="cm-head"><h2>🎯 Circle challenge · Final score</h2><button class="cm-x" id="circleEndClose" aria-label="Close">✕</button></div>
+    <div class="cm-body" id="circleEndBody"></div>
+  </div>
+</div>
+<div id="circleBoardModal">
+  <div class="cm-box">
+    <div class="cm-head"><h2>🏆 Circle challenge · Scoreboard</h2><button class="cm-x" id="circleBoardClose" aria-label="Close">✕</button></div>
+    <div class="cm-body" id="circleBoardBody" style="padding-top:8px"></div>
   </div>
 </div>
 
@@ -1557,6 +1652,7 @@ function clipLineByLon(coords, lonThreshold, keepEast) {
 // map and the city-typing bar come back exactly as they were before the quiz
 // started (see setQuizMode).
 let quizMode = false;
+let circleMode = false, circleRegion = null, circlePending = null, circleTotal = 0, circleRound = 0, circlePassed = 0, circle = null, circleOld = [], circlePrevDotSize = null, circleScores = [], circleDone = false, circleSaved = false; // Circle challenge (see CIRCLE_CHALLENGE)
 let quizRegion = null;             // 'japan' | 'usa' | 'spain' | 'poland' | 'russia' while quizMode is on, else null (selects the entry in QUIZ_CFG)
 const quizSolved = new Set();      // region keys answered correctly so far (numbers for Japan, state abbreviations for the US)
 const quizSolvedTier = new Map();  // key -> 'yellow'|'red' for a solved region that took extra guesses (absent = solved on the first try, plain blue)
@@ -1652,6 +1748,7 @@ function quizClearProgress() {
 // picks a map's quiz option in the map selector (see setRegion and the mode
 // picker), and when leaving that map entirely (see drawMap).
 function setQuizMode(on, rk) {
+  if (on && circleMode) exitCircleMode();
   const prevRegion = quizRegion;
   quizMode = !!on;
   quizRegion = quizMode ? rk : null;
@@ -1923,6 +2020,7 @@ async function drawMap(regionKey) {
   // Quiz mode is tied to the one map it was started on (see QUIZ_CFG); quietly
   // turn it off whenever a different map is drawn (the indicator chip hides itself).
   if (quizMode && quizRegion !== regionKey) setQuizMode(false);
+  if (circleMode && circleRegion !== regionKey) exitCircleMode(true); // the circle challenge belongs to one map
   const usQuizOn = isUSA && quizMode && quizRegion === 'usa'; // US States quiz: draw clickable state shapes instead of counties
   const spainQuizOn = isSpain && quizMode && quizRegion === 'spain'; // Spain quiz: draw clickable province shapes instead of the country outline
   const polandQuizOn = isPoland && quizMode && quizRegion === 'poland'; // Poland quiz: draw clickable voivodeship shapes instead of the country outline
@@ -2352,6 +2450,8 @@ async function drawMap(regionKey) {
   });
   resizeNightCanvas();
   drawNightCanvas();
+  if (circlePending === regionKey) { circlePending = null; startCircleMode(regionKey); }
+  else if (circleMode) circleRenderOverlay();
 }
 
 // ─── PHYSICAL MODE (satellite basemap) ───────────────────────────────────────
@@ -3858,10 +3958,361 @@ function lookupCity(raw) {
   return matches; // every
 }
 
+// ─── CIRCLE CHALLENGE ─────────────────────────────────────────────────────────
+// A random circle is drawn on the map; type as many cities inside it as you
+// can. The biggest city inside the circle is worth 1000 points and every other
+// one is worth its share of that (pop / biggest pop * 1000). Cities outside the
+// circle don't count. Rounds aren't saved with the session. To offer it on
+// another map, add an entry here (and make sure the map opens the mode picker).
+const CIRCLE_CFG = {
+  usa: {
+    title: 'Circle challenge',
+    desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like New York. You play 3 circles; your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
+    minR: 60, maxR: 450,             // km: the circle adapts its radius between these limits (small where there are many big cities, big where there are few)
+    bigCityPop: 50000,               // a "big city" for sizing the circle: population at or above this
+    targetBigCities: [8, 14],        // the radius is set so that about this many big cities fall inside the circle (random in this range)
+    nudgeKm: 150,                    // the centre is moved up to this far off the seed city so the biggest city isn't always in the middle
+    revealCount: 15,                 // "Reveal" shows this many of the biggest cities you missed
+    popFloor: 1000,                  // population worth the minimum score (log scale starts here)
+    minCities: 30,                   // a circle needs at least this many eligible cities
+    bounds: [-124.5, -67.5, 25.5, 49], // [lonMin, lonMax, latMin, latMax] for the centre (contiguous US)
+    rounds: 3,                       // circles per game
+  },
+};
+const CIRCLE_SCORES_KEY = 'wcq_circle_scores', CIRCLE_NAME_KEY = 'wcq_circle_name', CIRCLE_BOARD_MAX = 100;
+const circleRoundsPerGame = () => (CIRCLE_CFG[circleRegion] && CIRCLE_CFG[circleRegion].rounds) || 3;
+const circleKey = c => c.name + '|' + (c.admin1 || '') + '|' + c.country;
+const _chEsc = t => String(t).replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+const _chName = c => displayName(c) + (c.admin1 ? ', ' + c.admin1 : '');
+
+function startCircleMode(rk) {
+  if (!CIRCLE_CFG[rk]) return;
+  if (quizMode) setQuizMode(false);
+  circleMode = true; circleRegion = rk; circleTotal = 0; circleRound = 0; circlePassed = 0; circleOld = []; circle = null; circleScores = []; circleDone = false; circleSaved = false;
+  document.body.classList.add('circle-mode');
+  circlePrevDotSize = S.dotSizeMode;          // restored when the mode is left
+  setDotSizeMode('normal');                   // circle challenge default dot size
+  tintRegionSelect(rk);
+  circleNewRound();
+}
+
+function exitCircleMode(skipDots) {
+  if (!circleMode) return;
+  circleMode = false; circleRegion = null; circle = null; circleOld = []; circleScores = []; circleDone = false; circleSaved = false;
+  closeCircleEnd(); closeCircleBoard();
+  document.body.classList.remove('circle-mode');
+  if (circlePrevDotSize && circlePrevDotSize !== S.dotSizeMode) setDotSizeMode(circlePrevDotSize);
+  circlePrevDotSize = null;
+  document.getElementById('circleHud').innerHTML = '';
+  renderFoundGrid(); // back to the normal Cities list
+  if (!skipDots && typeof svg !== 'undefined' && svg) {
+    svg.select('#circle-overlay').remove();
+    svg.selectAll('.circle-old-overlay').remove();
+    svg.selectAll('.circle-dot').remove();
+    found.forEach(c => { if (svg.select('#' + dotId(c)).empty()) addDot(c); }); // bring back dots a circle dot replaced
+    svg.transition().duration(500).call(zoomBehavior.transform, d3.zoomIdentity);
+    drawNightCanvas();
+  }
+  if (typeof tintRegionSelect === 'function') tintRegionSelect(currentRegion);
+}
+
+// retry = a new circle for the SAME round number (used after giving up with Reveal); otherwise the round number goes up.
+function circleNewRound(retry) {
+  // The circle just left stays on the map in grey, together with the cities found in it.
+  if (circle) circleOld.push({ center: circle.center, r: circle.r, cities: circle.found.map(f => f.city) });
+  const cfg = CIRCLE_CFG[circleRegion], region = REGIONS[circleRegion];
+  const [x0, x1, y0, y1] = cfg.bounds;
+  const eligible = cityDB.filter(c => cityInRegion(c, region));
+  const pool = eligible.filter(c => (Number(c.pop) || 0) >= 20000 && c.lon >= x0 && c.lon <= x1 && c.lat >= y0 && c.lat <= y1);
+  if (!pool.length) { setMsg('No cities loaded for this map yet.', 'err'); exitCircleMode(); return; }
+  let best = null;
+  const [tMin, tMax] = cfg.targetBigCities;
+  const bigs = eligible.filter(c => (Number(c.pop) || 0) >= cfg.bigCityPop); // only big cities decide how large the circle is
+  for (let t = 0; t < 30; t++) {
+    const seed = pool[Math.floor(Math.random() * pool.length)];
+    // Nudge the centre off the seed city so the biggest city isn't always dead centre.
+    const lat = Math.min(y1, Math.max(y0, seed.lat + (Math.random() * 2 - 1) * cfg.nudgeKm / 111));
+    const lon = Math.min(x1, Math.max(x0, seed.lon + (Math.random() * 2 - 1) * cfg.nudgeKm / (111 * Math.cos(lat * Math.PI / 180))));
+    // Adaptive size: a radius that reaches roughly the Nth-nearest big city (N random in
+    // targetBigCities), kept within minR..maxR. Many big cities nearby = small circle, few = big circle.
+    const bigD = Float64Array.from(bigs, c => d3.geoDistance([c.lon, c.lat], [lon, lat]) * 6371).sort();
+    const n = Math.min(bigD.length, tMin + Math.floor(Math.random() * (tMax - tMin + 1)));
+    const r = bigD.length ? Math.min(cfg.maxR, Math.max(cfg.minR, bigD[n - 1] * 1.05)) : cfg.maxR;
+    const inside = eligible.filter(c => Math.abs(c.lat - lat) < r / 111 + 0.5 && d3.geoDistance([c.lon, c.lat], [lon, lat]) * 6371 <= r);
+    if (!best || inside.length > best.inside.length) best = { center: [lon, lat], r, inside };
+    if (inside.length >= cfg.minCities) { best = { center: [lon, lat], r, inside }; break; }
+  }
+  const max = Math.max(...best.inside.map(c => Number(c.pop) || 0), 1);
+  const cities = new Map(); best.inside.forEach(c => cities.set(circleKey(c), c));
+  if (!retry) circleRound++;
+  circle = { center: best.center, r: best.r, cities, max, found: [], revealed: false, roundScore: 0, won: false };
+  // The goal: the points the 5 biggest cities inside the circle are worth. Reaching it (with any cities) wins the round.
+  const byPop = [...cities.values()].sort((a, b) => (Number(b.pop) || 0) - (Number(a.pop) || 0));
+  const sumTop = n => byPop.slice(0, n).reduce((t, c) => t + circlePts(c), 0);
+  circle.goal = sumTop(5);
+  svg.selectAll('.circle-dot').remove();
+  found.forEach(c => { if (svg.select('#' + dotId(c)).empty()) addDot(c); }); // restore dots a previous round replaced
+  circleRenderOverlay();
+  circleZoom();
+  setMsg(`Circle ${circleRound}/${circleRoundsPerGame()}: name as many cities inside it as you can!`, 'ok');
+  document.getElementById('cityInput').focus();
+}
+
+// Reveal shows the biggest cities inside the circle that weren't found yet.
+function circleMissedList() {
+  const foundKeys = new Set(circle.found.map(f => circleKey(f.city)));
+  return [...circle.cities.entries()].filter(e => !foundKeys.has(e[0]))
+    .sort((a, b) => (Number(b[1].pop) || 0) - (Number(a[1].pop) || 0)).slice(0, CIRCLE_CFG[circleRegion].revealCount).map(e => e[1]);
+}
+// Logarithmic, so one giant city doesn't flatten everything else: the biggest
+// city in the circle is 1000 and a city at the floor population is ~0, with
+// everything in between spread by how many times smaller than the biggest it is.
+// (e.g. New York 8.3M = 1000, Newark 300k ≈ 630, a 10k town ≈ 250.)
+function circlePts(c) {
+  const floor = CIRCLE_CFG[circleRegion].popFloor, pop = Number(c.pop) || 0;
+  if (circle.max <= floor) return Math.max(10, Math.round(1000 * pop / circle.max));
+  const f = Math.log(Math.max(pop, floor) / floor) / Math.log(circle.max / floor);
+  return Math.max(10, Math.min(1000, Math.round(1000 * f)));
+}
+
+function circleRenderOverlay() {
+  if (!circle || !projection) return;
+  const g = svg.select('#map-g');
+  g.select('#circle-overlay').remove();
+  g.selectAll('.circle-old-overlay').remove();
+  const path = d3.geoPath().projection(projection);
+  // Circles from earlier rounds: grey outlines drawn underneath the current one.
+  circleOld.forEach(o => {
+    const f = d3.geoCircle().center(o.center).radius(o.r / 6371 * 180 / Math.PI)();
+    g.append('path').attr('class', 'circle-old-overlay').datum(f).attr('d', path);
+  });
+  const radiusDeg = circle.r / 6371 * 180 / Math.PI;
+  const feat = d3.geoCircle().center(circle.center).radius(radiusDeg)();
+  g.append('path').attr('id', 'circle-overlay').datum(feat).attr('d', d3.geoPath().projection(projection));
+  g.selectAll('.circle-dot').remove();
+  const put = (c, missed) => {
+    g.selectAll('#' + dotId(c)).remove();
+    addDot(c);
+    g.selectAll('#' + dotId(c)).classed('circle-dot', true).classed('circle-missed', !!missed);
+  };
+  // Cities found in earlier rounds: grey dots (a city found again this round turns blue below).
+  circleOld.forEach(o => o.cities.forEach(c => { put(c, false); g.selectAll('#' + dotId(c)).classed('circle-old', true); }));
+  circle.found.forEach(f => put(f.city, false));
+  if (circle.revealed) circleMissedList().forEach(c => put(c, true));
+  circleRenderHud();
+}
+
+function circleZoom() {
+  const [W, H] = getMapSize();
+  const feat = d3.geoCircle().center(circle.center).radius(circle.r / 6371 * 180 / Math.PI)();
+  const [[bx0, by0], [bx1, by1]] = d3.geoPath().projection(projection).bounds(feat);
+  const dx = Math.max(bx1 - bx0, 1), dy = Math.max(by1 - by0, 1);
+  // Start at 200% at least, but zoom in further on small circles so the whole circle still fills a good part of the view.
+  const k = Math.min(5, Math.max(2, 0.4 * Math.min(W / dx, H / dy)));
+  const t = d3.zoomIdentity.translate(W / 2 - k * (bx0 + bx1) / 2, H / 2 - k * (by0 + by1) / 2).scale(k);
+  svg.transition().duration(700).call(zoomBehavior.transform, t);
+}
+
+function circleGuess() {
+  const input = document.getElementById('cityInput');
+  const raw = input.value.trim(); if (!raw) return;
+  input.value = ''; input.focus();
+  if (circleDone) { setMsg('Game over: start a new game to play again.', 'dup'); return; }
+  if (!circle || circle.revealed) { setMsg('This round is over, start the next circle.', 'dup'); return; }
+  // Look up every city with that name (not just the biggest), then keep the ones inside the circle.
+  const prevMode = S.countryMode;
+  S.countryMode = 'every';
+  let results = [];
+  try { results = lookupCity(raw); } finally { S.countryMode = prevMode; }
+  if (!results.length) { setMsg(`"${raw}" not found.`, 'err'); return; }
+  const inside = results.filter(c => circle.cities.has(circleKey(c))).sort((a, b) => (b.pop || 0) - (a.pop || 0));
+  if (!inside.length) { setMsg(`${_chName(results[0])} is not inside the circle.`, 'err'); return; }
+  const city = inside.find(c => !circle.found.some(f => circleKey(f.city) === circleKey(c)));
+  if (!city) { setMsg(`Already found ${_chName(inside[0])}!`, 'dup'); return; }
+  const pts = circlePts(city);
+  circle.found.unshift({ city, pts });
+  circle.roundScore += pts; circleTotal += pts;
+  svg.selectAll('#' + dotId(city)).remove();
+  addDot(city);
+  svg.selectAll('#' + dotId(city)).classed('circle-dot', true);
+  _justAddedId = dotId(city);
+  const justWon = !circle.won && circle.roundScore >= circle.goal;
+  if (justWon) { circle.won = true; circlePassed++; }
+  setMsg(`✓ ${_chName(city)}: +${pts} pts` + (city.pop ? ` (pop. ${fmtPop(city.pop)})` : '') + (justWon ? ' · 🏆 Goal reached! Keep scoring or move on.' : ''), 'ok');
+  circleRenderHud();
+}
+
+function circleReveal() {
+  if (!circle || circle.revealed) return;
+  circle.revealed = true;
+  const missed = circleMissedList().length;
+  setMsg(missed ? `The biggest ${missed} cities you missed are shown in grey.` : 'You found every city in the circle!', 'dup');
+  circleRenderOverlay();
+}
+
+// Sit the panel right under the glass strip at the top of the map (the status row, which is unused in this mode).
+function circleLayoutTop() {
+  const sr = document.getElementById('statusRow'), mw = document.getElementById('mapWrap');
+  if (!sr || !mw) return;
+  const top = Math.max(0, sr.getBoundingClientRect().bottom - mw.getBoundingClientRect().top) + 6;
+  document.documentElement.style.setProperty('--circle-top', Math.round(top) + 'px');
+}
+window.addEventListener('resize', () => { if (circleMode) circleLayoutTop(); });
+// Score + guessed cities, drawn into the right-hand panel (#foundGrid) while the circle challenge is on.
+function renderCircleFoundGrid(grid) {
+  const max = circle.goal.toLocaleString('en-US');
+  const head = document.createElement('div');
+  head.className = 'cp-head';
+  head.classList.toggle('won', !!circle.won);
+  head.innerHTML = `<div class="cp-score">${circle.roundScore.toLocaleString('en-US')}<span class="cp-max"> / ${max}</span>${circle.won ? '<span class="cp-win">🏆 Goal reached</span>' : ''}</div>
+    <div class="cp-sub">${circle.found.length} ${circle.found.length === 1 ? 'city' : 'cities'} found · game total ${circleTotal.toLocaleString('en-US')}</div>
+    <div class="cp-goal">${circle.won ? 'Goal reached! Keep guessing for more points, or move on.' : 'Goal: ' + max + ' pts (the 5 biggest cities) for a 🏆.'}</div>`;
+  grid.appendChild(head);
+  const rowsList = sortByPop ? [...circle.found].sort((a, b) => b.pts - a.pts) : circle.found;
+  const addRow = (c, pts, missed, num) => {
+    const id = dotId(c);
+    const div = document.createElement('div');
+    div.className = 'fi' + (missed ? ' fi-missed' : '') + (!missed && id === _justAddedId ? ' fi-enter' : '');
+    div.id = 'card-' + id;
+    div.style.cursor = 'pointer';
+    div.title = 'Click to locate on map';
+    div.innerHTML = `<span class="fi-num">${num}</span><div class="fi-info"><span class="fi-name">${_chEsc(displayName(c))}${c.pop ? ` <span class="fi-pop">(${fmtPop(c.pop)})</span>` : ''}</span><span class="fi-meta">${_chEsc(fmtLocation(c))}</span></div><span class="cp-pts">${missed ? '' : '+'}${pts}</span>`;
+    div.onclick = () => highlightCity(c);
+    grid.appendChild(div);
+  };
+  rowsList.forEach(f => addRow(f.city, f.pts, false, (circle.found.length - circle.found.indexOf(f)) + '.'));
+  if (circle.revealed) circleMissedList().forEach(c => addRow(c, circlePts(c), true, '–'));
+  if (!circle.found.length && !circle.revealed) {
+    const e = document.createElement('div');
+    e.className = 'cp-empty';
+    e.textContent = 'Type a city inside the circle to see it here!';
+    grid.appendChild(e);
+  }
+  _justAddedId = null;
+}
+
+// Called by the HUD's main button: bank this round's score, then start the next circle or finish the game.
+function circleAdvance() {
+  if (!circle || circleDone) return;
+  circleScores.push({ score: circle.roundScore, found: circle.found.length, won: !!circle.won });
+  if (circleRound >= circleRoundsPerGame()) { circleDone = true; circleRenderHud(); setMsg(`Game over! Final score: ${circleTotal.toLocaleString('en-US')}`, 'ok'); openCircleEnd(); }
+  else circleNewRound();
+}
+function circleNewGame() {
+  if (!circleMode) return;
+  closeCircleEnd();
+  circle = null; circleOld = []; circleScores = []; circleTotal = 0; circleRound = 0; circlePassed = 0; circleDone = false; circleSaved = false; circleLastSavedId = null;
+  circleNewRound();
+}
+
+function circleRenderHud() {
+  circleLayoutTop();
+  const hud = document.getElementById('circleHud');
+  if (!circle) { hud.innerHTML = ''; return; }
+  renderFoundGrid();
+  const total = circleRoundsPerGame(), last = circleRound >= total;
+  const main = circleDone
+    ? `<button data-act="results" title="Show your final score">Results</button><button class="primary" data-act="newgame" title="Start a new 3-circle game">New game ↻</button>`
+    : `${circle.revealed ? '' : '<button data-act="reveal" title="Show the biggest cities you missed">Reveal missed</button>'}
+       <button class="primary" data-act="next" title="${last ? 'Finish the game and see your final score' : 'Bank this round and go to the next circle'}">${last ? 'Finish 🏁' : 'Next circle ▶'}</button>`;
+  hud.innerHTML = `
+    <button class="ch-exit" data-act="exit" title="Exit the circle challenge" aria-label="Exit the circle challenge">✕</button>
+    <div class="ch-head">
+      <div class="ch-title">🎯 Circle challenge · Round ${circleRound}/${total}</div>
+    </div>
+    <div class="ch-btns">${main}</div>
+    <div class="ch-btns"><button data-act="board" title="See the best saved games">🏆 Scoreboard</button></div>`;
+}
+document.getElementById('circleHud').addEventListener('click', e => {
+  const act = e.target && e.target.dataset && e.target.dataset.act;
+  if (act === 'reveal') circleReveal();
+  else if (act === 'next') circleAdvance();
+  else if (act === 'results') openCircleEnd();
+  else if (act === 'newgame') circleNewGame();
+  else if (act === 'board') openCircleBoard();
+  else if (act === 'exit') exitCircleMode();
+});
+
+// ─── CIRCLE CHALLENGE: SAVED GAMES + SCOREBOARD ──────────────────────────────
+function circleLoadScores() {
+  try { const a = JSON.parse(localStorage.getItem(CIRCLE_SCORES_KEY)); return Array.isArray(a) ? a : []; } catch (e) { return []; }
+}
+function circleStoreScores(list) {
+  try { localStorage.setItem(CIRCLE_SCORES_KEY, JSON.stringify(list)); return true; } catch (e) { return false; }
+}
+function circleSaveGame(name) {
+  const list = circleLoadScores();
+  const entry = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: (name || '').trim().slice(0, 24) || 'Player', total: circleTotal,
+    rounds: circleScores.map(r => r.score), cities: circleScores.reduce((t, r) => t + r.found, 0), region: circleRegion, date: Date.now() };
+  list.push(entry);
+  list.sort((a, b) => b.total - a.total || a.date - b.date);
+  if (list.length > CIRCLE_BOARD_MAX) list.length = CIRCLE_BOARD_MAX;
+  if (!circleStoreScores(list)) return null;
+  try { localStorage.setItem(CIRCLE_NAME_KEY, entry.name === 'Player' ? '' : entry.name); } catch (e) {}
+  return { entry, rank: list.findIndex(x => x.id === entry.id) + 1, of: list.length };
+}
+
+function openCircleEnd() {
+  const total = circleScores.length;
+  let savedName = ''; try { savedName = localStorage.getItem(CIRCLE_NAME_KEY) || ''; } catch (e) {}
+  const rows = circleScores.map((r, i) => `<div><span>Round ${i + 1} ${r.won ? '🏆' : ''} <small>${r.found} ${r.found === 1 ? 'city' : 'cities'}</small></span><span class="cm-pts">${r.score.toLocaleString('en-US')}</span></div>`).join('');
+  const body = document.getElementById('circleEndBody');
+  body.innerHTML = `
+    <div class="cm-total"><div class="cm-big">${circleTotal.toLocaleString('en-US')}</div><div class="cm-lbl">total points over ${total} ${total === 1 ? 'circle' : 'circles'}</div></div>
+    <div class="cm-rounds">${rows}</div>
+    <div class="cm-save"><input id="circleNameInput" type="text" maxlength="24" placeholder="Your name" value="${_chEsc(savedName)}"${circleSaved ? ' disabled' : ''}/><button class="cm-btn primary" id="circleSaveBtn"${circleSaved ? ' disabled' : ''}>${circleSaved ? 'Saved ✓' : 'Save score'}</button></div>
+    <div class="cm-note" id="circleEndNote"></div>
+    <div class="cm-actions"><button class="cm-btn" id="circleEndBoard">🏆 Scoreboard</button><button class="cm-btn primary" id="circleEndNew">New game ↻</button></div>`;
+  const note = document.getElementById('circleEndNote'), saveBtn = document.getElementById('circleSaveBtn'), nameIn = document.getElementById('circleNameInput');
+  const doSave = () => {
+    if (circleSaved) return;
+    const res = circleSaveGame(nameIn.value);
+    if (!res) { note.className = 'cm-note'; note.textContent = 'Could not save (browser storage is full or disabled).'; return; }
+    circleSaved = true; nameIn.disabled = true; saveBtn.disabled = true; saveBtn.textContent = 'Saved ✓';
+    note.className = 'cm-note ok'; note.textContent = `Saved! You are #${res.rank} of ${res.of} on the scoreboard.`;
+    circleLastSavedId = res.entry.id;
+  };
+  saveBtn.onclick = doSave;
+  nameIn.onkeydown = e => { if (e.key === 'Enter') doSave(); };
+  document.getElementById('circleEndBoard').onclick = () => { closeCircleEnd(); openCircleBoard(); };
+  document.getElementById('circleEndNew').onclick = circleNewGame;
+  document.getElementById('circleEndModal').classList.add('open');
+  if (!circleSaved) setTimeout(() => nameIn.focus(), 50);
+}
+function closeCircleEnd() { document.getElementById('circleEndModal').classList.remove('open'); }
+
+let circleLastSavedId = null;
+function openCircleBoard() {
+  const list = circleLoadScores();
+  const body = document.getElementById('circleBoardBody');
+  const fmtDate = t => { try { return new Date(t).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return ''; } };
+  if (!list.length) body.innerHTML = '<div class="cb-empty">No saved games yet. Finish a game and save your score to see it here!</div>';
+  else {
+    body.innerHTML = `<table class="cb-table"><thead><tr><th>#</th><th>Player</th><th class="num">Score</th><th>Rounds</th><th>Date</th><th></th></tr></thead><tbody>${
+      list.map((g, i) => `<tr class="${g.id === circleLastSavedId ? 'me' : ''}"><td>${i + 1}${i === 0 ? ' 🥇' : i === 1 ? ' 🥈' : i === 2 ? ' 🥉' : ''}</td><td>${_chEsc(g.name)}</td><td class="num cb-total">${g.total.toLocaleString('en-US')}</td><td class="cb-rounds">${(g.rounds || []).map(r => r.toLocaleString('en-US')).join(' · ')}</td><td class="cb-rounds">${fmtDate(g.date)}</td><td><button class="cb-del" data-id="${_chEsc(g.id)}" title="Delete this entry" aria-label="Delete this entry">✕</button></td></tr>`).join('')
+    }</tbody></table>`;
+  }
+  document.getElementById('circleBoardModal').classList.add('open');
+}
+function closeCircleBoard() { document.getElementById('circleBoardModal').classList.remove('open'); }
+document.getElementById('circleBoardBody').addEventListener('click', e => {
+  const id = e.target && e.target.dataset && e.target.dataset.id;
+  if (!id) return;
+  if (!confirm('Delete this saved game from the scoreboard?')) return;
+  circleStoreScores(circleLoadScores().filter(g => g.id !== id));
+  openCircleBoard();
+});
+document.getElementById('circleEndClose').onclick = closeCircleEnd;
+document.getElementById('circleBoardClose').onclick = closeCircleBoard;
+document.getElementById('circleEndModal').onclick = e => { if (e.target.id === 'circleEndModal') closeCircleEnd(); };
+document.getElementById('circleBoardModal').onclick = e => { if (e.target.id === 'circleBoardModal') closeCircleBoard(); };
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeCircleEnd(); closeCircleBoard(); } });
+
 // ─── GUESS ───────────────────────────────────────────────────────────────────
 function guess() {
   if (/^geniote\.github\.io$/i.test(document.getElementById('cityInput').value.trim())) { document.getElementById('cityInput').value=''; window.openCityAdmin && window.openCityAdmin(); return; }
   if (!cityDB.length) { setMsg('Load a cities file first!','err'); return; }
+  if (circleMode) { circleGuess(); return; }
   const input = document.getElementById('cityInput');
   const raw = input.value.trim(); if (!raw) return;
   const results = lookupCity(raw);
@@ -4177,10 +4628,16 @@ function addFoundItem(city) {
 
 function renderFoundGrid() {
   const titleEl = document.getElementById('panelTitle');
-  if (titleEl) titleEl.textContent = (quizMode && quizCfg()) ? quizCfg().Nouns : 'Cities';
+  if (titleEl) titleEl.textContent = (quizMode && quizCfg()) ? quizCfg().Nouns : ((circleMode && circle) ? 'Circle challenge' : 'Cities');
 
   const grid = document.getElementById('foundGrid');
   grid.innerHTML = '';
+
+  // Circle challenge: the score and the list of guessed cities live in this panel.
+  if (circleMode && circle) {
+    renderCircleFoundGrid(grid);
+    return;
+  }
 
   // Region quiz: the panel lists solved regions (name, capital,
   // population) instead of typed-and-found cities — see renderQuizFoundGrid.
@@ -5468,7 +5925,11 @@ function openModePickModal(rk) {
   document.getElementById('modePickQuizDesc').textContent = cfg.quizDesc;
   // Tick whichever mode is currently active (only meaningful if this map is
   // already the loaded one — otherwise leave both unchecked).
-  const activeQuiz = currentRegion === rk ? (quizMode && quizRegion === rk ? '1' : '0') : null;
+  const ccfg = CIRCLE_CFG[rk];
+  const circleBtn = document.getElementById('modePickCircleBtn');
+  circleBtn.style.display = ccfg ? '' : 'none';
+  if (ccfg) { document.getElementById('modePickCircleTitle').textContent = ccfg.title; document.getElementById('modePickCircleDesc').textContent = ccfg.desc; }
+  const activeQuiz = currentRegion === rk ? (circleMode && circleRegion === rk ? '2' : (quizMode && quizRegion === rk ? '1' : '0')) : null;
   document.querySelectorAll('.modepick-opt').forEach(btn => {
     const isCurrent = activeQuiz !== null && btn.dataset.quiz === activeQuiz;
     btn.classList.toggle('current', isCurrent);
@@ -5484,6 +5945,12 @@ document.querySelectorAll('.modepick-opt').forEach(btn => {
     const rk = modePickRegion;
     closeModePickModal();
     if (!rk) return;
+    if (btn.dataset.quiz === '2') {            // Circle challenge
+      if (currentRegion === rk) { if (circleMode) exitCircleMode(); startCircleMode(rk); }
+      else { circlePending = rk; setRegion(rk, false); }
+      return;
+    }
+    if (circleMode) exitCircleMode(currentRegion !== rk);
     if (currentRegion === rk) {
       const changed = (quizMode && quizRegion === rk) !== quiz;
       setQuizMode(quiz, rk);
@@ -5824,6 +6291,7 @@ function applyMapColors() {
 // Re-apply fill/stroke/glow to every existing dot from the current S settings.
 // Shared by the dot colour/alpha pickers and Night mode.
 function applyDotStyles() {
+  document.documentElement.style.setProperty('--dot-alpha', S.dotAlpha); // circle-challenge dots follow the same transparency
   svg.selectAll('.city-dot circle.main-dot')
     .attr('fill', dotFill()).attr('fill-opacity', dotFillOpacity())
     .attr('stroke', dotStroke())
