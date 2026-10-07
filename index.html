@@ -4,6 +4,8 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
 <title>World City Quiz</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'> <defs> <radialGradient id='o' cx='35%25' cy='30%25' r='80%25'><stop offset='0' stop-color='%237cc4f5'/><stop offset='.55' stop-color='%232f86d6'/><stop offset='1' stop-color='%2314498f'/></radialGradient> <radialGradient id='g' cx='32%25' cy='24%25' r='55%25'><stop offset='0' stop-color='%23fff' stop-opacity='.55'/><stop offset='1' stop-color='%23fff' stop-opacity='0'/></radialGradient> <clipPath id='c'><circle cx='32' cy='32' r='29'/></clipPath> </defs> <circle cx='32' cy='32' r='29' fill='url(%23o)'/> <g clip-path='url(%23c)'> <path fill='%235cbf6e' d='M12 14c6-5 15-4 17 2 1 5-5 7-4 12 1 5 8 6 6 13-2 6-8 10-12 6-3-3 0-7-3-11-3-5-9-6-8-12 1-4 2-7 4-10z'/> <path fill='%235cbf6e' d='M37 11c5-2 11 1 12 6 1 4-3 4-3 8 1 5 7 6 5 12-2 5-8 6-11 3-3-3-1-7-4-10-3-3-7-3-6-8 1-5 3-9 7-11z'/> <path fill='%238fd89a' d='M44 44c3-1 7 1 6 4-1 3-6 4-8 2-1-2 0-5 2-6z'/> <g fill='none' stroke='%23fff' stroke-opacity='.22' stroke-width='1'> <ellipse cx='32' cy='32' rx='13' ry='29'/><line x1='32' y1='3' x2='32' y2='61'/> <ellipse cx='32' cy='32' rx='29' ry='11'/><line x1='3' y1='32' x2='61' y2='32'/> </g> <circle cx='32' cy='32' r='29' fill='url(%23g)'/> </g> <circle cx='32' cy='32' r='29' fill='none' stroke='%230d3a75' stroke-opacity='.55' stroke-width='2'/> </svg>"/>
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'> <defs> <radialGradient id='o' cx='35%25' cy='30%25' r='80%25'><stop offset='0' stop-color='%237cc4f5'/><stop offset='.55' stop-color='%232f86d6'/><stop offset='1' stop-color='%2314498f'/></radialGradient> <radialGradient id='g' cx='32%25' cy='24%25' r='55%25'><stop offset='0' stop-color='%23fff' stop-opacity='.55'/><stop offset='1' stop-color='%23fff' stop-opacity='0'/></radialGradient> <clipPath id='c'><circle cx='32' cy='32' r='29'/></clipPath> </defs> <circle cx='32' cy='32' r='29' fill='url(%23o)'/> <g clip-path='url(%23c)'> <path fill='%235cbf6e' d='M12 14c6-5 15-4 17 2 1 5-5 7-4 12 1 5 8 6 6 13-2 6-8 10-12 6-3-3 0-7-3-11-3-5-9-6-8-12 1-4 2-7 4-10z'/> <path fill='%235cbf6e' d='M37 11c5-2 11 1 12 6 1 4-3 4-3 8 1 5 7 6 5 12-2 5-8 6-11 3-3-3-1-7-4-10-3-3-7-3-6-8 1-5 3-9 7-11z'/> <path fill='%238fd89a' d='M44 44c3-1 7 1 6 4-1 3-6 4-8 2-1-2 0-5 2-6z'/> <g fill='none' stroke='%23fff' stroke-opacity='.22' stroke-width='1'> <ellipse cx='32' cy='32' rx='13' ry='29'/><line x1='32' y1='3' x2='32' y2='61'/> <ellipse cx='32' cy='32' rx='29' ry='11'/><line x1='3' y1='32' x2='61' y2='32'/> </g> <circle cx='32' cy='32' r='29' fill='url(%23g)'/> </g> <circle cx='32' cy='32' r='29' fill='none' stroke='%230d3a75' stroke-opacity='.55' stroke-width='2'/> </svg>"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -173,6 +175,19 @@ body.night-mode .modepick-opt.current{background:rgba(43,76,126,.25)}
 .modepick-check{color:var(--accent2);font-size:13px;font-weight:700}
 .modepick-title{font-size:13.5px;font-weight:700;color:var(--text)}
 .modepick-desc{font-size:11.5px;color:var(--text2);line-height:1.4}
+/* CIRCLE CHALLENGE: timed / untimed choice, centred over the mode picker */
+#circleTimerModal{display:none;position:fixed;inset:0;z-index:125;background:rgba(0,0,0,.45);align-items:center;justify-content:center}
+#circleTimerModal.open{display:flex}
+#circleTimerBox{background:var(--surface);border-radius:12px;width:380px;max-width:92vw;box-shadow:0 8px 40px rgba(0,0,0,.22);overflow:hidden}
+#circleTimerHead{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)}
+#circleTimerHead h2{font-size:15px;font-weight:700;color:var(--accent2)}
+#circleTimerClose{border:none;background:transparent;font-size:18px;cursor:pointer;color:var(--text2);line-height:1;padding:2px 6px;border-radius:4px}
+#circleTimerClose:hover{background:var(--bg)}
+#circleTimerList{display:flex;flex-direction:column;gap:10px;padding:14px 18px 18px}
+.ctm-opt{display:flex;flex-direction:column;gap:3px;align-items:flex-start;padding:12px 14px;border:1px solid var(--border);border-radius:9px;background:var(--surface);cursor:pointer;text-align:left;transition:border-color .15s,box-shadow .15s}
+.ctm-opt:hover,.ctm-opt:focus-visible{border-color:var(--accent2);box-shadow:0 2px 8px rgba(43,76,126,.1);outline:none}
+.ctm-title{font-size:13.5px;font-weight:700;color:var(--text)}
+.ctm-desc{font-size:11.5px;color:var(--text2);line-height:1.4}
 #mapList{flex:1;overflow-y:auto;padding:12px 14px}
 .map-group-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin:4px 2px 8px}
 .map-group+.map-group{margin-top:14px}
@@ -464,21 +479,19 @@ body.circle-mode .circle-dot:not(.circle-missed) circle.main-dot{fill:#1976d2 !i
 body.circle-mode .circle-dot.circle-old:not(.circle-missed) circle.main-dot{fill:#9aa0a6 !important;fill-opacity:.7 !important}
 .circle-old-overlay{fill:rgba(130,135,145,.08);stroke:#8a8f98;stroke-width:1.5;stroke-dasharray:7 5;vector-effect:non-scaling-stroke;pointer-events:none}
 #circle-overlay{fill:rgba(57,73,171,.12);stroke:#3949AB;stroke-width:2;stroke-dasharray:7 5;vector-effect:non-scaling-stroke;pointer-events:none}
-#circleHud{display:none;position:absolute;top:var(--circle-top,58px);left:10px;z-index:5;width:min(290px,64vw);max-height:min(330px,calc(100% - var(--circle-top,58px) - 110px));flex-direction:column;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:11px;box-shadow:0 4px 18px rgba(0,0,0,.18);overflow:hidden;font-size:13px}
-body.circle-mode #circleHud{display:flex}
 /* The info text moves to the right of the panel so the panel can sit in the top-left corner without covering it */
-body.circle-mode #msg{top:var(--circle-top,58px);left:calc(min(290px,64vw) + 20px);max-width:calc(100% - min(290px,64vw) - 30px)}
-@media (max-width:700px){body.circle-mode #msg{white-space:normal}}
-#circleHud .ch-head{padding:10px 12px 8px;border-bottom:1px solid var(--border)}
-#circleHud .ch-title{font-weight:700;font-size:13.5px}
-#circleHud .ch-pass.ok{color:#2e7d32;font-weight:700}
-#circleHud .ch-exit{position:absolute;top:8px;right:8px;width:22px;height:22px;padding:0;border-radius:50%;border:1px solid var(--border);background:var(--bg);color:var(--text2);font-size:11px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:1}
-#circleHud .ch-exit:hover{background:var(--text);color:var(--surface)}
-#circleHud .ch-title{padding-right:28px}
-#circleHud .ch-btns{display:flex;gap:6px;padding:8px 12px;border-bottom:1px solid var(--border)}
-#circleHud .ch-btns button{flex:1;padding:6px 4px;font-size:11.5px;font-weight:600;border:1px solid var(--border);border-radius:7px;background:var(--bg);color:var(--text);cursor:pointer}
-#circleHud .ch-btns button:disabled{opacity:.45;cursor:not-allowed}
-#circleHud .ch-btns button.primary{background:var(--accent2);border-color:var(--accent2);color:#fff}
+body.circle-mode #sortLabel{display:none}
+body:not(.circle-mode) #circleBoardBtn{display:none}
+#circleBoardBtn{margin-left:auto;width:28px;height:28px;padding:0;border-radius:50%;border:1px solid var(--border);background:var(--bg);font-size:15px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+#circleBoardBtn:hover{background:var(--surface);border-color:var(--accent2)}
+body.night-mode #circleBoardBtn{background:rgba(20,24,32,.85)}
+#foundGrid .cp-round{font-size:12.5px;font-weight:700;color:var(--text2);margin-bottom:2px}
+#foundGrid .cp-meta{display:flex;gap:10px;align-items:baseline;font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text3);margin-top:2px}
+#foundGrid .cp-meta:empty,#foundGrid .cp-timer:empty{display:none}
+#foundGrid .cp-timer.low,#foundGrid .cp-strikes.low{color:#c62828}
+#foundGrid .cp-actions{position:sticky;bottom:0;margin-top:auto;display:flex;gap:8px;padding:10px 12px;background:var(--surface);border-top:1px solid var(--border);z-index:1;flex-shrink:0}
+#foundGrid .cp-actions button{flex:1;padding:9px 6px;font-size:13px;font-weight:700;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);cursor:pointer}
+#foundGrid .cp-actions button.primary{background:var(--accent2);border-color:var(--accent2);color:#fff}
 #foundGrid .cp-head{position:sticky;top:0;z-index:1;padding:8px 12px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
 #foundGrid .cp-score{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}
 #foundGrid .cp-max{font-size:13px;font-weight:600;color:var(--text3)}
@@ -489,7 +502,6 @@ body.circle-mode #msg{top:var(--circle-top,58px);left:calc(min(290px,64vw) + 20p
 #foundGrid .cp-pts{font-weight:700;font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap;flex-shrink:0}
 #foundGrid .cp-empty{padding:14px 12px;font-size:12px;color:var(--text3);font-style:italic}
 #foundGrid .fi.fi-missed{background:var(--bg);color:var(--text3)}
-#circleHud .ch-pts{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
 /* Circle challenge: end-of-game results + scoreboard modals */
 #circleEndModal,#circleBoardModal{display:none;position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.45);align-items:center;justify-content:center}
 #circleEndModal.open,#circleBoardModal.open{display:flex}
@@ -772,13 +784,12 @@ input[type=checkbox]{accent-color:var(--accent2);cursor:pointer;width:14px;heigh
   </div>
 
   <!-- STATUS STRIP — thin bar showing the found-cities summary -->
-  <div id="statusRow">
+  <div id="statusRow" style="display:none">
     <div id="summaryBar"></div>
   </div>
 
   <div id="mapWrap">
     <div id="msg" class="overlayMsg"></div>
-    <div id="circleHud"></div>
     <svg id="map" preserveAspectRatio="xMidYMid meet">
       <defs>
         <!-- Soft glow used for city dots in Night mode, so they read like lights seen from space.
@@ -907,6 +918,7 @@ input[type=checkbox]{accent-color:var(--accent2);cursor:pointer;width:14px;heigh
     <div id="panelHeader">
       <span id="panelTitle">Cities</span>
       <label id="sortLabel"><input type="checkbox" id="sortByPop"> Sort by population</label>
+      <button type="button" id="circleBoardBtn" title="Scoreboard — best saved games" aria-label="Scoreboard">🏆</button>
     </div>
     <div id="foundGrid"></div>
     <input type="file" id="fileInput" accept=".xlsx,.txt,.tsv" style="display:none"/>
@@ -951,6 +963,26 @@ input[type=checkbox]{accent-color:var(--accent2);cursor:pointer;width:14px;heigh
       <button type="button" class="modepick-opt" data-quiz="2" id="modePickCircleBtn" style="display:none">
         <span class="modepick-row"><span class="modepick-title" id="modePickCircleTitle"></span><span class="modepick-check"></span></span>
         <span class="modepick-desc" id="modePickCircleDesc"></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- CIRCLE CHALLENGE: TIMER CHOICE — opens in the centre of the screen after picking the Circle challenge -->
+<div id="circleTimerModal">
+  <div id="circleTimerBox" role="dialog" aria-modal="true" aria-labelledby="circleTimerTitle">
+    <div id="circleTimerHead">
+      <h2 id="circleTimerTitle">🎯 Circle challenge — how do you want to play?</h2>
+      <button id="circleTimerClose" aria-label="Close">✕</button>
+    </div>
+    <div id="circleTimerList">
+      <button type="button" class="ctm-opt" data-timed="1">
+        <span class="ctm-title">🔥 Hard mode</span>
+        <span class="ctm-desc">60 seconds per circle, and 5 cities that are not inside the circle end the round. Either one ends the round and keeps your points.</span>
+      </button>
+      <button type="button" class="ctm-opt" data-timed="0">
+        <span class="ctm-title">♾ Without timer</span>
+        <span class="ctm-desc">Take all the time you want on each circle, with no limit on wrong cities. Press Next circle when you are done.</span>
       </button>
     </div>
   </div>
@@ -2452,7 +2484,7 @@ async function drawMap(regionKey) {
   });
   resizeNightCanvas();
   drawNightCanvas();
-  if (circlePending === regionKey) { circlePending = null; startCircleMode(regionKey); }
+  if (circlePending === regionKey) { circlePending = null; startCircleMode(regionKey, circlePendingTimed); }
   else if (circleMode) circleRenderOverlay();
 }
 
@@ -3965,11 +3997,11 @@ function lookupCity(raw) {
 // can. The biggest city inside the circle is worth 1000 points and every other
 // one is worth its share of that (pop / biggest pop * 1000). Cities outside the
 // circle don't count. Rounds aren't saved with the session. To offer it on
-// another map, add an entry here (USA, Japan, Russia, Poland and Spain are set up; the map must also open the mode picker, i.e. have a QUIZ_CFG entry).
+// another map, add an entry here (USA, Japan, Russia, Poland, Spain, Europe and World are set up; any map with a CIRCLE_CFG entry opens the mode picker, with or without a QUIZ_CFG entry).
 const CIRCLE_CFG = {
   usa: {
     title: 'Circle challenge',
-    desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like New York. You play 3 circles; your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
+    desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like New York. You play 3 circles, either relaxed (no timer) or in Hard mode (60 seconds per circle, and 5 typed cities that are not inside the circle end the round); your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
     minR: 60, maxR: 450,             // km: the circle adapts its radius between these limits (small where there are many big cities, big where there are few)
     bigCityPop: 50000,               // a "big city" for sizing the circle: population at or above this
     targetBigCities: [8, 14],        // the radius is set so that about this many big cities fall inside the circle (random in this range)
@@ -3982,7 +4014,7 @@ const CIRCLE_CFG = {
   },
   japan: {
     title: 'Circle challenge',
-    desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Tokyo. You play 3 circles; your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
+    desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Tokyo. You play 3 circles, either relaxed (no timer) or in Hard mode (60 seconds per circle, and 5 typed cities that are not inside the circle end the round); your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
     minR: 25, maxR: 350,             // km: Japan is dense, so circles are much smaller than in the US
     bigCityPop: 50000,
     targetBigCities: [8, 14],
@@ -3995,7 +4027,7 @@ const CIRCLE_CFG = {
   },
   russia: {
     title: 'Circle challenge',
-    desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many, so Siberian circles are huge). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Moscow. You play 3 circles; your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
+    desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many, so Siberian circles are huge). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Moscow. You play 3 circles, either relaxed (no timer) or in Hard mode (60 seconds per circle, and 5 typed cities that are not inside the circle end the round); your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
     minR: 80, maxR: 1500,            // km: European Russia is dense, Siberia and the Far East are very sparse
     bigCityPop: 50000,
     targetBigCities: [6, 12],
@@ -4009,7 +4041,7 @@ const CIRCLE_CFG = {
   },
   poland: {
     title: 'Circle challenge',
-    desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Warsaw. You play 3 circles; your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
+    desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Warsaw. You play 3 circles, either relaxed (no timer) or in Hard mode (60 seconds per circle, and 5 typed cities that are not inside the circle end the round); your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
     minR: 25, maxR: 180,             // km: Poland is small, so circles stay modest
     bigCityPop: 20000,               // Poland has fewer large cities, so smaller ones set the circle size too
     targetBigCities: [6, 10],
@@ -4022,7 +4054,7 @@ const CIRCLE_CFG = {
   },
   spain: {
     title: 'Circle challenge',
-    desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Madrid. You play 3 circles; your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
+    desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Madrid. You play 3 circles, either relaxed (no timer) or in Hard mode (60 seconds per circle, and 5 typed cities that are not inside the circle end the round); your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
     minR: 40, maxR: 350,             // km: smaller around Madrid and the coasts, bigger in the empty interior and the islands
     bigCityPop: 50000,
     targetBigCities: [8, 14],
@@ -4033,15 +4065,81 @@ const CIRCLE_CFG = {
     bounds: [-18.5, 4.5, 27.5, 43.9], // Canary Islands to the Balearics and the north coast
     rounds: 3,
   },
+  europe: {
+    title: 'Circle challenge',
+    desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Moscow. You play 3 circles, either relaxed (no timer) or in Hard mode (60 seconds per circle, and 5 typed cities that are not inside the circle end the round); your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
+    minR: 40, maxR: 650,             // km: dense in Central/Western Europe, big in Scandinavia, Iceland and Eastern Europe
+    bigCityPop: 50000,
+    targetBigCities: [8, 14],
+    nudgeKm: 100,
+    revealCount: 10,
+    popFloor: 1000,
+    minCities: 30,
+    minZoom: 1,                      // the biggest circles need less than 2x to fit on screen
+    bounds: [-10, 40, 36, 66],       // Iberia to the Urals, Sicily to northern Scandinavia
+    rounds: 3,
+  },
+  world: {
+    title: 'Circle challenge',
+    desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many, so Siberian and Saharan circles are huge). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Tokyo. You play 3 circles, either relaxed (no timer) or in Hard mode (60 seconds per circle, and 5 typed cities that are not inside the circle end the round); your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
+    minR: 80, maxR: 2200,            // km: tiny circles in India or China, huge ones over Siberia, the Sahara or the Amazon
+    bigCityPop: 150000,              // a world-wide city list is huge, so only larger cities decide the circle size
+    targetBigCities: [8, 14],
+    nudgeKm: 150,
+    revealCount: 10,
+    popFloor: 1000,
+    minCities: 30,
+    minZoom: 1,
+    noWrap: true,                    // never draw a circle across the antimeridian (±180°) or over a pole
+    bounds: [-165, 178, -50, 68],
+    rounds: 3,
+  },
 };
 const CIRCLE_SCORES_KEY = 'wcq_circle_scores', CIRCLE_NAME_KEY = 'wcq_circle_name', CIRCLE_BOARD_MAX = 100;
 const circleRoundsPerGame = () => (CIRCLE_CFG[circleRegion] && CIRCLE_CFG[circleRegion].rounds) || 3;
+
+// ─── CIRCLE CHALLENGE: ROUND TIMER ───────────────────────────────────────────
+// Every round lasts circleSeconds() (60 by default). When the clock hits zero the round is banked and the next
+// circle starts by itself (or the game ends after the last one). The clock stops when you press Reveal (the round
+// is already over then) and is held while the scoreboard is open.
+const circleSeconds = () => (CIRCLE_CFG[circleRegion] && CIRCLE_CFG[circleRegion].seconds) || 60;
+let circleTimerId = null, circleDeadline = 0, circleLastTick = 0;
+let circleTimed = true, circlePendingTimed = true; // timed game (60 s per circle) or untimed
+const CIRCLE_MAX_WRONG = 5; // cities typed that are real but outside the circle: this many end the round with the points so far
+function circleStopTimer() { if (circleTimerId) clearInterval(circleTimerId); circleTimerId = null; }
+function circleStartTimer() {
+  circleStopTimer();
+  if (!circleTimed) { circleUpdateTimer(); return; }   // untimed game: no countdown
+  circleLastTick = Date.now();
+  circleDeadline = circleLastTick + circleSeconds() * 1000;
+  circleTimerId = setInterval(circleTick, 200);
+  circleUpdateTimer();
+}
+function circleUpdateTimer() {
+  const el = document.getElementById('circleTimer');
+  if (!el) return;
+  if (!circleTimerId || !circle || circle.revealed || circleDone) { el.textContent = ''; el.classList.remove('low'); return; }
+  const left = Math.max(0, Math.ceil((circleDeadline - Date.now()) / 1000));
+  el.textContent = `⏱ ${left}s`;
+  el.classList.toggle('low', left <= 10);
+}
+function circleTick() {
+  if (!circleMode || !circle || circle.revealed || circleDone) { circleStopTimer(); circleUpdateTimer(); return; }
+  const now = Date.now();
+  if (document.getElementById('circleBoardModal').classList.contains('open')) circleDeadline += now - circleLastTick; // held while the scoreboard is open
+  circleLastTick = now;
+  circleUpdateTimer();
+  if (now < circleDeadline) return;
+  circleStopTimer();
+  circleReveal('time');      // time is up: show what was missed, then the player moves on when ready
+}
 const circleKey = c => c.name + '|' + (c.admin1 || '') + '|' + c.country;
 const _chEsc = t => String(t).replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
 const _chName = c => displayName(c) + (c.admin1 ? ', ' + c.admin1 : '');
 
-function startCircleMode(rk) {
+function startCircleMode(rk, timed) {
   if (!CIRCLE_CFG[rk]) return;
+  circleTimed = timed !== false;
   if (quizMode) setQuizMode(false);
   circleMode = true; circleRegion = rk; circleTotal = 0; circleRound = 0; circlePassed = 0; circleOld = []; circle = null; circleScores = []; circleDone = false; circleSaved = false;
   document.body.classList.add('circle-mode');
@@ -4053,12 +4151,12 @@ function startCircleMode(rk) {
 
 function exitCircleMode(skipDots) {
   if (!circleMode) return;
+  circleStopTimer();
   circleMode = false; circleRegion = null; circle = null; circleOld = []; circleScores = []; circleDone = false; circleSaved = false;
   closeCircleEnd(); closeCircleBoard();
   document.body.classList.remove('circle-mode');
   if (circlePrevDotSize && circlePrevDotSize !== S.dotSizeMode) setDotSizeMode(circlePrevDotSize);
   circlePrevDotSize = null;
-  document.getElementById('circleHud').innerHTML = '';
   renderFoundGrid(); // back to the normal Cities list
   if (!skipDots && typeof svg !== 'undefined' && svg) {
     svg.select('#circle-overlay').remove();
@@ -4106,6 +4204,10 @@ function circleNewRound(retry) {
     const n = Math.min(bigD.length, tMin + Math.floor(Math.random() * (tMax - tMin + 1)));
     let r = bigD.length ? Math.min(cfg.maxR, Math.max(cfg.minR, bigD[n - 1] * 1.05)) : cfg.maxR;
     if (!tooClose && r > room - 1) r = Math.max(cfg.minR, room - 1); // pull the edge back so it stops short of the nearest already-guessed city
+    if (cfg.noWrap) { // keep the circle clear of the antimeridian and the poles (a wrapped circle can't be framed or drawn cleanly)
+      const rDeg = r / 111, cosL = Math.max(0.2, Math.cos((Math.abs(lat) + rDeg) * Math.PI / 180));
+      if (Math.abs(lon) + rDeg / cosL > 179 || Math.abs(lat) + rDeg > 84) { if (best || t < 120) continue; }
+    }
     const inside = eligible.filter(c => Math.abs(c.lat - lat) < r / 111 + 0.5 && d3.geoDistance([c.lon, c.lat], [lon, lat]) * 6371 <= r && !priorKeys.has(circleKey(c)));
     if (!best || inside.length > best.inside.length) best = { center: [lon, lat], r, inside };
     if (inside.length >= cfg.minCities) { best = { center: [lon, lat], r, inside }; break; }
@@ -4113,7 +4215,7 @@ function circleNewRound(retry) {
   const max = Math.max(...best.inside.map(c => Number(c.pop) || 0), 1);
   const cities = new Map(); best.inside.forEach(c => cities.set(circleKey(c), c));
   if (!retry) circleRound++;
-  circle = { center: best.center, r: best.r, cities, max, found: [], revealed: false, roundScore: 0, won: false };
+  circle = { center: best.center, r: best.r, cities, max, found: [], revealed: false, roundScore: 0, won: false, wrong: 0 };
   // The goal: the points the 5 biggest cities inside the circle are worth. Reaching it (with any cities) wins the round.
   const byPop = [...cities.values()].sort((a, b) => (Number(b.pop) || 0) - (Number(a.pop) || 0));
   const sumTop = n => byPop.slice(0, n).reduce((t, c) => t + circlePts(c), 0);
@@ -4122,8 +4224,9 @@ function circleNewRound(retry) {
   found.forEach(c => { if (svg.select('#' + dotId(c)).empty()) addDot(c); }); // restore dots a previous round replaced
   circleRenderOverlay();
   circleZoom();
-  setMsg(`Circle ${circleRound}/${circleRoundsPerGame()}: name as many cities inside it as you can!`, 'ok');
+  setMsg(`Circle ${circleRound}/${circleRoundsPerGame()}: name as many cities inside it as you can!${circleTimed ? ` (${circleSeconds()}s)` : ''}`, 'ok');
   document.getElementById('cityInput').focus();
+  circleStartTimer();
 }
 
 // Reveal works on the circle's own top 10 (the 10 biggest cities inside it, found or not): it shows those of them
@@ -4202,7 +4305,17 @@ function circleGuess() {
   try { results = lookupCity(raw); } finally { S.countryMode = prevMode; }
   if (!results.length) { setMsg(`"${raw}" not found.`, 'err'); return; }
   const inside = results.filter(c => circle.cities.has(circleKey(c))).sort((a, b) => (b.pop || 0) - (a.pop || 0));
-  if (!inside.length) { setMsg(`${_chName(results[0])} is not inside the circle.`, 'err'); return; }
+  if (!inside.length) {
+    if (!circleTimed) { setMsg(`${_chName(results[0])} is not inside the circle.`, 'err'); return; }   // no timer: no wrong-city limit
+    circle.wrong++;
+    if (circle.wrong >= CIRCLE_MAX_WRONG) {   // too many strangers: the round ends and keeps the points scored so far
+      circleReveal('strikes');
+      return;
+    }
+    setMsg(`${_chName(results[0])} is not inside the circle. (${circle.wrong}/${CIRCLE_MAX_WRONG} wrong)`, 'err');
+    circleRenderHud();
+    return;
+  }
   const city = inside.find(c => !circle.found.some(f => circleKey(f.city) === circleKey(c)));
   if (!city) { setMsg(`Already found ${_chName(inside[0])}!`, 'dup'); return; }
   const pts = circlePts(city);
@@ -4218,35 +4331,35 @@ function circleGuess() {
   circleRenderHud();
 }
 
-function circleReveal() {
+// Ends the current round and shows the biggest cities that were missed (in grey). The round's points are banked
+// when the player presses Next circle / Finish. why: 'time' | 'strikes' | undefined (the player ended it).
+function circleReveal(why) {
   if (!circle || circle.revealed) return;
   circle.revealed = true;
+  circleStopTimer(); circleUpdateTimer();
   const plan = circleRevealPlan(), n = plan.list.length, top = CIRCLE_CFG[circleRegion].revealCount;
-  setMsg(!n ? 'You found every city in the circle!'
+  const lead = why === 'time' ? '⏱ Time\'s up! ' : why === 'strikes' ? `❌ ${CIRCLE_MAX_WRONG} wrong cities! ` : '';
+  setMsg(lead + (!n ? 'You found every city in the circle!'
     : plan.bonus ? `You found the circle's ${top} biggest cities! Here ${n === 1 ? 'is the next biggest city' : 'are the next ' + n + ' biggest cities'} you hadn't found, in grey.`
-    : `${n === 1 ? '1 of' : n + ' of'} the circle's ${top} biggest cities you hadn't found ${n === 1 ? 'is' : 'are'} shown in grey.`, 'dup');
+    : `${n === 1 ? '1 of' : n + ' of'} the circle's ${top} biggest cities you hadn't found ${n === 1 ? 'is' : 'are'} shown in grey.`), 'dup');
   circleRenderOverlay();
 }
 
-// Sit the panel right under the glass strip at the top of the map (the status row, which is unused in this mode).
-function circleLayoutTop() {
-  const sr = document.getElementById('statusRow'), mw = document.getElementById('mapWrap');
-  if (!sr || !mw) return;
-  const top = Math.max(0, sr.getBoundingClientRect().bottom - mw.getBoundingClientRect().top) + 6;
-  document.documentElement.style.setProperty('--circle-top', Math.round(top) + 'px');
-}
-window.addEventListener('resize', () => { if (circleMode) circleLayoutTop(); });
 // Score + guessed cities, drawn into the right-hand panel (#foundGrid) while the circle challenge is on.
 function renderCircleFoundGrid(grid) {
   const max = circle.goal.toLocaleString('en-US');
   const head = document.createElement('div');
   head.className = 'cp-head';
   head.classList.toggle('won', !!circle.won);
-  head.innerHTML = `<div class="cp-score">${circle.roundScore.toLocaleString('en-US')}<span class="cp-max"> / ${max}</span>${circle.won ? '<span class="cp-win">🏆 Goal reached</span>' : ''}</div>
-    <div class="cp-sub">${circle.found.length} ${circle.found.length === 1 ? 'city' : 'cities'} found · game total ${circleTotal.toLocaleString('en-US')}</div>
-    <div class="cp-goal">${circle.won ? 'Goal reached! Keep guessing for more points, or move on.' : 'Goal: ' + max + ' pts (the 5 biggest cities) for a 🏆.'}</div>`;
+  const totalRounds = circleRoundsPerGame();
+  const strikes = (circleTimed && !circleDone && !circle.revealed)
+    ? `<span class="cp-strikes${circle.wrong >= CIRCLE_MAX_WRONG - 1 ? ' low' : ''}" title="Cities typed that are not inside the circle; ${CIRCLE_MAX_WRONG} end the round">✗ ${circle.wrong}/${CIRCLE_MAX_WRONG} wrong</span>` : '';
+  head.innerHTML = `<div class="cp-round">${circleDone ? '🎯 Game over' : `🎯 Round ${circleRound}/${totalRounds}`}${circleTimed ? ' · 🔥 Hard mode' : ' · No timer'}</div>
+    <div class="cp-score">${circle.roundScore.toLocaleString('en-US')}<span class="cp-max"> / ${max}</span>${circle.won ? '<span class="cp-win">🏆 Goal reached</span>' : ''}</div>
+    <div class="cp-sub">${circle.found.length} ${circle.found.length === 1 ? 'city' : 'cities'} found</div>
+    <div class="cp-meta"><span class="cp-timer" id="circleTimer"></span>${strikes}</div>`;
   grid.appendChild(head);
-  const rowsList = sortByPop ? [...circle.found].sort((a, b) => b.pts - a.pts) : circle.found;
+  const rowsList = circle.found;   // no sorting in this mode: newest guess first
   const addRow = (c, pts, missed, num) => {
     const id = dotId(c);
     const div = document.createElement('div');
@@ -4266,12 +4379,24 @@ function renderCircleFoundGrid(grid) {
     e.textContent = 'Type a city inside the circle to see it here!';
     grid.appendChild(e);
   }
+  // Round / game buttons sit at the bottom of the list.
+  const last = circleRound >= totalRounds;
+  const actions = document.createElement('div');
+  actions.className = 'cp-actions';
+  actions.innerHTML = circleDone
+    ? `<button data-act="results" title="Show your final score">Results</button><button class="primary" data-act="newgame" title="Start a new ${totalRounds}-circle game">New game ↻</button>`
+    : (circle.revealed
+      ? `<button class="primary" data-act="next" title="${last ? 'Finish the game and see your final score' : 'Go to the next circle'}">${last ? 'Finish 🏁' : 'Next circle ▶'}</button>`
+      : `<button class="primary" data-act="endround" title="End this round and see the cities you missed">End round ⏹</button>`);
+  grid.appendChild(actions);
   _justAddedId = null;
+  circleUpdateTimer();
 }
 
-// Called by the HUD's main button: bank this round's score, then start the next circle or finish the game.
+// Called by the panel's main button: bank this round's score, then start the next circle or finish the game.
 function circleAdvance() {
   if (!circle || circleDone) return;
+  circleStopTimer();
   circleScores.push({ score: circle.roundScore, found: circle.found.length, won: !!circle.won });
   if (circleRound >= circleRoundsPerGame()) { circleDone = true; circleRenderHud(); setMsg(`Game over! Final score: ${circleTotal.toLocaleString('en-US')}`, 'ok'); openCircleEnd(); }
   else circleNewRound();
@@ -4284,32 +4409,19 @@ function circleNewGame() {
 }
 
 function circleRenderHud() {
-  circleLayoutTop();
-  const hud = document.getElementById('circleHud');
-  if (!circle) { hud.innerHTML = ''; return; }
-  renderFoundGrid();
-  const total = circleRoundsPerGame(), last = circleRound >= total;
-  const main = circleDone
-    ? `<button data-act="results" title="Show your final score">Results</button><button class="primary" data-act="newgame" title="Start a new 3-circle game">New game ↻</button>`
-    : `${circle.revealed ? '' : '<button data-act="reveal" title="Show the biggest cities you missed">Reveal missed</button>'}
-       <button class="primary" data-act="next" title="${last ? 'Finish the game and see your final score' : 'Bank this round and go to the next circle'}">${last ? 'Finish 🏁' : 'Next circle ▶'}</button>`;
-  hud.innerHTML = `
-    <button class="ch-exit" data-act="exit" title="Exit the circle challenge" aria-label="Exit the circle challenge">✕</button>
-    <div class="ch-head">
-      <div class="ch-title">🎯 Circle challenge · Round ${circleRound}/${total}</div>
-    </div>
-    <div class="ch-btns">${main}</div>
-    <div class="ch-btns"><button data-act="board" title="See the best saved games">🏆 Scoreboard</button></div>`;
+  if (!circle) return;
+  renderFoundGrid();   // the right-hand panel holds the round info, score, cities and buttons
 }
-document.getElementById('circleHud').addEventListener('click', e => {
-  const act = e.target && e.target.dataset && e.target.dataset.act;
-  if (act === 'reveal') circleReveal();
+document.getElementById('foundGrid').addEventListener('click', e => {
+  const btn = e.target.closest && e.target.closest('.cp-actions [data-act]');
+  if (!btn) return;
+  const act = btn.dataset.act;
+  if (act === 'endround') circleReveal();
   else if (act === 'next') circleAdvance();
   else if (act === 'results') openCircleEnd();
   else if (act === 'newgame') circleNewGame();
-  else if (act === 'board') openCircleBoard();
-  else if (act === 'exit') exitCircleMode();
 });
+document.getElementById('circleBoardBtn').onclick = () => openCircleBoard();
 
 // ─── CIRCLE CHALLENGE: SAVED GAMES + SCOREBOARD ──────────────────────────────
 function circleLoadScores() {
@@ -4321,19 +4433,19 @@ function circleStoreScores(list) {
 function circleSaveGame(name) {
   const list = circleLoadScores();
   const entry = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: (name || '').trim().slice(0, 24) || 'Player', total: circleTotal,
-    rounds: circleScores.map(r => r.score), cities: circleScores.reduce((t, r) => t + r.found, 0), region: circleRegion, date: Date.now() };
+    rounds: circleScores.map(r => r.score), cities: circleScores.reduce((t, r) => t + r.found, 0), region: circleRegion, timed: circleTimed, date: Date.now() };
   list.push(entry);
   list.sort((a, b) => b.total - a.total || a.date - b.date);
   // Each map keeps its own top CIRCLE_BOARD_MAX games, so a busy map can't push another map's scores out.
   const perMap = {};
   for (let i = 0; i < list.length; i++) {
-    const rk = list[i].region || 'usa';
+    const rk = (list[i].region || 'usa') + (list[i].timed === false ? '|free' : '');
     perMap[rk] = (perMap[rk] || 0) + 1;
     if (perMap[rk] > CIRCLE_BOARD_MAX) { list.splice(i, 1); i--; }
   }
   if (!circleStoreScores(list)) return null;
   try { localStorage.setItem(CIRCLE_NAME_KEY, entry.name === 'Player' ? '' : entry.name); } catch (e) {}
-  const sameMap = list.filter(x => (x.region || 'usa') === (entry.region || 'usa')); // each map has its own scoreboard
+  const sameMap = list.filter(x => (x.region || 'usa') === (entry.region || 'usa') && (x.timed === false) === (entry.timed === false)); // timed and untimed games rank separately // each map has its own scoreboard
   return { entry, rank: sameMap.findIndex(x => x.id === entry.id) + 1, of: sameMap.length };
 }
 
@@ -4369,9 +4481,9 @@ function closeCircleEnd() { document.getElementById('circleEndModal').classList.
 let circleLastSavedId = null;
 function openCircleBoard() {
   const boardRegion = circleRegion || 'usa';
-  const list = circleLoadScores().filter(g => (g.region || 'usa') === boardRegion); // entries saved before maps were tracked count as USA
+  const list = circleLoadScores().filter(g => (g.region || 'usa') === boardRegion && (g.timed === false) === !circleTimed); // games saved before the timer option were timed // entries saved before maps were tracked count as USA
   const bh = document.querySelector('#circleBoardModal .cm-head h2');
-  if (bh) bh.textContent = '🏆 Circle challenge · ' + ((REGIONS[boardRegion] && REGIONS[boardRegion].label) || boardRegion) + ' · Scoreboard';
+  if (bh) bh.textContent = '🏆 Circle challenge · ' + ((REGIONS[boardRegion] && REGIONS[boardRegion].label) || boardRegion) + (circleMode ? (circleTimed ? ' · Hard mode' : ' · No timer') : '') + ' · Scoreboard';
   const body = document.getElementById('circleBoardBody');
   const fmtDate = t => { try { return new Date(t).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return ''; } };
   if (!list.length) body.innerHTML = '<div class="cb-empty">No saved games yet. Finish a game and save your score to see it here!</div>';
@@ -5816,6 +5928,8 @@ document.getElementById('countryFilterBtn').addEventListener('click', closeStats
 
 function updateSummary() {
   const bar = document.getElementById('summaryBar');
+  const row = document.getElementById('statusRow');
+  row.style.display = found.length === 0 ? 'none' : '';   // no strip at all while there is nothing to show
   if (found.length === 0) { bar.style.display = 'none'; } else {
     bar.style.display = 'inline-block';
     const totalPop = found.reduce((s,c) => s + (c.pop||0), 0);
@@ -5977,7 +6091,7 @@ function buildMapList() {
         : `<span class="map-opt-dot" style="background:${regionColors[o.value] || '#2B4C7E'}"></span>`;
       btn.innerHTML = `${icon}<span>${o.textContent}</span><span class="map-opt-check"></span>`;
       btn.onclick = () => {
-        if (QUIZ_CFG[o.value]) { closeMapModal(); openModePickModal(o.value); return; }
+        if (QUIZ_CFG[o.value] || CIRCLE_CFG[o.value]) { closeMapModal(); openModePickModal(o.value); return; }
         closeMapModal();
         if (o.value !== currentRegion) setRegion(o.value);
       };
@@ -6007,10 +6121,15 @@ let modePickRegion = null; // map ('japan' | 'usa') the open modal is choosing a
 function openModePickModal(rk) {
   modePickRegion = rk;
   const cfg = QUIZ_CFG[rk];
-  document.getElementById('modePickTitle').textContent = cfg.modalTitle;
-  document.getElementById('modePickNormalDesc').textContent = cfg.normalDesc;
-  document.getElementById('modePickQuizTitle').textContent = cfg.quizTitle;
-  document.getElementById('modePickQuizDesc').textContent = cfg.quizDesc;
+  const mapName = (REGIONS[rk] && REGIONS[rk].label) || rk;
+  const quizBtn = document.querySelector('.modepick-opt[data-quiz="1"]');
+  if (quizBtn) quizBtn.style.display = cfg ? '' : 'none';   // maps without a find-and-click quiz (Europe, World) only offer Normal + Circle challenge
+  document.getElementById('modePickTitle').textContent = cfg ? cfg.modalTitle : `🗺 ${mapName} — choose a mode`;
+  document.getElementById('modePickNormalDesc').textContent = cfg ? cfg.normalDesc : `Find and type cities from ${rk === 'world' ? 'all over the world' : mapName}, same as any other map.`;
+  if (cfg) {
+    document.getElementById('modePickQuizTitle').textContent = cfg.quizTitle;
+    document.getElementById('modePickQuizDesc').textContent = cfg.quizDesc;
+  }
   // Tick whichever mode is currently active (only meaningful if this map is
   // already the loaded one — otherwise leave both unchecked).
   const ccfg = CIRCLE_CFG[rk];
@@ -6033,20 +6152,16 @@ document.querySelectorAll('.modepick-opt').forEach(btn => {
     const rk = modePickRegion;
     closeModePickModal();
     if (!rk) return;
-    if (btn.dataset.quiz === '2') {            // Circle challenge
-      if (currentRegion === rk) { if (circleMode) exitCircleMode(); startCircleMode(rk); }
-      else { circlePending = rk; setRegion(rk, false); }
-      return;
-    }
+    if (btn.dataset.quiz === '2') { openCircleTimerModal(rk); return; }   // Circle challenge: ask timed / untimed first
     if (circleMode) exitCircleMode(currentRegion !== rk);
     if (currentRegion === rk) {
       const changed = (quizMode && quizRegion === rk) !== quiz;
-      setQuizMode(quiz, rk);
+      if (QUIZ_CFG[rk] || quizMode) setQuizMode(quiz, rk);
       tintRegionSelect(rk);
       // Japan draws the same prefecture shapes in both modes, so toggling is
       // just a class/state change. The USA map draws counties in Normal mode
       // but states in the quiz, so that one has to be rebuilt.
-      if (changed && QUIZ_CFG[rk].geometryDiffers) {
+      if (changed && QUIZ_CFG[rk] && QUIZ_CFG[rk].geometryDiffers) {
         drawMap(rk).then(() => { renderFoundGrid(); renderBestCountries(); renderOtherStats(); updateSummary(); });
       }
       persistSession();
@@ -6056,6 +6171,27 @@ document.querySelectorAll('.modepick-opt').forEach(btn => {
 document.getElementById('modePickClose').onclick = closeModePickModal;
 document.getElementById('modePickModal').onclick = e => { if (e.target.id === 'modePickModal') closeModePickModal(); };
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModePickModal(); });
+
+// ─── CIRCLE CHALLENGE: TIMER CHOICE WINDOW ───────────────────────────────────
+let circleTimerRegion = null;
+function openCircleTimerModal(rk) {
+  circleTimerRegion = rk;
+  document.getElementById('circleTimerModal').classList.add('open');
+  const first = document.querySelector('#circleTimerList .ctm-opt'); if (first) first.focus();
+}
+function closeCircleTimerModal() { document.getElementById('circleTimerModal').classList.remove('open'); }
+document.querySelectorAll('#circleTimerList .ctm-opt').forEach(btn => {
+  btn.onclick = () => {
+    const rk = circleTimerRegion, timed = btn.dataset.timed === '1';
+    closeCircleTimerModal();
+    if (!rk) return;
+    if (currentRegion === rk) { if (circleMode) exitCircleMode(); startCircleMode(rk, timed); }
+    else { circlePending = rk; circlePendingTimed = timed; setRegion(rk, false); }
+  };
+});
+document.getElementById('circleTimerClose').onclick = closeCircleTimerModal;
+document.getElementById('circleTimerModal').onclick = e => { if (e.target.id === 'circleTimerModal') closeCircleTimerModal(); };
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCircleTimerModal(); });
 
 function setRegion(rk, quizWanted) {
   // Save current region's cities before switching
