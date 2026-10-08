@@ -1557,6 +1557,7 @@ body.skin-sky:not(.night-mode) #mapPickIcon svg{display:block;width:100%;height:
       <button id="mapClose">✕</button>
     </div>
     <div id="mapList"></div>
+    <div id="mapFoot"><span id="mapFootInfo"></span><button type="button" class="cm-btn danger" id="mapClearAllBtn"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4.5h6V7M6.5 7l.9 12.5h9.2L17.5 7M10 11v5M14 11v5"/></svg><span>Clear all maps</span></button></div>
   </div>
 </div>
 
@@ -1567,20 +1568,21 @@ body.skin-sky:not(.night-mode) #mapPickIcon svg{display:block;width:100%;height:
 <div id="modePickModal">
   <div id="modePickBox">
     <div id="modePickHead">
+      <button type="button" class="win-back" id="modePickBack" aria-label="Back"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button>
       <h2 id="modePickTitle"><span id="modePickIcon" class="mp-icon"></span><span id="modePickEmoji"></span><span id="modePickTitleText">Choose a mode</span></h2>
       <button id="modePickClose">✕</button>
     </div>
     <div id="modePickList">
       <button type="button" class="modepick-opt" data-quiz="0">
-        <span class="modepick-row"><span class="modepick-title">Normal</span><span class="modepick-check"></span></span>
+        <span class="modepick-row"><span class="modepick-lead"><span class="ctm-ico"><svg viewBox="0 0 32 32" aria-hidden="true"><defs><radialGradient id="mpN" cx="35%" cy="28%" r="85%"><stop offset="0" stop-color="#a6ecb3"/><stop offset=".55" stop-color="#4fbf6a"/><stop offset="1" stop-color="#2a8f4a"/></radialGradient></defs><circle cx="16" cy="16" r="14.5" fill="url(#mpN)" stroke="rgba(10,50,110,.35)" stroke-width="1"/><ellipse cx="12.5" cy="8.6" rx="7" ry="3.6" fill="#fff" opacity=".28"/><path d="M16 7.6c-3.4 0-6 2.6-6 5.9 0 4.3 6 10.7 6 10.7s6-6.4 6-10.7c0-3.3-2.6-5.9-6-5.9z" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><circle cx="16" cy="13.4" r="2.3" fill="#fff"/></svg></span><span class="modepick-title">Normal</span></span><span class="modepick-check"></span></span>
         <span class="modepick-desc" id="modePickNormalDesc"></span>
       </button>
       <button type="button" class="modepick-opt" data-quiz="1">
-        <span class="modepick-row"><span class="modepick-title" id="modePickQuizTitle"></span><span class="modepick-check"></span></span>
+        <span class="modepick-row"><span class="modepick-lead"><span class="ctm-ico"><svg viewBox="0 0 32 32" aria-hidden="true"><defs><radialGradient id="mpP" cx="35%" cy="28%" r="85%"><stop offset="0" stop-color="#ffd98a"/><stop offset=".55" stop-color="#f5a623"/><stop offset="1" stop-color="#c77a0a"/></radialGradient></defs><circle cx="16" cy="16" r="14.5" fill="url(#mpP)" stroke="rgba(10,50,110,.35)" stroke-width="1"/><ellipse cx="12.5" cy="8.6" rx="7" ry="3.6" fill="#fff" opacity=".28"/><path d="M15 8L23 10.5L24.5 19L16 16.3Z" fill="#fff" fill-opacity=".4"/><path d="M8 11L15 8L23 10.5L24.5 19L17 24L9 21Z" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="M16 16.3L15 8M16 16.3L24.5 19M16 16.3L9 21" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="modepick-title" id="modePickQuizTitle"></span></span><span class="modepick-check"></span></span>
         <span class="modepick-desc" id="modePickQuizDesc"></span>
       </button>
       <button type="button" class="modepick-opt" data-quiz="2" id="modePickCircleBtn" style="display:none">
-        <span class="modepick-row"><span class="modepick-title" id="modePickCircleTitle"></span><span class="modepick-check"></span></span>
+        <span class="modepick-row"><span class="modepick-lead"><span class="ctm-ico"><svg viewBox="0 0 32 32" aria-hidden="true"><defs><radialGradient id="mpZ" cx="35%" cy="28%" r="85%"><stop offset="0" stop-color="#8cc6ff"/><stop offset=".55" stop-color="#2f86d6"/><stop offset="1" stop-color="#14498f"/></radialGradient></defs><circle cx="16" cy="16" r="14.5" fill="url(#mpZ)" stroke="rgba(10,50,110,.35)" stroke-width="1"/><ellipse cx="12.5" cy="8.6" rx="7" ry="3.6" fill="#fff" opacity=".28"/><circle cx="16" cy="16" r="8" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="16" cy="16" r="4.2" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="16" cy="16" r="1.5" fill="#fff"/></svg></span><span class="modepick-title" id="modePickCircleTitle"></span></span><span class="modepick-check"></span></span>
         <span class="modepick-desc" id="modePickCircleDesc"></span>
       </button>
     </div>
@@ -1591,6 +1593,7 @@ body.skin-sky:not(.night-mode) #mapPickIcon svg{display:block;width:100%;height:
 <div id="circleTimerModal">
   <div id="circleTimerBox" role="dialog" aria-modal="true" aria-labelledby="circleTimerTitle">
     <div id="circleTimerHead">
+      <button type="button" class="win-back" id="circleTimerBack" aria-label="Back"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button>
       <h2 id="circleTimerTitle"><span class="ctm-ico"><svg viewBox="0 0 32 32" aria-hidden="true"><defs><radialGradient id="tmT" cx="35%" cy="28%" r="85%"><stop offset="0" stop-color="#8cc6ff"/><stop offset=".55" stop-color="#2f86d6"/><stop offset="1" stop-color="#14498f"/></radialGradient></defs><circle cx="16" cy="16" r="14.5" fill="url(#tmT)" stroke="rgba(10,50,110,.35)" stroke-width="1"/><ellipse cx="12.5" cy="8.6" rx="7" ry="3.6" fill="#fff" opacity=".28"/><circle cx="16" cy="16" r="8" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="16" cy="16" r="4.2" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="16" cy="16" r="1.5" fill="#fff"/></svg></span>Zones — Modes</h2>
       <button id="circleTimerClose" aria-label="Close">✕</button>
     </div>
@@ -1629,6 +1632,18 @@ body.skin-sky:not(.night-mode) #mapPickIcon svg{display:block;width:100%;height:
       <div class="cm-leave-warn">Leaving will end the current session and <b>no score will be saved</b>.</div>
       <div class="cm-leave-q">Are you sure you want to leave?</div>
       <div class="cm-actions"><button class="cm-btn danger" id="circleLeaveBtn">Leave</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- MAP SELECTOR: CLEAR ALL MAPS CONFIRMATION -->
+<div id="clearMapsModal">
+  <div class="cm-box" role="alertdialog" aria-modal="true" aria-labelledby="clearMapsTitle">
+    <div class="cm-head"><h2 id="clearMapsTitle" style="display:flex;align-items:center;gap:9px"><span class="cl-ico"><svg viewBox="0 0 32 32" aria-hidden="true"><defs><radialGradient id="tmC" cx="35%" cy="28%" r="85%"><stop offset="0" stop-color="#ffa59b"/><stop offset=".55" stop-color="#e5483f"/><stop offset="1" stop-color="#a8231d"/></radialGradient></defs><circle cx="16" cy="16" r="14.5" fill="url(#tmC)" stroke="rgba(10,50,110,.35)" stroke-width="1"/><ellipse cx="12.5" cy="8.6" rx="7" ry="3.6" fill="#fff" opacity=".28"/><path d="M16 8.5v9" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="16" cy="22.6" r="1.9" fill="#fff"/></svg></span>Clear all maps?</h2><button class="cm-x" id="clearMapsClose" aria-label="Close and keep my cities">✕</button></div>
+    <div class="cm-body">
+      <div class="cm-leave-warn" id="clearMapsWarn"></div>
+      <div class="cm-leave-q">Are you sure you want to clear them?</div>
+      <div class="cm-actions"><button class="cm-btn danger" id="clearMapsConfirm">Clear all</button></div>
     </div>
   </div>
 </div>
@@ -6831,7 +6846,13 @@ function tintRegionSelect(rk) {
   const pickIcon = document.getElementById('mapPickIcon');
   if (pickIcon) { try { pickIcon.innerHTML = regionIconSVG(rk); } catch (e) { /* icons not defined yet */ } } // same icon as in the map selector (Glossy Blue shows it)
   const opt = sel.querySelector('option[value="' + rk + '"]');
-  if (lbl) lbl.textContent = quizMode && quizRegion === rk && QUIZ_CFG[rk] ? QUIZ_CFG[rk].label : ((opt && opt.textContent) || (REGIONS[rk] && REGIONS[rk].label) || rk);
+  if (lbl) {   // "<map> — <current game mode>" (maps with only one way to play just show their name)
+    const mapName = (opt && opt.textContent) || (REGIONS[rk] && REGIONS[rk].label) || rk;
+    lbl.textContent = quizMode && quizRegion === rk && QUIZ_CFG[rk] ? QUIZ_CFG[rk].label
+      : circleMode && circleRegion === rk ? mapName + ' — Zones'
+      : (QUIZ_CFG[rk] || CIRCLE_CFG[rk]) ? mapName + ' — Normal'
+      : mapName;
+  }
   if (dot) {
     if (regionFlags[rk]) {
       dot.textContent = regionFlags[rk];
@@ -6897,9 +6918,48 @@ function buildMapList() {
 function openMapModal() {
   buildMapList();
   tintRegionSelect(document.getElementById('regionSelect').value || currentRegion);
+  updateMapFoot();
   document.getElementById('mapModal').classList.add('open');
 }
 function closeMapModal() { document.getElementById('mapModal').classList.remove('open'); }
+
+// ─── MAP SELECTOR: CLEAR ALL MAPS ────────────────────────────────────────────
+// Every map keeps its own list of typed cities (captureState._fbr); the current map's live list is `found`.
+function typedCitiesByMap() {
+  const by = { ...(captureState._fbr || {}), [currentRegion]: found };
+  const maps = Object.keys(by).filter(k => by[k] && by[k].length);
+  return { maps, total: maps.reduce((n, k) => n + by[k].length, 0) };
+}
+function updateMapFoot() {
+  const { maps, total } = typedCitiesByMap();
+  document.getElementById('mapFootInfo').textContent = total
+    ? `${total.toLocaleString('en-US')} ${total === 1 ? 'city' : 'cities'} typed on ${maps.length} ${maps.length === 1 ? 'map' : 'maps'}`
+    : 'No cities typed on any map yet';
+  document.getElementById('mapClearAllBtn').disabled = !total;
+}
+function clearAllMapsNow() {
+  Object.keys(captureState._fbr || {}).forEach(k => { captureState._fbr[k] = []; });
+  found = []; missed = 0;
+  document.getElementById('sortByPop').checked = false; sortByPop = false;
+  svg.select('#map-g').selectAll('.city-dot:not(.circle-dot)').remove();   // keep a running Zones circle's own dots
+  renderFoundGrid(); updateSummary(); renderBestCountries(); renderOtherStats();
+  if (!circleMode) { currentTransform = d3.zoomIdentity; svg.transition().duration(400).call(zoomBehavior.transform, d3.zoomIdentity); }
+  drawNightCanvas();
+  setMsg('All maps cleared.', 'info');
+  persistSession();
+}
+document.getElementById('mapClearAllBtn').onclick = () => {
+  const { maps, total } = typedCitiesByMap();
+  if (!total) return;
+  document.getElementById('clearMapsWarn').innerHTML = `This removes the <b>${total.toLocaleString('en-US')} ${total === 1 ? 'city' : 'cities'}</b> you typed on <b>${maps.length} ${maps.length === 1 ? 'map' : 'maps'}</b>. This cannot be undone.`;
+  document.getElementById('clearMapsModal').classList.add('open');
+  document.getElementById('clearMapsClose').focus();   // focus the safe option so Enter can't clear by accident
+};
+document.getElementById('clearMapsClose').onclick = () => document.getElementById('clearMapsModal').classList.remove('open');
+document.getElementById('clearMapsConfirm').onclick = () => {
+  document.getElementById('clearMapsModal').classList.remove('open');
+  clearAllMapsNow(); updateMapFoot();
+};
 
 document.getElementById('mapPickBtn').onclick = e => { e.stopPropagation(); openMapModal(); };
 document.getElementById('mapClose').onclick = closeMapModal;
@@ -6964,6 +7024,7 @@ document.querySelectorAll('.modepick-opt').forEach(btn => {
   };
 });
 document.getElementById('modePickClose').onclick = closeModePickModal;
+document.getElementById('modePickBack').onclick = () => { closeModePickModal(); openMapModal(); };   // ← back to the map selector
 
 // Menu windows close only with their ✕ button (no click-outside / Escape).
 // ─── ZONES: CONFIRM BEFORE LEAVING ───────────────────────────────────────────
@@ -7006,6 +7067,7 @@ document.querySelectorAll('#circleTimerList .ctm-opt').forEach(btn => {
   };
 });
 document.getElementById('circleTimerClose').onclick = closeCircleTimerModal;
+document.getElementById('circleTimerBack').onclick = () => { const rk = circleTimerRegion; closeCircleTimerModal(); if (rk) openModePickModal(rk); else openMapModal(); };   // ← back to the mode picker
 
 function setRegion(rk, quizWanted) {
   // Save current region's cities before switching
@@ -9253,6 +9315,75 @@ body.skin-sky.night-mode .cb-table tr.me td{background:linear-gradient(180deg,#1
 body.skin-sky.night-mode .cb-table .cb-del{width:24px;height:24px;padding:0;border-radius:50%;color:#7f9bc9;background:transparent}
 body.skin-sky.night-mode .cb-table .cb-del:hover{color:#fff;background:#c0392b}
 body.skin-sky.night-mode .cb-empty{color:#7f9bc9;font-weight:600}
+
+/* "Clear all maps?" window — identical look to "Leave Zones?" */
+#clearMapsModal{display:none;position:fixed;inset:0;z-index:130;background:rgba(0,0,0,.45);align-items:center;justify-content:center}
+#clearMapsModal.open{display:flex}
+#clearMapsModal .cm-box{width:400px}
+#clearMapsModal .cm-leave-warn{font-size:13.5px;line-height:1.5;color:var(--text2);text-align:center}
+#clearMapsModal .cm-leave-q{font-size:15px;font-weight:700;color:var(--text);text-align:center}
+body.skin-sky:not(.night-mode) #clearMapsModal{background:rgba(110,168,232,.38);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
+body.skin-sky:not(.night-mode) #clearMapsModal .cm-box{width:440px;border-radius:28px;border:1px solid rgba(255,255,255,.85);background:linear-gradient(180deg,rgba(248,252,255,.97),rgba(222,238,253,.96));box-shadow:0 20px 50px rgba(40,100,190,.33),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #clearMapsModal .cm-head{margin:12px 12px 4px;padding:6px 8px 6px 16px;border:none;border-radius:999px;background:linear-gradient(180deg,#fff,#eaf4fe);box-shadow:0 4px 12px rgba(70,140,220,.18),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #clearMapsModal .cm-head h2{font-size:17px;line-height:1.15;font-weight:800;color:#0f3f9c;letter-spacing:-.01em}
+body.skin-sky:not(.night-mode) #clearMapsModal .cm-x{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:34px;height:34px;padding:0;border-radius:50%;font-size:18px;font-weight:700;color:#2a6fe0;background:linear-gradient(180deg,#fff,#e6f1fd);box-shadow:0 2px 8px rgba(70,140,220,.26),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #clearMapsModal .cm-x:hover{background:linear-gradient(180deg,#fff,#d6e8fc)}
+body.skin-sky:not(.night-mode) #clearMapsModal .cm-body{padding:10px 22px 20px;gap:10px}
+body.skin-sky:not(.night-mode) #clearMapsModal .cm-leave-warn{font-size:13.5px;line-height:1.45;font-weight:600;color:#5a7ab5}
+body.skin-sky:not(.night-mode) #clearMapsModal .cm-leave-warn b{color:#b3261e;font-weight:800}
+body.skin-sky:not(.night-mode) #clearMapsModal .cm-leave-q{font-size:16px;font-weight:800;color:#0f3f9c}
+body.skin-sky:not(.night-mode) #clearMapsModal .cm-actions{margin-top:6px}
+body.skin-sky:not(.night-mode) #clearMapsModal .cm-btn.danger{height:46px;border:1.5px solid transparent;border-radius:999px;background:linear-gradient(180deg,#ff8f84,#e5483f);color:#fff;font-size:15.5px;font-weight:800;box-shadow:0 6px 14px rgba(220,90,80,.4),inset 0 1px 0 rgba(255,255,255,.5);transition:transform .12s,box-shadow .12s}
+body.skin-sky:not(.night-mode) #clearMapsModal .cm-btn.danger:hover:not(:disabled){background:linear-gradient(180deg,#ff9d93,#ee564d);box-shadow:0 8px 16px rgba(220,90,80,.5),inset 0 1px 0 rgba(255,255,255,.5);transform:translateY(-1px)}
+body.skin-sky.night-mode #clearMapsModal{background:rgba(2,8,22,0.62);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
+body.skin-sky.night-mode #clearMapsModal .cm-box{width:440px;border-radius:28px;border:1px solid rgba(255,255,255,0.14);background:linear-gradient(180deg,rgba(12,27,50,0.97),rgba(16,36,70,0.96));box-shadow:0 20px 50px rgba(0,8,30,0.59),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #clearMapsModal .cm-head{margin:12px 12px 4px;padding:6px 8px 6px 16px;border:none;border-radius:999px;background:linear-gradient(180deg,#101a28,#0e1f3d);box-shadow:0 4px 12px rgba(0,8,30,0.32),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #clearMapsModal .cm-head h2{font-size:17px;line-height:1.15;font-weight:800;color:#91b0ec;letter-spacing:-.01em}
+body.skin-sky.night-mode #clearMapsModal .cm-x{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:34px;height:34px;padding:0;border-radius:50%;font-size:18px;font-weight:700;color:#719fea;background:linear-gradient(180deg,#101a28,#0f2040);box-shadow:0 2px 8px rgba(0,8,30,0.47),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #clearMapsModal .cm-x:hover{background:linear-gradient(180deg,#101a28,#12264c)}
+body.skin-sky.night-mode #clearMapsModal .cm-body{padding:10px 22px 20px;gap:10px}
+body.skin-sky.night-mode #clearMapsModal .cm-leave-warn{font-size:13.5px;line-height:1.45;font-weight:600;color:#7f9bc9}
+body.skin-sky.night-mode #clearMapsModal .cm-leave-warn b{color:#ff9a8f;font-weight:800}
+body.skin-sky.night-mode #clearMapsModal .cm-leave-q{font-size:16px;font-weight:800;color:#91b0ec}
+body.skin-sky.night-mode #clearMapsModal .cm-actions{margin-top:6px}
+body.skin-sky.night-mode #clearMapsModal .cm-btn.danger{height:46px;border:1.5px solid transparent;border-radius:999px;background:linear-gradient(180deg,#f0645a,#c0332b);color:#fff;font-size:15.5px;font-weight:800;box-shadow:0 6px 14px rgba(0,8,30,0.5),inset 0 1px 0 rgba(255,255,255,0.3);transition:transform .12s}
+body.skin-sky.night-mode #clearMapsModal .cm-btn.danger:hover:not(:disabled){background:linear-gradient(180deg,#f67268,#cf3b33);transform:translateY(-1px)}
+/* map selector footer */
+#mapFoot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;border-top:1px solid var(--border);flex-shrink:0}
+#mapFootInfo{font-size:12px;font-weight:600;color:var(--text2)}
+#mapClearAllBtn{display:flex;align-items:center;gap:7px;white-space:nowrap}
+body.skin-sky:not(.night-mode) #mapFoot,body.skin-sky.night-mode #mapFoot{border-top:none;padding:4px 18px 16px}
+body.skin-sky:not(.night-mode) #mapFootInfo{font-size:13px;font-weight:600;color:#5a7ab5}
+body.skin-sky.night-mode #mapFootInfo{font-size:13px;font-weight:600;color:#7f9bc9}
+body.skin-sky:not(.night-mode) #mapClearAllBtn{height:40px;padding:0 18px;border:1.5px solid transparent;border-radius:999px;background:linear-gradient(180deg,#ff8f84,#e5483f);color:#fff;font-size:14px;font-weight:800;box-shadow:0 5px 12px rgba(220,90,80,.38),inset 0 1px 0 rgba(255,255,255,.5);transition:transform .12s}
+body.skin-sky:not(.night-mode) #mapClearAllBtn:hover:not(:disabled){background:linear-gradient(180deg,#ff9d93,#ee564d);transform:translateY(-1px)}
+body.skin-sky.night-mode #mapClearAllBtn{height:40px;padding:0 18px;border:1.5px solid transparent;border-radius:999px;background:linear-gradient(180deg,#f0645a,#c0332b);color:#fff;font-size:14px;font-weight:800;box-shadow:0 5px 12px rgba(0,8,30,.5),inset 0 1px 0 rgba(255,255,255,.3);transition:transform .12s}
+body.skin-sky.night-mode #mapClearAllBtn:hover:not(:disabled){background:linear-gradient(180deg,#f67268,#cf3b33);transform:translateY(-1px)}
+body.skin-sky #mapClearAllBtn:disabled{opacity:.45;box-shadow:none;transform:none;cursor:default}
+/* ── Mode picker option icons + "back" arrows between the map → mode → Zones windows ── */
+.modepick-lead{display:flex;align-items:center;gap:9px;min-width:0}
+.modepick-opt .modepick-desc{padding-left:37px}
+#modePickHead,#circleTimerHead{gap:8px}
+#modePickHead h2,#circleTimerHead h2{flex:1 1 auto;min-width:0}
+.win-back{display:flex;align-items:center;justify-content:center;flex:0 0 auto;border:none;background:transparent;cursor:pointer;color:var(--text2);line-height:1;padding:3px 5px;border-radius:6px}
+.win-back:hover{background:var(--bg)}
+.win-back svg{display:block}
+body.skin-sky:not(.night-mode) #modePickHead,body.skin-sky:not(.night-mode) #circleTimerHead,
+body.skin-sky.night-mode #modePickHead,body.skin-sky.night-mode #circleTimerHead{padding-left:8px}
+body.skin-sky:not(.night-mode) .win-back{width:34px;height:34px;padding:0;border-radius:50%;color:#2a6fe0;background:linear-gradient(180deg,#fff,#e6f1fd);box-shadow:0 2px 8px rgba(70,140,220,.26),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) .win-back:hover{background:linear-gradient(180deg,#fff,#d6e8fc)}
+body.skin-sky.night-mode .win-back{width:34px;height:34px;padding:0;border-radius:50%;color:#719fea;background:linear-gradient(180deg,#101a28,#0f2040);box-shadow:0 2px 8px rgba(0,8,30,0.47),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode .win-back:hover{background:linear-gradient(180deg,#101a28,#12264c)}
+/* ── Glossy Blue: the city list card sits flush against the page scrollbar (no gap) and never covers it. The extra 12px strip on the right is padding of the header + list themselves (not of the card), so the grey "No file loaded" overlay covers it too ── */
+@media (min-width:861px){
+  body.skin-sky:not(.night-mode) #panel,body.skin-sky.night-mode #panel{
+    width:calc(var(--pw) + 12px);
+    right:calc(var(--list-w) - var(--pw) + var(--sbw,0px));
+    border-radius:24px 0 0 24px;
+  }
+  body.skin-sky:not(.night-mode) #panelHeader,body.skin-sky.night-mode #panelHeader{padding-right:26px}
+  body.skin-sky:not(.night-mode) #foundGrid,body.skin-sky.night-mode #foundGrid{padding-right:22px}
+}
 </style>
 <div id="cadm"><div class="w">
 <div class="bar"><b>City data editor</b>
