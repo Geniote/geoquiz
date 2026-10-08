@@ -422,6 +422,16 @@ body.map-zooming #map-g path{shape-rendering:optimizeSpeed}
 .missed-chip.capital{border-color:var(--accent2);color:var(--accent2)}
 .missed-chip.country{border-color:#888;color:#555}
 .missed-chip.big{border-color:var(--accent);color:var(--accent)}
+#missedModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center}
+#missedBox{background:var(--surface);border-radius:12px;width:min(680px,92vw);max-height:80vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.3);overflow:hidden}
+#missedHead{display:flex;align-items:center;gap:8px;padding:14px 18px;border-bottom:1px solid var(--border);flex-shrink:0}
+#missedHead h2{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:6px;font-size:15px;font-weight:700;color:var(--text)}
+#missedHead .mm-ico{display:none}
+#missedClose{background:none;border:none;font-size:18px;cursor:pointer;color:var(--text2);line-height:1}
+#missedBody{overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:18px}
+#missedBack{display:none}
+#missedBack.show{display:flex}
+#missedBody.drilled .missed-section:not([open]){display:none}
 .toggle-best-list-btn{margin-top:6px;padding:6px 14px;font-size:13px;font-weight:600;color:var(--accent2);background:transparent;border:1px solid var(--border);border-radius:6px;cursor:pointer}
 .toggle-best-list-btn:hover{background:var(--bg)}
 .best-row{display:flex;align-items:center;gap:10px;padding:6px 6px;font-size:14px}
@@ -1648,14 +1658,15 @@ body.skin-sky:not(.night-mode) #mapPickIcon svg{display:block;width:100%;height:
   </div>
 </div>
 
-<!-- MISSED CITIES MODAL -->
-<div id="missedModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:center;justify-content:center">
-  <div id="missedBox" style="background:var(--surface);border-radius:12px;width:min(680px,92vw);max-height:80vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.3);overflow:hidden">
-    <div id="missedHead" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);flex-shrink:0">
-      <h2 style="font-size:15px;font-weight:700;color:var(--text)">🔍 What did I miss?</h2>
-      <button id="missedClose" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text2);line-height:1">✕</button>
+<!-- MISSED CITIES MODAL — "What did I miss?": a list of categories; opening one shows only that category, with a ← button to go back to the list -->
+<div id="missedModal">
+  <div id="missedBox" role="dialog" aria-modal="true" aria-labelledby="missedTitle">
+    <div id="missedHead">
+      <button type="button" class="win-back" id="missedBack" aria-label="Back to the list of categories"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button>
+      <h2 id="missedTitle"><span id="missedEmoji">🔍</span><span class="ctm-ico mm-ico"><svg viewBox="0 0 32 32" aria-hidden="true"><defs><radialGradient id="mmG" cx="35%" cy="28%" r="85%"><stop offset="0" stop-color="#8cc6ff"/><stop offset=".55" stop-color="#2f86d6"/><stop offset="1" stop-color="#14498f"/></radialGradient></defs><circle cx="16" cy="16" r="14.5" fill="url(#mmG)" stroke="rgba(10,50,110,.35)" stroke-width="1"/><ellipse cx="12.5" cy="8.6" rx="7" ry="3.6" fill="#fff" opacity=".28"/><circle cx="14.4" cy="14.4" r="5.4" fill="#fff" fill-opacity=".22" stroke="#fff" stroke-width="2"/><path d="M18.6 18.6L24 24" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg></span><span id="missedTitleText">What did I miss?</span></h2>
+      <button id="missedClose" aria-label="Close">✕</button>
     </div>
-    <div id="missedBody" style="overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:18px"></div>
+    <div id="missedBody"></div>
   </div>
 </div>
 
@@ -5589,6 +5600,7 @@ function renderFoundGrid() {
     overlay.className = 'fi-empty-overlay';
     overlay.innerHTML = `<div class="empty-load-wrap"><button type="button" id="emptyLoadFileBtn" class="empty-load-btn">📄 Load data file</button><div id="fileStatus">No file loaded</div></div>`;
     grid.appendChild(overlay);
+    grid.scrollTop = 0;   // the "Load data file" message locks the list in place (see CSS), so start from the top
   }
 }
 
@@ -8489,8 +8501,8 @@ function buildMissedModal() {
   const foundIds  = new Set(found.map(c => dotId(c)));
   // Same country scope as the stats panel ('' = whole map).
   const scopeCountry = statsCountry;
-  const headEl = document.querySelector('#missedHead h2');
-  if (headEl) headEl.textContent = '🔍 What did I miss?' + (scopeCountry ? ' — ' + statsLabel() : '');
+  const headEl = document.getElementById('missedTitleText');
+  if (headEl) headEl.textContent = 'What did I miss?' + (scopeCountry ? ' — ' + statsLabel() : '');
 
   // Filter DB to current region (and to the picked country, if any)
   function inRegion(c) {
@@ -8570,6 +8582,7 @@ function buildMissedModal() {
 
   const body = document.getElementById('missedBody');
   body.innerHTML = '';
+  body.classList.remove('drilled'); document.getElementById('missedBack').classList.remove('show');   // always start on the list of categories
   if (!sections.length) {
     body.innerHTML = '<p style="color:var(--success);font-weight:600;text-align:center;padding:20px">🎉 Nothing missed in these categories!</p>';
     return;
@@ -8605,6 +8618,13 @@ document.getElementById('missedBtn').addEventListener('click', () => {
 document.getElementById('missedClose').addEventListener('click', () => {
   document.getElementById('missedModal').style.display = 'none';
 });
+// Opening a category shows just that one (the others hide) and reveals the ← button; ← folds it back to the list.
+(function () {
+  const body = document.getElementById('missedBody'), back = document.getElementById('missedBack');
+  function sync() { const open = !!body.querySelector('.missed-section[open]'); body.classList.toggle('drilled', open); back.classList.toggle('show', open); if (!open) body.scrollTop = 0; }
+  body.addEventListener('toggle', sync, true);   // 'toggle' doesn't bubble, so listen in the capture phase
+  back.addEventListener('click', () => { body.querySelectorAll('.missed-section[open]').forEach(d => d.removeAttribute('open')); sync(); });
+})();
 
 // ─── MOBILE: HIDE/SHOW CITY LIST PANEL ────────────────────────────────────
 // On narrow screens the found-cities panel (plus the top-countries panel)
@@ -9408,6 +9428,52 @@ body.skin-sky.night-mode .win-back:hover{background:linear-gradient(180deg,#101a
 #mapPickLabel .mpl-ico{display:block;width:1.15em;height:1.15em;flex:0 0 auto;filter:drop-shadow(0 1px 2px rgba(30,80,160,.3))}
 /* map button: flag / earth icon the same size as the game-mode icon next to the label (1.15em of the 15px label) */
 body.skin-sky:not(.night-mode) #mapPickIcon,body.skin-sky.night-mode #mapPickIcon{width:17px;height:17px}
+/* ── "What did I miss?" window — Glossy Blue look, same as the other game windows ── */
+body.skin-sky:not(.night-mode) #missedModal{background:rgba(110,168,232,.38);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
+body.skin-sky:not(.night-mode) #missedBox{width:min(680px,94vw);border-radius:28px;border:1px solid rgba(255,255,255,.85);background:linear-gradient(180deg,rgba(248,252,255,.97),rgba(222,238,253,.96));box-shadow:0 20px 50px rgba(40,100,190,.33),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #missedHead{margin:12px 12px 4px;padding:6px 8px;border:none;border-radius:999px;background:linear-gradient(180deg,#fff,#eaf4fe);box-shadow:0 4px 12px rgba(70,140,220,.18),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #missedHead h2{gap:10px;padding-left:8px;font-size:19px;line-height:1.1;font-weight:800;color:#0f3f9c;letter-spacing:-.01em}
+body.skin-sky:not(.night-mode) #missedBack.show+h2{padding-left:0}
+body.skin-sky:not(.night-mode) #missedEmoji{display:none}
+body.skin-sky:not(.night-mode) #missedHead .mm-ico{display:inline-flex}
+body.skin-sky:not(.night-mode) #missedClose{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:34px;height:34px;padding:0;border-radius:50%;font-size:18px;font-weight:700;color:#2a6fe0;background:linear-gradient(180deg,#fff,#e6f1fd);box-shadow:0 2px 8px rgba(70,140,220,.26),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #missedClose:hover{background:linear-gradient(180deg,#fff,#d6e8fc)}
+body.skin-sky:not(.night-mode) #missedBody{padding:8px 18px 20px;gap:10px;scrollbar-width:thin;scrollbar-color:#acc6e4 transparent}
+body.skin-sky:not(.night-mode) .missed-section-title{padding:13px 18px;border:1.5px solid transparent;border-bottom:none;border-radius:22px;font-size:14px;font-weight:800;letter-spacing:.04em;color:#5b79ad;background:linear-gradient(180deg,#f8fbff,#e8f2fd);box-shadow:0 3px 10px rgba(80,140,210,.16),inset 0 1px 0 #fff;transition:transform .12s,box-shadow .12s}
+body.skin-sky:not(.night-mode) .missed-section-title:hover{background:linear-gradient(180deg,#fff,#deecfc);box-shadow:0 5px 14px rgba(80,140,210,.24),inset 0 1px 0 #fff;transform:translateY(-1px)}
+body.skin-sky:not(.night-mode) .missed-section-title::before{color:#2a6fe0;font-weight:800}
+body.skin-sky:not(.night-mode) .missed-section[open]>.missed-section-title{padding:4px 8px 8px;border-radius:0;background:none;box-shadow:none;transform:none;color:#0f3f9c;font-size:15px}
+body.skin-sky:not(.night-mode) .missed-grid{gap:7px;margin-top:4px}
+body.skin-sky:not(.night-mode) .missed-chip{padding:5px 13px;border:1.5px solid transparent;border-radius:999px;font-size:13px;font-weight:600;color:#0f3f9c;background:linear-gradient(180deg,#fff,#e5f1fd);box-shadow:0 2px 6px rgba(80,140,210,.16),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) .missed-chip.capital{color:#8a5a00;background:linear-gradient(180deg,#fffaf0,#fff0c8);box-shadow:0 2px 6px rgba(200,150,40,.2),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) .missed-chip.country{color:#5a7ab5}
+body.skin-sky.night-mode #missedModal{background:rgba(2,8,22,.62);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
+body.skin-sky.night-mode #missedBox{width:min(680px,94vw);border-radius:28px;border:1px solid rgba(255,255,255,.14);background:linear-gradient(180deg,rgba(12,27,50,.97),rgba(16,36,70,.96));box-shadow:0 20px 50px rgba(0,8,30,.59),inset 0 1px 0 rgba(255,255,255,.28)}
+body.skin-sky.night-mode #missedHead{margin:12px 12px 4px;padding:6px 8px;border:none;border-radius:999px;background:linear-gradient(180deg,#101a28,#0e1f3d);box-shadow:0 4px 12px rgba(0,8,30,.32),inset 0 1px 0 rgba(255,255,255,.28)}
+body.skin-sky.night-mode #missedHead h2{gap:10px;padding-left:8px;font-size:19px;line-height:1.1;font-weight:800;color:#91b0ec;letter-spacing:-.01em}
+body.skin-sky.night-mode #missedBack.show+h2{padding-left:0}
+body.skin-sky.night-mode #missedEmoji{display:none}
+body.skin-sky.night-mode #missedHead .mm-ico{display:inline-flex}
+body.skin-sky.night-mode #missedClose{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:34px;height:34px;padding:0;border-radius:50%;font-size:18px;font-weight:700;color:#719fea;background:linear-gradient(180deg,#101a28,#0f2040);box-shadow:0 2px 8px rgba(0,8,30,.47),inset 0 1px 0 rgba(255,255,255,.28)}
+body.skin-sky.night-mode #missedClose:hover{background:linear-gradient(180deg,#101a28,#12264c)}
+body.skin-sky.night-mode #missedBody{padding:8px 18px 20px;gap:10px;scrollbar-width:thin;scrollbar-color:#253f71 transparent}
+body.skin-sky.night-mode .missed-section-title{padding:13px 18px;border:1.5px solid transparent;border-bottom:none;border-radius:22px;font-size:14px;font-weight:800;letter-spacing:.04em;color:#7f9bc9;background:linear-gradient(180deg,#0c1832,#0f1f3f);box-shadow:0 3px 10px rgba(0,8,30,.29),inset 0 1px 0 rgba(255,255,255,.28);transition:transform .12s,box-shadow .12s}
+body.skin-sky.night-mode .missed-section-title:hover{background:linear-gradient(180deg,#101a28,#102346);box-shadow:0 5px 14px rgba(0,8,30,.43),inset 0 1px 0 rgba(255,255,255,.28);transform:translateY(-1px)}
+body.skin-sky.night-mode .missed-section-title::before{color:#719fea;font-weight:800}
+body.skin-sky.night-mode .missed-section[open]>.missed-section-title{padding:4px 8px 8px;border-radius:0;background:none;box-shadow:none;transform:none;color:#91b0ec;font-size:15px}
+body.skin-sky.night-mode .missed-grid{gap:7px;margin-top:4px}
+body.skin-sky.night-mode .missed-chip{padding:5px 13px;border:1.5px solid transparent;border-radius:999px;font-size:13px;font-weight:600;color:#aac4f0;background:linear-gradient(180deg,#132650,#0f2041);box-shadow:0 2px 6px rgba(0,8,30,.4),inset 0 1px 0 rgba(255,255,255,.2)}
+body.skin-sky.night-mode .missed-chip.capital{color:#f0cd74;background:linear-gradient(180deg,#3a2f12,#2c230d)}
+body.skin-sky.night-mode .missed-chip.country{color:#99accc}
+/* The city list's own scrollbar is hidden (it still scrolls with wheel / touch / keys); the page's main scrollbar (#leftCol) is visible */
+#foundGrid{scrollbar-width:none !important;-ms-overflow-style:none}
+#foundGrid::-webkit-scrollbar{display:none !important;width:0 !important;height:0 !important}
+/* Stats section: instead of shrinking with a right margin (which exposed the lighter page background behind the floating city list), keep its own background full-width and reserve the list's width with padding, so the area behind the list matches the stats background */
+@media (min-width:861px){
+  #bottomPanels{margin-right:0;padding-right:var(--list-w);transition:padding-right var(--list-t)}
+}
+/* While the "Load data file" message is showing, the city list can't be scrolled */
+#foundGrid:has(#emptyLoadFileBtn){overflow:hidden}
 </style>
 <div id="cadm"><div class="w">
 <div class="bar"><b>City data editor</b>
