@@ -64,6 +64,7 @@ body.night-mode .city-dot.force-visible{display:block}
 /* Pin mode — every dot also carries a hidden "3D pin" group (ball + shaft +
    gloss highlight) alongside its normal flat circle; only one of the two is
    shown at a time via body.pin-mode, so switching the mode needs no rebuild. */
+.city-dot .sky-halo{display:none}
 .city-dot .pin-group{display:none}
 body.pin-mode .city-dot .pin-group{display:block}
 body.pin-mode .city-dot circle.main-dot{display:none}
@@ -112,7 +113,8 @@ body.night-mode .tbbtn.danger{background:#a85850;border-color:#a85850}
 #cfBtnLabel{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #cfCaret{flex-shrink:0;border-left:3.5px solid transparent;border-right:3.5px solid transparent;border-top:4px solid currentColor}
 #countryFilterPanel{display:none;position:absolute;right:0;top:calc(100% + 5px);width:190px;max-height:216px;overflow-y:auto;overscroll-behavior:contain;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 6px 22px rgba(0,0,0,.18);z-index:60;padding:4px}
-#countryFilterPanel.open{display:block}
+#countryFilterPanel.open{display:block;animation:scPanelIn .2s cubic-bezier(.2,.8,.3,1) both}
+@media (prefers-reduced-motion:reduce){#countryFilterPanel.open{animation:none}}
 #cfSearch{position:absolute;right:3px;top:3px;width:1px;height:1px;box-sizing:border-box;margin:0;padding:0;border:0;background:transparent;color:transparent;caret-color:transparent;font-size:11.5px;opacity:0;pointer-events:none;outline:none}
 .cf-opt.kb{background:#f0f4fb;color:var(--accent2);box-shadow:inset 2px 0 0 var(--accent2)}
 body.night-mode .cf-opt.kb{background:rgba(43,76,126,.3)}
@@ -135,7 +137,9 @@ body.night-mode .cf-opt.active{background:rgba(43,76,126,.3)}
 #scBtnLabel{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #scCaret{flex-shrink:0;border-left:3.5px solid transparent;border-right:3.5px solid transparent;border-top:4px solid currentColor}
 #scPanel{display:none;position:absolute;right:0;top:calc(100% + 5px);width:220px;max-height:216px;overflow-y:auto;overscroll-behavior:contain;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 6px 22px rgba(0,0,0,.18);z-index:60;padding:4px}
-#scPanel.open{display:block}
+#scPanel.open{display:block;animation:scPanelIn .2s cubic-bezier(.2,.8,.3,1) both}
+@keyframes scPanelIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){#scPanel.open{animation:none}}
 #scSearch{position:absolute;right:3px;top:3px;width:1px;height:1px;box-sizing:border-box;margin:0;padding:0;border:0;background:transparent;color:transparent;caret-color:transparent;font-size:16px;opacity:0;pointer-events:none;outline:none}
 
 /* MAP PICKER — button in the session bar (left of the typing bar) + its modal */
@@ -167,6 +171,7 @@ body.quiz-typing-hidden #inputControls{display:none}
 #modePickClose{border:none;background:transparent;font-size:18px;cursor:pointer;color:var(--text2);line-height:1;padding:2px 6px;border-radius:4px}
 #modePickClose:hover{background:var(--bg)}
 #modePickList{display:flex;flex-direction:column;gap:10px;padding:14px 18px 18px}
+.mp-icon{display:none}
 .modepick-opt{display:flex;flex-direction:column;gap:3px;align-items:flex-start;padding:12px 14px;border:1px solid var(--border);border-radius:9px;background:var(--surface);cursor:pointer;text-align:left;transition:border-color .15s,box-shadow .15s}
 .modepick-opt:hover{border-color:var(--accent2);box-shadow:0 2px 8px rgba(43,76,126,.1)}
 .modepick-opt.current{border-color:var(--accent2);background:#f0f4fb}
@@ -188,6 +193,12 @@ body.night-mode .modepick-opt.current{background:rgba(43,76,126,.25)}
 .ctm-opt:hover,.ctm-opt:focus-visible{border-color:var(--accent2);box-shadow:0 2px 8px rgba(43,76,126,.1);outline:none}
 .ctm-title{font-size:13.5px;font-weight:700;color:var(--text)}
 .ctm-desc{font-size:11.5px;color:var(--text2);line-height:1.4}
+#circleTimerHead h2{display:flex;align-items:center;gap:9px}
+.ctm-title{display:flex;align-items:center;gap:9px}
+.ctm-ico{display:inline-flex;flex:0 0 auto}
+.ctm-ico svg{display:block;width:28px;height:28px;filter:drop-shadow(0 2px 3px rgba(30,80,160,.3))}
+#circleTimerHead .ctm-ico svg{width:30px;height:30px}
+.ctm-opt .ctm-desc{padding-left:37px}
 #mapList{flex:1;overflow-y:auto;padding:12px 14px}
 .map-group-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin:4px 2px 8px}
 .map-group+.map-group{margin-top:14px}
@@ -198,6 +209,9 @@ body.night-mode .modepick-opt.current{background:rgba(43,76,126,.25)}
 body.night-mode .map-opt.current{background:rgba(43,76,126,.25)}
 .map-opt-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
 .map-opt-flag{width:16px;flex-shrink:0;font-size:14px;line-height:1;text-align:center}
+.map-opt-globe{display:none}
+#mapBoxHead .mb-ico svg{display:none}
+body.skin-sky:not(.night-mode) #mapBoxHead .mb-ico svg{display:block}
 .map-opt-check{margin-left:auto;color:var(--accent2);font-size:12px}
 /* Notification / transient guess feedback — floats over the top-left corner
    of the map instead of taking up space in the status strip. */
@@ -385,6 +399,8 @@ body.map-zooming #map-g path{shape-rendering:optimizeSpeed}
 .shape-fallback{font-size:76px;line-height:1;opacity:.5}
 .shape-name{font-size:16px;font-weight:700;color:var(--text);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .shape-count{font-size:13px;font-weight:600;color:var(--accent2);white-space:nowrap}
+.shape-pill,.shape-info{display:contents}
+.shape-flag{display:none}
 .shape-empty{font-size:14px;color:var(--text3);font-style:italic;text-align:center;padding:16px 10px}
 #panelHeader{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-bottom:1px solid var(--border);flex-shrink:0;gap:8px;position:sticky;top:0;background:var(--surface);z-index:2}
 #panelTitle{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em}
@@ -807,6 +823,140 @@ body.skin-sky:not(.night-mode) .reset-icon-btn,body.skin-sky:not(.night-mode) in
 body.skin-sky:not(.night-mode) .mode-toggle{border-radius:12px}
 body.skin-sky:not(.night-mode) .scale-preset-btn.active{background:linear-gradient(180deg,#4aa6ff,#2a6fe8);border-color:#2a6fe8}
 
+/* Glossy Blue — Map selection dialog (frosted card, glossy pill header, soft pill options, mini-globe icons).
+   Only the look changes; the markup and behaviour are the same as in Classic. */
+body.skin-sky:not(.night-mode) #mapModal{background:rgba(110,168,232,.38);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
+body.skin-sky:not(.night-mode) #mapBox{width:600px;max-height:90vh;border-radius:28px;border:1px solid rgba(255,255,255,.85);background:linear-gradient(180deg,rgba(248,252,255,.97),rgba(222,238,253,.96));box-shadow:0 20px 50px rgba(40,100,190,.33),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #mapBoxHead{margin:12px 12px 4px;padding:6px 8px 6px 16px;border:none;border-radius:999px;background:linear-gradient(180deg,#fff,#eaf4fe);box-shadow:0 4px 12px rgba(70,140,220,.18),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #mapBoxHead h2{display:flex;align-items:center;gap:10px;font-size:20px;line-height:1.1;font-weight:800;color:#0f3f9c;letter-spacing:-.01em}
+body.skin-sky:not(.night-mode) #mapBoxHead .mb-ico{display:block;width:28px;height:28px;font-size:0;filter:drop-shadow(0 2px 3px rgba(30,80,160,.3))}
+body.skin-sky:not(.night-mode) #mapBoxHead .mb-ico svg{display:block;width:100%;height:100%}
+body.skin-sky:not(.night-mode) #mapClose{display:flex;align-items:center;justify-content:center;width:34px;height:34px;padding:0;border-radius:50%;font-size:18px;font-weight:700;color:#2a6fe0;background:linear-gradient(180deg,#fff,#e6f1fd);box-shadow:0 2px 8px rgba(70,140,220,.26),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #mapClose:hover{background:linear-gradient(180deg,#fff,#d6e8fc)}
+body.skin-sky:not(.night-mode) #mapList{padding:6px 18px 18px}
+body.skin-sky:not(.night-mode) .map-group-title{margin:10px 4px 9px;font-size:12px;font-weight:800;letter-spacing:.14em;color:#6483b5}
+body.skin-sky:not(.night-mode) .map-group+.map-group{margin-top:14px}
+body.skin-sky:not(.night-mode) .map-grid{grid-template-columns:repeat(3,1fr);gap:10px}
+body.skin-sky:not(.night-mode) .map-opt{gap:10px;min-height:46px;padding:6px 12px 6px 10px;border:1.5px solid transparent;border-radius:17px;background:linear-gradient(180deg,#f8fbff,#e5f1fd);box-shadow:0 3px 8px rgba(80,140,210,.16),inset 0 1px 0 #fff;font-size:14px;font-weight:800;color:#0f3f9c}
+body.skin-sky:not(.night-mode) .map-opt:hover{border-color:transparent;background:linear-gradient(180deg,#fff,#dcebfc);box-shadow:0 5px 12px rgba(80,140,210,.24),inset 0 1px 0 #fff;transform:translateY(-1px)}
+body.skin-sky:not(.night-mode) .map-opt.current{border-color:#3b8cf0;background:linear-gradient(180deg,#e4effd,#cfe2fa);box-shadow:0 3px 10px rgba(59,140,240,.28),inset 0 1px 0 rgba(255,255,255,.8)}
+body.skin-sky:not(.night-mode) .map-opt-dot,body.skin-sky:not(.night-mode) .map-opt-flag{display:none}
+body.skin-sky:not(.night-mode) .map-opt-globe{display:block;flex:0 0 auto;height:30px;filter:drop-shadow(0 2px 3px rgba(30,80,160,.3))}
+body.skin-sky:not(.night-mode) .map-opt-globe svg{display:block}
+body.skin-sky:not(.night-mode) .map-opt-check{font-size:17px;font-weight:800;color:#2a6fe0}
+@media (max-width:640px){
+  body.skin-sky:not(.night-mode) #mapBox{width:94vw;border-radius:24px}
+  body.skin-sky:not(.night-mode) #mapList{padding:6px 12px 16px}
+  body.skin-sky:not(.night-mode) .map-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  body.skin-sky:not(.night-mode) .map-opt{font-size:13px;gap:8px;padding:6px 9px 6px 8px}
+}
+
+/* Glossy Blue — "choose a mode" dialog (same frosted card / glossy pill header as the map selection) */
+body.skin-sky:not(.night-mode) #modePickModal{background:rgba(110,168,232,.38);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
+body.skin-sky:not(.night-mode) #modePickBox{width:460px;border-radius:28px;border:1px solid rgba(255,255,255,.85);background:linear-gradient(180deg,rgba(248,252,255,.97),rgba(222,238,253,.96));box-shadow:0 20px 50px rgba(40,100,190,.33),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #modePickHead{margin:12px 12px 4px;padding:6px 8px 6px 16px;border:none;border-radius:999px;background:linear-gradient(180deg,#fff,#eaf4fe);box-shadow:0 4px 12px rgba(70,140,220,.18),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #modePickHead h2{display:flex;align-items:center;gap:10px;font-size:19px;line-height:1.1;font-weight:800;color:#0f3f9c;letter-spacing:-.01em}
+body.skin-sky:not(.night-mode) #modePickEmoji{display:none}
+body.skin-sky:not(.night-mode) .mp-icon{display:block;flex:0 0 auto;height:30px;filter:drop-shadow(0 2px 3px rgba(30,80,160,.3))}
+body.skin-sky:not(.night-mode) .mp-icon svg{display:block}
+body.skin-sky:not(.night-mode) #modePickClose{display:flex;align-items:center;justify-content:center;width:34px;height:34px;padding:0;border-radius:50%;font-size:18px;font-weight:700;color:#2a6fe0;background:linear-gradient(180deg,#fff,#e6f1fd);box-shadow:0 2px 8px rgba(70,140,220,.26),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #modePickClose:hover{background:linear-gradient(180deg,#fff,#d6e8fc)}
+body.skin-sky:not(.night-mode) #modePickList{gap:12px;padding:10px 18px 20px}
+body.skin-sky:not(.night-mode) .modepick-opt{gap:5px;padding:14px 18px;border:1.5px solid transparent;border-radius:22px;background:linear-gradient(180deg,#f8fbff,#e8f2fd);box-shadow:0 3px 10px rgba(80,140,210,.16),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) .modepick-opt:hover{border-color:transparent;background:linear-gradient(180deg,#fff,#deecfc);box-shadow:0 5px 14px rgba(80,140,210,.24),inset 0 1px 0 #fff;transform:translateY(-1px)}
+body.skin-sky:not(.night-mode) .modepick-opt.current{border-color:#4f93ef;background:linear-gradient(180deg,#e4effd,#d0e3fa);box-shadow:0 3px 12px rgba(59,140,240,.28),inset 0 1px 0 rgba(255,255,255,.8)}
+body.skin-sky:not(.night-mode) .modepick-title{font-size:17px;font-weight:800;color:#0f3f9c}
+body.skin-sky:not(.night-mode) .modepick-desc{font-size:13px;font-weight:500;line-height:1.5;color:#5b79ad}
+body.skin-sky:not(.night-mode) .modepick-check:empty{display:none}
+body.skin-sky:not(.night-mode) .modepick-check{display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;font-size:17px;font-weight:800;color:#2a6fe0;background:linear-gradient(180deg,#fff,#dcebfc);box-shadow:0 2px 6px rgba(70,140,220,.28),inset 0 1px 0 #fff}
+@media (max-width:520px){
+  body.skin-sky:not(.night-mode) #modePickBox{width:94vw;border-radius:24px}
+  body.skin-sky:not(.night-mode) #modePickList{padding:8px 12px 16px}
+}
+
+/* Glossy Blue — Sessions dialog (frosted card, glossy pill header, soft inner session cards, pill action buttons with icons).
+   Only the look changes; the markup and behaviour are the same as in Classic (the .ico spans keep their emoji there). */
+.sess-cur{font-size:11px;color:var(--accent2);font-weight:600}
+.ico.sky-only{display:none}
+body.skin-sky:not(.night-mode) #sessModal{background:rgba(110,168,232,.38);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
+body.skin-sky:not(.night-mode) #sessBox{width:640px;max-height:90vh;border-radius:30px;border:1px solid rgba(255,255,255,.85);background:linear-gradient(180deg,rgba(248,252,255,.97),rgba(222,238,253,.96));box-shadow:0 20px 50px rgba(40,100,190,.33),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #sessBoxHead{margin:14px 14px 6px;padding:6px 8px;border:none;border-radius:999px;background:linear-gradient(180deg,#fff,#eaf4fe);box-shadow:0 4px 12px rgba(70,140,220,.18),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #sessBoxHead h2{display:flex;align-items:center;gap:14px;font-size:24px;line-height:1.1;font-weight:800;color:#0f3f9c;letter-spacing:-.01em}
+body.skin-sky:not(.night-mode) #sessBoxHead .sess-ico{flex:0 0 auto;width:46px;height:46px;border-radius:50%;font-size:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231a5fd6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4.5' y='4.5' width='15' height='17.5' rx='2.6'/%3E%3Crect x='8.5' y='2' width='7' height='4.4' rx='1.4' fill='%231a5fd6'/%3E%3Cpath d='M8.5 11h7M8.5 14.5h7M8.5 18h4.5'/%3E%3C/svg%3E") center/25px no-repeat,linear-gradient(180deg,#fff,#e4f0fd);box-shadow:0 3px 10px rgba(70,140,220,.28),inset 0 1px 0 #fff,0 0 0 1px rgba(255,255,255,.9)}
+body.skin-sky:not(.night-mode) #sessClose{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:46px;height:46px;padding:0;border-radius:50%;font-size:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231a5fd6' stroke-width='2.8' stroke-linecap='round'%3E%3Cpath d='M5.5 5.5l13 13M18.5 5.5l-13 13'/%3E%3C/svg%3E") center/22px no-repeat,linear-gradient(180deg,#fff,#e4f0fd);box-shadow:0 3px 10px rgba(70,140,220,.28),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #sessClose:hover{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231a5fd6' stroke-width='2.8' stroke-linecap='round'%3E%3Cpath d='M5.5 5.5l13 13M18.5 5.5l-13 13'/%3E%3C/svg%3E") center/22px no-repeat,linear-gradient(180deg,#fff,#d3e6fc)}
+body.skin-sky:not(.night-mode) #sessList{padding:8px 14px 6px}
+body.skin-sky:not(.night-mode) .sess-card{gap:6px;margin-bottom:12px;padding:16px 22px 18px;border:1px solid rgba(255,255,255,.9);border-radius:26px;cursor:default;background:linear-gradient(180deg,rgba(255,255,255,.72),rgba(229,242,254,.7));box-shadow:0 4px 14px rgba(70,140,220,.14),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) .sess-card:hover{border-color:rgba(255,255,255,.95);box-shadow:0 6px 18px rgba(70,140,220,.22),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) .sess-card.current{border-color:rgba(255,255,255,.9);background:linear-gradient(180deg,rgba(255,255,255,.8),rgba(222,238,254,.78))}
+body.skin-sky:not(.night-mode) .sess-card-top{align-items:flex-start;gap:12px}
+body.skin-sky:not(.night-mode) .sess-card-name{font-size:22px;line-height:1.25;font-weight:800;color:#0f3f9c}
+body.skin-sky:not(.night-mode) .sess-badge{display:inline-flex;align-items:center;gap:8px;padding:7px 16px;border-radius:999px;font-size:15px;font-weight:700;color:#1a6bea;background:linear-gradient(180deg,#fff,#eaf4fe);box-shadow:0 2px 8px rgba(70,140,220,.2),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) .sess-badge.saved{color:#1f9d58}
+body.skin-sky:not(.night-mode) .sess-card-meta{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;color:#6a82ad}
+body.skin-sky:not(.night-mode) .sess-card-meta::before{content:'';flex:0 0 auto;width:20px;height:20px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237d94bd' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3.5' y='5' width='17' height='15.5' rx='3.2'/%3E%3Cpath d='M3.5 10h17M8 2.8v4M16 2.8v4'/%3E%3Cpath d='M7.5 13.5h2M11 13.5h2M14.5 13.5h2M7.5 16.8h2M11 16.8h2' stroke-width='1.8'/%3E%3C/svg%3E") center/contain no-repeat}
+body.skin-sky:not(.night-mode) .sess-card-actions{flex-wrap:wrap;align-items:center;gap:12px;margin-top:12px}
+body.skin-sky:not(.night-mode) .sess-card .ico,body.skin-sky:not(.night-mode) #createSessBtn .ico{display:inline-block;flex:0 0 auto;width:18px;height:18px;font-size:0;background:center/contain no-repeat}
+body.skin-sky:not(.night-mode) .sess-badge .ico{width:10px;height:10px}
+body.skin-sky:not(.night-mode) .sess-badge.active .ico{border-radius:50%;background:#2a7bff}
+body.skin-sky:not(.night-mode) .sess-badge.saved .ico{width:15px;height:15px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' %3E%3Crect x='4.5' y='10.5' width='15' height='11' rx='3' fill='%231f9d58'/%3E%3Cpath d='M8 10.5V8a4 4 0 0 1 8 0v2.5' fill='none' stroke='%231f9d58' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E")}
+body.skin-sky:not(.night-mode) .sca,body.skin-sky:not(.night-mode) .sess-cur{display:inline-flex;align-items:center;gap:9px;height:42px;padding:0 20px;border:1px solid rgba(255,255,255,.9);border-radius:999px;font-size:16px;font-weight:800;line-height:1;color:#2f4a7d;background:linear-gradient(180deg,#fff,#eaf3fd);box-shadow:0 3px 9px rgba(70,140,220,.16),inset 0 1px 0 #fff;transition:transform .12s,box-shadow .12s,background .12s}
+body.skin-sky:not(.night-mode) .sca:hover{background:linear-gradient(180deg,#fff,#dcebfc);box-shadow:0 5px 12px rgba(70,140,220,.24),inset 0 1px 0 #fff;transform:translateY(-1px)}
+body.skin-sky:not(.night-mode) .sess-cur{padding:0 20px 0 16px;color:#2a6fe0;background:linear-gradient(180deg,#e9f3ff,#d4e7fc);box-shadow:0 2px 7px rgba(70,140,220,.16),inset 0 1px 0 rgba(255,255,255,.9)}
+body.skin-sky:not(.night-mode) .sess-cur .ico{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232a7bff' stroke='%232a7bff' stroke-width='2' stroke-linejoin='round'%3E%3Cpath d='M6.5 4.5l13 7.5-13 7.5z'/%3E%3C/svg%3E")}
+body.skin-sky:not(.night-mode) .sca.success{border:none;color:#fff;background:linear-gradient(180deg,#38c27a,#1f9d58);box-shadow:0 4px 11px rgba(30,150,88,.38),inset 0 1px 0 rgba(255,255,255,.45),inset 0 -2px 4px rgba(0,0,0,.08)}
+body.skin-sky:not(.night-mode) .sca.success:hover{background:linear-gradient(180deg,#43cd85,#25a862);box-shadow:0 6px 14px rgba(30,150,88,.42),inset 0 1px 0 rgba(255,255,255,.45)}
+body.skin-sky:not(.night-mode) .sca.success .ico{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' %3E%3Cpath fill='%23fff' d='M5 2.5h11.6L21.5 7.4V19a2.5 2.5 0 0 1-2.5 2.5H5A2.5 2.5 0 0 1 2.5 19V5A2.5 2.5 0 0 1 5 2.5z'/%3E%3Crect x='6.5' y='2.5' width='8' height='5.4' rx='1' fill='%231f9d58'/%3E%3Crect x='7' y='12.2' width='10' height='9.3' rx='1.6' fill='%231f9d58'/%3E%3Crect x='10.4' y='14.6' width='3.2' height='4.6' rx='.8' fill='%23fff'/%3E%3C/svg%3E")}
+body.skin-sky:not(.night-mode) .sca.primary{border:none;color:#fff;background:linear-gradient(180deg,#4aa6ff,#2a6fe8);box-shadow:0 4px 11px rgba(42,111,232,.38),inset 0 1px 0 rgba(255,255,255,.5)}
+body.skin-sky:not(.night-mode) .sca.primary:hover{background:linear-gradient(180deg,#5cb2ff,#3a7cf0);box-shadow:0 6px 14px rgba(42,111,232,.42),inset 0 1px 0 rgba(255,255,255,.5)}
+body.skin-sky:not(.night-mode) .sca.primary .ico{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h13.5M12.5 5.5l6.5 6.5-6.5 6.5'/%3E%3C/svg%3E")}
+body.skin-sky:not(.night-mode) .sca[data-action=rename] .ico{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2343598a' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 12a8 8 0 1 1-2.7-6'/%3E%3Cpath d='M19.8 3.2v5.2h-5.2'/%3E%3C/svg%3E")}
+body.skin-sky:not(.night-mode) .sca.danger{color:#ef4a66;border-color:#ffdbe1;background:linear-gradient(180deg,#fff,#fff0f3)}
+body.skin-sky:not(.night-mode) .sca.danger:hover{background:linear-gradient(180deg,#fff,#ffe3e8)}
+body.skin-sky:not(.night-mode) .sca.danger .ico{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ef4a66'%3E%3Cpath d='M9 2h6l1 2h5v2H3V4h5zM5 8h14l-1.2 13a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8zm4 3v8h1.6v-8zm4.4 0v8H15v-8z'/%3E%3C/svg%3E")}
+body.skin-sky:not(.night-mode) .sess-empty{padding:26px 0;font-size:15px;font-weight:700;color:#6a82ad}
+body.skin-sky:not(.night-mode) #sessBoxFoot{align-items:stretch;gap:10px;margin:6px 14px 14px;padding:7px;border:none;border-radius:34px;background:linear-gradient(180deg,rgba(255,255,255,.75),rgba(230,242,254,.72));box-shadow:0 3px 12px rgba(70,140,220,.14),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #newSessNameInput{min-width:0;height:50px;padding:0 16px 0 52px;border:1.5px solid #8fbdf0;border-radius:26px;font-size:17px;font-weight:700;color:#15356b;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%235d97e8'%3E%3Cpath d='M3 17.25V21h3.75L17.8 9.94l-3.75-3.75zM20.7 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75z'/%3E%3C/svg%3E") 18px center/20px no-repeat,linear-gradient(180deg,#f2f8ff,#e4f1fe);box-shadow:inset 0 2px 5px rgba(120,170,225,.2)}
+body.skin-sky:not(.night-mode) #newSessNameInput::placeholder{color:#7f93b8;font-weight:700}
+body.skin-sky:not(.night-mode) #newSessNameInput:focus{border-color:#2a6fe0;background-color:#fff;box-shadow:0 0 0 3px rgba(42,111,224,.2),inset 0 2px 5px rgba(120,170,225,.14)}
+body.skin-sky:not(.night-mode) #createSessBtn{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:50px;padding:0 28px;border:none;border-radius:26px;font-size:18px;font-weight:800;color:#fff;background:linear-gradient(180deg,#4aa6ff,#2a6fe8);box-shadow:0 4px 12px rgba(42,111,232,.4),inset 0 1px 0 rgba(255,255,255,.5),inset 0 -3px 5px rgba(0,0,0,.08)}
+body.skin-sky:not(.night-mode) #createSessBtn:hover{background:linear-gradient(180deg,#5cb2ff,#3a7cf0)}
+body.skin-sky:not(.night-mode) #createSessBtn .ico{width:20px;height:20px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M12 4.5v15M4.5 12h15'/%3E%3C/svg%3E")}
+@media (max-width:640px){
+  body.skin-sky:not(.night-mode) #sessBox{width:94vw;border-radius:24px}
+  body.skin-sky:not(.night-mode) #sessBoxHead{margin:10px 10px 4px}
+  body.skin-sky:not(.night-mode) #sessBoxHead h2{font-size:20px;gap:10px}
+  body.skin-sky:not(.night-mode) #sessBoxHead .sess-ico,body.skin-sky:not(.night-mode) #sessClose{width:40px;height:40px}
+  body.skin-sky:not(.night-mode) #sessList{padding:6px 10px 4px}
+  body.skin-sky:not(.night-mode) .sess-card{padding:13px 16px 15px;border-radius:22px}
+  body.skin-sky:not(.night-mode) .sess-card-name{font-size:18px}
+  body.skin-sky:not(.night-mode) .sess-badge{padding:5px 12px;font-size:13px}
+  body.skin-sky:not(.night-mode) .sess-card-meta{font-size:13px;gap:8px;align-items:flex-start}
+  body.skin-sky:not(.night-mode) .sess-card-meta::before{width:18px;height:18px}
+  body.skin-sky:not(.night-mode) .sess-card-actions{gap:8px}
+  body.skin-sky:not(.night-mode) .sca,body.skin-sky:not(.night-mode) .sess-cur{height:38px;padding:0 15px;font-size:14px;gap:7px}
+  body.skin-sky:not(.night-mode) #sessBoxFoot{margin:4px 10px 10px;padding:6px;border-radius:30px}
+  body.skin-sky:not(.night-mode) #newSessNameInput{height:44px;font-size:15px;padding-left:46px;background-position:16px center}
+  body.skin-sky:not(.night-mode) #createSessBtn{height:44px;padding:0 16px;font-size:15px;gap:6px;flex:0 0 auto}
+}
+@media (max-width:420px){
+  body.skin-sky:not(.night-mode) .sess-badge{display:none}
+}
+
+/* Glossy Blue — the map itself. The class .sky-tex is put on #mapWrap by syncSkyMap() (Glossy Blue skin, no
+   Night / Physical mode). Sea = soft sky gradient + frosted grain (drawn behind the SVG, which is made see-through);
+   land = frosted pale-blue gradient per country (only while it still has the skin's land colour and no class, so custom
+   colours, quiz highlights and the US counties stay flat); coastlines get a soft blue halo that stays the same size on screen when zooming. */
+#mapWrap.sky-tex{background-image:radial-gradient(ellipse at 26% 14%,rgba(255,255,255,.6),rgba(255,255,255,0) 55%),radial-gradient(ellipse at 82% 92%,rgba(96,166,238,.38),rgba(96,166,238,0) 62%),linear-gradient(180deg,#d4ebfe,#b3d8fa)!important}
+#mapWrap.sky-tex::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.5;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='900'%3E%3Cfilter id='c'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.006' numOctaves='3' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.4 -.45'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23c)'/%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .58 0 0 0 0 .92 0 0 0 .6 -.08'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");mix-blend-mode:soft-light}
+#mapWrap.sky-tex::after{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;box-shadow:inset 0 0 90px rgba(92,160,232,.28)}
+#mapWrap.sky-tex #sphere{fill:transparent}
+#mapWrap.sky-tex #countries-g path.us-county{stroke:#7fb0e3;stroke-opacity:.55} /* US counties: stroke colour/opacity of the county outlines */
+#mapWrap.sky-tex #countries-g path:not([class])[fill="#e9f4fe"]{fill:url(#skyLand)}
+#mapWrap.sky-tex.sky-far #countries-g path:not([class])[fill="#e9f4fe"]{fill:#eaf4fd}
+#mapWrap.sky-tex.sky-far #countries-g{filter:drop-shadow(0 0 calc(1.2px / var(--sky-k,1)) rgba(64,146,230,.45))}
+#mapWrap.sky-tex #countries-g{filter:drop-shadow(0 0 calc(1.6px / var(--sky-k,1)) rgba(64,146,230,.65)) drop-shadow(0 0 calc(6px / var(--sky-k,1)) rgba(112,178,244,.5))}
+
 /* SKIN PICKER MODAL */
 #skinModal{display:none;position:fixed;inset:0;z-index:125;background:rgba(0,0,0,.45);align-items:center;justify-content:center}
 #skinModal.open{display:flex}
@@ -829,10 +979,10 @@ body.skin-sky:not(.night-mode) .scale-preset-btn.active{background:linear-gradie
 .sk-classic .sk-bar{left:0;right:0;top:0;height:16px;background:#f1f1ec;border-bottom:1px solid #d8d8d0}
 .sk-classic .sk-land{left:26%;top:34px;width:50%;height:38px;border-radius:40% 55% 45% 60%;background:#e8e4da}
 .sk-classic .sk-dot{left:48%;top:48px;width:9px;height:9px;border-radius:50%;background:#cb6543;opacity:.8}
-.sk-sky{background:#acdcfd}
+.sk-sky{background:linear-gradient(180deg,#d4ebfe,#b3d8fa)}
 .sk-sky .sk-bar{left:6px;right:6px;top:5px;height:17px;border-radius:9px;background:linear-gradient(90deg,#2a6fe8 0 16%,#fff 16% 24%,#eef6ff 24% 58%,#19c77f 58% 70%,#f0627b 70% 84%,#fff 84%);box-shadow:0 2px 5px rgba(60,125,205,.3)}
-.sk-sky .sk-land{left:26%;top:34px;width:50%;height:38px;border-radius:40% 55% 45% 60%;background:#efeada}
-.sk-sky .sk-dot{left:48%;top:46px;width:12px;height:12px;border-radius:50%;background:#ec6b4c;box-shadow:0 0 0 3px rgba(255,255,255,.85)}
+.sk-sky .sk-land{left:26%;top:34px;width:50%;height:38px;border-radius:40% 55% 45% 60%;background:linear-gradient(180deg,#f8fcff,#dcebfc);filter:drop-shadow(0 0 3px rgba(64,146,230,.7))}
+.sk-sky .sk-dot{left:48%;top:46px;width:12px;height:12px;border-radius:50%;background:#f1a27f;box-shadow:0 0 0 1.5px rgba(196,106,76,.8)}
 
 /* ── Sky skin: right-hand city list as a floating glass card ── */
 body.skin-sky:not(.night-mode){--pw:300px}
@@ -917,6 +1067,230 @@ body.skin-sky:not(.night-mode) .fi-meta{font-size:12px;gap:4px}
 body.skin-sky:not(.night-mode) .fi-meta::before{width:10px;height:12px}
 body.skin-sky:not(.night-mode) .fi-capital{font-size:12px}
 body.skin-sky:not(.night-mode) .rm{width:24px;height:24px;font-size:15px}
+
+/* Sky skin — smaller controls (second pass) */
+body.skin-sky:not(.night-mode){--pw:270px}
+body.skin-sky:not(.night-mode) #sessionBar{padding:7px 16px;gap:14px}
+body.skin-sky:not(.night-mode) #sessionName{height:26px;padding:0 11px 0 26px;font-size:12px}
+body.skin-sky:not(.night-mode) #sessionName::before{left:8px;width:13px;height:13px}
+body.skin-sky:not(.night-mode) .sess-dot,body.skin-sky:not(.night-mode) .sess-dot.saved{height:18px}
+body.skin-sky:not(.night-mode) #mapPickBtn{height:32px;padding:0 12px 0 5px;gap:7px}
+body.skin-sky:not(.night-mode) #mapPickBtn::before{width:24px;height:24px}
+body.skin-sky:not(.night-mode) #mapPickLabel{font-size:15px}
+body.skin-sky:not(.night-mode) #mapPickBtn::after{width:6px;height:6px;margin:-3px 1px 0 5px;border-width:2px}
+body.skin-sky:not(.night-mode) #cityInputWrap{height:34px;width:440px;box-shadow:0 0 0 2px rgba(255,255,255,.92),0 0 0 4px rgba(140,188,238,.5),0 4px 10px rgba(70,140,220,.18),inset 0 1px 4px rgba(120,170,225,.2)}
+body.skin-sky:not(.night-mode) #cityInputWrap::before{left:12px;width:14px;height:18px}
+body.skin-sky:not(.night-mode) #cityInput{padding:0 138px 0 36px;font-size:13px}
+body.skin-sky:not(.night-mode) #countryFilterBtn{right:4px;top:4px;bottom:4px;width:126px;padding:0 10px 0 30px;font-size:12px}
+body.skin-sky:not(.night-mode) #countryFilterBtn::before{left:9px;width:14px;height:14px}
+body.skin-sky:not(.night-mode) #guessBtn,body.skin-sky:not(.night-mode) #clearBtn,body.skin-sky:not(.night-mode) #sessManagerBtn{height:32px;gap:6px;box-shadow:0 0 0 2px rgba(255,255,255,.55),0 3px 9px rgba(40,100,180,.26),inset 0 1px 0 rgba(255,255,255,.5),inset 0 -2px 4px rgba(0,0,0,.08)}
+body.skin-sky:not(.night-mode) #guessBtn::before,body.skin-sky:not(.night-mode) #clearBtn::before,body.skin-sky:not(.night-mode) #sessManagerBtn::before{width:15px;height:15px}
+body.skin-sky:not(.night-mode) #guessBtn::after,body.skin-sky:not(.night-mode) #clearBtn::after,body.skin-sky:not(.night-mode) #sessManagerBtn::after{font-size:13px}
+body.skin-sky:not(.night-mode) #guessBtn,body.skin-sky:not(.night-mode) #clearBtn{padding:0 15px 0 12px}
+body.skin-sky:not(.night-mode) #sessManagerBtn{padding:0 30px 0 13px;background-position:right 12px center,center;background-size:7px,auto}
+body.skin-sky:not(.night-mode) #statusRow{padding:10px 12px 0}
+body.skin-sky:not(.night-mode) #summaryBar{padding:4px 18px 4px 5px;font-size:14px}
+body.skin-sky:not(.night-mode) #summaryBar::before{width:28px;height:28px;margin-right:10px;background-size:17px,auto}
+body.skin-sky:not(.night-mode) #summaryBar strong,body.skin-sky:not(.night-mode) #summaryBar .pop-total{font-size:15px}
+body.skin-sky:not(.night-mode) #msg{min-height:26px;padding:3px 14px 3px 32px;font-size:12px}
+body.skin-sky:not(.night-mode) #msg::before{left:7px;width:17px;height:17px;background-size:11px}
+body.skin-sky:not(.night-mode) .zbtn-wrap{gap:7px}
+body.skin-sky:not(.night-mode) #zoomLbl{font-size:11px;padding:2px 10px}
+body.skin-sky:not(.night-mode) .zbtn{width:30px;height:30px;border-radius:11px;font-size:19px}
+body.skin-sky:not(.night-mode) #resetViewBtn::before{width:16px;height:16px}
+body.skin-sky:not(.night-mode) #mapColorsBtn,body.skin-sky:not(.night-mode) #dotAppearanceBtn{left:16px;width:32px;height:32px;border-radius:11px}
+body.skin-sky:not(.night-mode) #mapColorsBtn{bottom:16px}
+body.skin-sky:not(.night-mode) #dotAppearanceBtn{bottom:56px}
+body.skin-sky:not(.night-mode) #dotAppearanceBtn svg{width:19px;height:19px}
+body.skin-sky:not(.night-mode) #mapColorsBtn::before{width:19px;height:19px}
+body.skin-sky:not(.night-mode) #mapColorsPopover,body.skin-sky:not(.night-mode) #dotAppearancePopover{left:58px;bottom:16px}
+body.skin-sky:not(.night-mode) #panelHeader{padding:12px 14px 8px 16px}
+body.skin-sky:not(.night-mode) #panelTitle{font-size:15px;gap:7px}
+body.skin-sky:not(.night-mode) #panelTitle::before{width:18px;height:18px}
+body.skin-sky:not(.night-mode) #sortLabel{font-size:11px;gap:5px}
+body.skin-sky:not(.night-mode) #sortLabel input{width:14px;height:14px;border-width:1.5px;border-radius:4px}
+body.skin-sky:not(.night-mode) #sortLabel::after{width:6px;height:6px}
+body.skin-sky:not(.night-mode) #foundGrid{gap:8px;padding:2px 12px 14px}
+body.skin-sky:not(.night-mode) .fi,body.skin-sky:not(.night-mode) .fi-empty{padding:5px 8px 5px 6px;gap:10px;border-radius:12px}
+body.skin-sky:not(.night-mode) .fi-num{width:26px;height:26px;min-width:26px;font-size:11px}
+body.skin-sky:not(.night-mode) .fi-name,body.skin-sky:not(.night-mode) .fi-pop{font-size:12px}
+body.skin-sky:not(.night-mode) .fi-meta{font-size:10.5px}
+body.skin-sky:not(.night-mode) .fi-meta::before{width:9px;height:11px}
+body.skin-sky:not(.night-mode) .fi-capital{font-size:11px}
+body.skin-sky:not(.night-mode) .rm{width:20px;height:20px;font-size:13px}
+
+/* Sky skin — city list: soft frosted rows that barely separate from the card (reference: cccc.PNG) */
+body.skin-sky:not(.night-mode) #panel{background:linear-gradient(180deg,rgba(236,247,255,.96),rgba(228,241,254,.95));box-shadow:0 10px 28px rgba(50,110,190,.22),inset 0 0 0 1px rgba(255,255,255,.75)}
+body.skin-sky:not(.night-mode) #panelTitle{color:#0c2a5e}
+body.skin-sky:not(.night-mode) #panelTitle::before{filter:saturate(1.1) brightness(.92)}
+body.skin-sky:not(.night-mode) #sortLabel{color:#566d96;font-weight:600}
+body.skin-sky:not(.night-mode) #sortLabel::after{border-color:#5b86d0}
+body.skin-sky:not(.night-mode) #sortLabel input{border:1.5px solid #bcd1ec;background:#fff;box-shadow:0 1px 2px rgba(80,140,210,.15)}
+body.skin-sky:not(.night-mode) #foundGrid{gap:6px;padding:2px 10px 14px 12px;scrollbar-width:thin;scrollbar-color:#acc6e4 transparent}
+body.skin-sky:not(.night-mode) #foundGrid::-webkit-scrollbar{width:5px}
+body.skin-sky:not(.night-mode) #foundGrid::-webkit-scrollbar-thumb{background:#acc6e4;border-radius:5px}
+body.skin-sky:not(.night-mode) #foundGrid::-webkit-scrollbar-track{background:transparent}
+body.skin-sky:not(.night-mode) .fi,body.skin-sky:not(.night-mode) .fi-empty{border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.62),rgba(246,251,255,.5));box-shadow:0 1px 3px rgba(80,140,210,.13),inset 0 1px 0 rgba(255,255,255,.85)}
+body.skin-sky:not(.night-mode) .fi:hover{background:linear-gradient(180deg,rgba(255,255,255,.9),rgba(250,253,255,.8))}
+body.skin-sky:not(.night-mode) .fi.fi-is-capital{background:linear-gradient(180deg,#e4efff,#dbe9fc);box-shadow:0 1px 3px rgba(60,110,200,.16),inset 0 1px 0 rgba(255,255,255,.6)}
+body.skin-sky:not(.night-mode) .fi-num{background:radial-gradient(circle at 35% 30%,#eef6ff,#d9eafd);box-shadow:inset 0 0 0 1px rgba(255,255,255,.7),0 1px 2px rgba(80,140,210,.18);color:#1b3f93;font-weight:800}
+body.skin-sky:not(.night-mode) .fi-name{color:#0c2a5e;font-weight:800}
+body.skin-sky:not(.night-mode) .fi-pop{color:#7a8fb2;font-weight:500}
+body.skin-sky:not(.night-mode) .fi-meta{color:#7d93b5;font-weight:500}
+body.skin-sky:not(.night-mode) .fi-capital{color:#08347a}
+body.skin-sky:not(.night-mode) .rm{color:#8ba4c9;font-weight:300}
+body.skin-sky:not(.night-mode) .rm:hover{color:#d12b45;background:rgba(255,229,234,.8)}
+
+/* Sky skin — the collapse tab is attached to the list card's left edge (the card is inset 12px from the screen edge) */
+@media (min-width:861px){
+  body.skin-sky:not(.night-mode) #listCollapseBtn{right:calc(var(--sbw,0px) + var(--list-w) + 12px);width:18px;height:52px;border-radius:12px 0 0 12px;background:linear-gradient(180deg,rgba(240,248,255,.97),rgba(228,241,254,.96));box-shadow:-4px 2px 10px rgba(60,125,205,.22),inset 1px 0 0 rgba(255,255,255,.85)}
+  body.skin-sky.list-collapsed:not(.night-mode) #listCollapseBtn{right:var(--sbw,0px);box-shadow:-4px 2px 10px rgba(60,125,205,.22)}
+}
+
+/* ───────── Glossy Blue — bottom stats section ─────────
+   Frosted-glass cards, a title pill, white "flag + name" pills, and two corner pills for each stat row
+   (label on the left, "got / total  pct%" on the right), plus a wide glossy "What did I miss?" pill. */
+body.skin-sky:not(.night-mode) #bottomPanels{border-top:none;background:linear-gradient(180deg,#d6eafd 0%,#c4e1fb 100%)}
+body.skin-sky:not(.night-mode) #bestVisual{position:relative;overflow:hidden;gap:18px;padding:22px 24px 18px;background:
+  radial-gradient(ellipse 60% 45% at 18% 20%,rgba(255,255,255,.55),transparent 70%),
+  radial-gradient(ellipse 55% 50% at 85% 75%,rgba(255,255,255,.45),transparent 70%),
+  linear-gradient(180deg,#d3e9fc,#c2e0fa)}
+body.skin-sky:not(.night-mode) #bestVisual>*{position:relative;z-index:1}
+/* title pill */
+body.skin-sky:not(.night-mode) #bestVisualTitle{display:inline-flex;align-items:center;gap:9px;height:38px;padding:0 22px 0 10px;border-radius:999px;font-size:15px;font-weight:900;letter-spacing:.07em;color:#0f4bbd;background:var(--sky-pill);box-shadow:0 6px 16px rgba(60,125,205,.22),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #bestVisualTitle::before{content:'';flex:0 0 auto;width:26px;height:26px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E %3Cdefs%3E %3CradialGradient id='o' cx='35%25' cy='30%25' r='80%25'%3E%3Cstop offset='0' stop-color='%237cc4f5'/%3E%3Cstop offset='.55' stop-color='%232f86d6'/%3E%3Cstop offset='1' stop-color='%2314498f'/%3E%3C/radialGradient%3E %3CradialGradient id='g' cx='32%25' cy='24%25' r='55%25'%3E%3Cstop offset='0' stop-color='%23fff' stop-opacity='.55'/%3E%3Cstop offset='1' stop-color='%23fff' stop-opacity='0'/%3E%3C/radialGradient%3E %3CclipPath id='c'%3E%3Ccircle cx='32' cy='32' r='29'/%3E%3C/clipPath%3E %3C/defs%3E %3Ccircle cx='32' cy='32' r='29' fill='url(%23o)'/%3E %3Cg clip-path='url(%23c)'%3E %3Cpath fill='%235cbf6e' d='M12 14c6-5 15-4 17 2 1 5-5 7-4 12 1 5 8 6 6 13-2 6-8 10-12 6-3-3 0-7-3-11-3-5-9-6-8-12 1-4 2-7 4-10z'/%3E %3Cpath fill='%235cbf6e' d='M37 11c5-2 11 1 12 6 1 4-3 4-3 8 1 5 7 6 5 12-2 5-8 6-11 3-3-3-1-7-4-10-3-3-7-3-6-8 1-5 3-9 7-11z'/%3E %3Cpath fill='%238fd89a' d='M44 44c3-1 7 1 6 4-1 3-6 4-8 2-1-2 0-5 2-6z'/%3E %3Cg fill='none' stroke='%23fff' stroke-opacity='.22' stroke-width='1'%3E %3Cellipse cx='32' cy='32' rx='13' ry='29'/%3E%3Cline x1='32' y1='3' x2='32' y2='61'/%3E %3Cellipse cx='32' cy='32' rx='29' ry='11'/%3E%3Cline x1='3' y1='32' x2='61' y2='32'/%3E %3C/g%3E %3Ccircle cx='32' cy='32' r='29' fill='url(%23g)'/%3E %3C/g%3E %3Ccircle cx='32' cy='32' r='29' fill='none' stroke='%230d3a75' stroke-opacity='.55' stroke-width='2'/%3E %3C/svg%3E") center/contain no-repeat;filter:drop-shadow(0 2px 2px rgba(20,70,150,.3))}
+/* cards */
+body.skin-sky:not(.night-mode) #topShapesList{gap:16px;align-items:stretch}
+body.skin-sky:not(.night-mode) .shape-card{gap:10px;padding:16px 12px 12px;border:none;border-radius:28px;max-width:260px;background:linear-gradient(180deg,rgba(244,250,255,.96),rgba(226,241,254,.92));box-shadow:0 10px 26px rgba(60,125,205,.22),inset 0 1px 0 #fff,0 0 0 1px rgba(255,255,255,.7)}
+body.skin-sky:not(.night-mode) .shape-rank{top:10px;left:10px;display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;font-size:17px;font-weight:900;color:#3a86e8;background:radial-gradient(circle at 35% 28%,#fff,#e4f1fd);box-shadow:0 2px 6px rgba(60,125,205,.2),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) .shape-icon{margin-top:6px;padding:6px 4px 2px}
+body.skin-sky:not(.night-mode) .shape-icon svg path{fill:#4c9cff;fill:url(#skyShapeGrad) #4c9cff;fill-opacity:1;stroke:#3c86f0;stroke-width:.5}
+body.skin-sky:not(.night-mode) .shape-icon svg{filter:drop-shadow(0 4px 3px rgba(30,90,200,.28))}
+body.skin-sky:not(.night-mode) .shape-fallback{opacity:.7}
+/* white "flag + name / cities" pill */
+body.skin-sky:not(.night-mode) .shape-pill{display:flex;align-items:center;gap:10px;width:100%;min-width:0;padding:9px 12px 9px 9px;border-radius:22px;background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(240,248,255,.85));box-shadow:0 2px 8px rgba(60,125,205,.14),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) .shape-flag{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:40px;height:40px;overflow:hidden;border-radius:50%;font-size:26px;line-height:1;background:#fff;box-shadow:0 0 0 3px #fff,0 2px 6px rgba(60,125,205,.28)}
+body.skin-sky:not(.night-mode) .shape-flag img{width:100%;height:100%;object-fit:cover;display:block}
+body.skin-sky:not(.night-mode) .shape-info{display:flex;flex-direction:column;min-width:0;flex:1;line-height:1.2}
+body.skin-sky:not(.night-mode) .shape-name{font-size:18px;font-weight:900;color:#0c2a5e;text-align:left}
+body.skin-sky:not(.night-mode) .shape-count{font-size:14px;font-weight:700;color:#7e9ccb}
+body.skin-sky:not(.night-mode) .shape-empty{color:#58709a;font-weight:700;font-style:normal}
+/* country picker: same pill look as the typing bar */
+body.skin-sky:not(.night-mode) #statsCountryRow{max-width:520px;border-top:none;padding-top:2px;margin-top:2px}
+body.skin-sky:not(.night-mode) #statsCountryWrap{height:38px;border:none;border-radius:999px;background:linear-gradient(180deg,#f7fbff,#e6f2fe);box-shadow:0 0 0 3px rgba(255,255,255,.92),0 0 0 5px rgba(140,188,238,.55),0 6px 14px rgba(70,140,220,.2),inset 0 2px 5px rgba(120,170,225,.22)}
+body.skin-sky:not(.night-mode) #statsCountryWrap:focus-within{background:#fff;box-shadow:0 0 0 3px #fff,0 0 0 5px rgba(42,111,224,.65),0 6px 14px rgba(70,140,220,.25)}
+body.skin-sky:not(.night-mode) #statsCountryLbl{left:18px;right:150px;font-size:13px;font-weight:700;color:#7f93b8}
+body.skin-sky:not(.night-mode) #scBtn{right:4px;top:4px;bottom:4px;width:140px;padding:0 12px;border:none;border-radius:999px;background:linear-gradient(180deg,#eaf4fe,#d5e8fa);box-shadow:inset 0 1px 0 #fff,0 1px 3px rgba(70,140,220,.22);font-size:13px;font-weight:800;color:#2a4b82}
+body.skin-sky:not(.night-mode) #scBtn:hover{background:linear-gradient(180deg,#f2f8ff,#cfe3f8);color:#15356b}
+body.skin-sky:not(.night-mode) #scBtn.filtering{color:#1a5fd6}
+body.skin-sky:not(.night-mode) #scPanel{border:none;border-radius:18px;padding:6px;box-shadow:0 10px 30px rgba(50,110,190,.32),0 0 0 1px rgba(255,255,255,.8)}
+body.skin-sky:not(.night-mode) #scPanel .cf-opt{padding:7px 10px;border-radius:10px;font-size:13px;font-weight:700;color:#15356b}
+body.skin-sky:not(.night-mode) #scPanel .cf-opt:hover{background:#e3f1fe}
+body.skin-sky:not(.night-mode) #scPanel .cf-opt.active{background:#d9eafc;color:#1a5fd6}
+body.skin-sky:not(.night-mode) #scPanel .cf-sep{color:#8aa1c4;border-top-color:#d6e6f7}
+/* stat rows: label pill (left) + "got / total  pct" pill (right) */
+body.skin-sky:not(.night-mode) #otherStatsList{display:flex;flex-direction:column;gap:8px;margin-top:4px !important}
+body.skin-sky:not(.night-mode) .stat-row{align-self:center;width:fit-content;max-width:100%;justify-content:center;align-items:center;gap:12px;height:36px;padding:0 22px;border-radius:999px;background:var(--sky-pill);box-shadow:var(--sky-shadow)}
+body.skin-sky:not(.night-mode) .stat-row.stat-complete{background:linear-gradient(180deg,#fffbe3,#ffeeab)}
+body.skin-sky:not(.night-mode) .stat-label{flex:0 1 auto;margin:0;gap:8px;height:auto;padding:0;border-radius:0;background:none;box-shadow:none;font-size:15px;font-weight:800;color:#2a5fc0}
+body.skin-sky:not(.night-mode) .stat-val,body.skin-sky:not(.night-mode) .stat-pct{display:flex;align-items:center;height:auto;padding:0;border-radius:0;background:none;box-shadow:none;color:#2a5fc0}
+body.skin-sky:not(.night-mode) .stat-val{font-size:18px;font-weight:900}
+body.skin-sky:not(.night-mode) .stat-pct{min-width:0;font-size:14px;font-weight:700}
+body.skin-sky:not(.night-mode) .stat-check{width:19px;height:19px;line-height:19px;font-size:12px}
+body.skin-sky:not(.night-mode) .best-empty{color:#58709a;font-weight:700;font-style:normal}
+/* What did I miss? */
+body.skin-sky:not(.night-mode) #missedBtnWrap{max-width:100% !important;margin-top:8px !important}
+body.skin-sky:not(.night-mode) #missedBtn{display:flex;align-items:center;justify-content:center;gap:9px;height:42px;padding:0 18px;border:2px solid rgba(255,255,255,.85);border-radius:999px;font-size:17px;font-weight:800;letter-spacing:.01em;color:#fff;text-shadow:0 1px 2px rgba(20,70,170,.35);background:linear-gradient(180deg,rgba(255,255,255,.34) 0 48%,rgba(255,255,255,0) 50%),linear-gradient(180deg,#6bb5ff,#3a8cf6);box-shadow:0 8px 20px rgba(42,111,232,.38),inset 0 1px 0 rgba(255,255,255,.6),inset 0 -4px 8px rgba(20,80,200,.2)}
+body.skin-sky:not(.night-mode) #missedBtn:hover{filter:brightness(1.06);background:linear-gradient(180deg,rgba(255,255,255,.34) 0 48%,rgba(255,255,255,0) 50%),linear-gradient(180deg,#6bb5ff,#3a8cf6)}
+body.skin-sky:not(.night-mode) #missedBtn .mb-ico{display:none}
+body.skin-sky:not(.night-mode) #missedBtn::before{content:'';flex:0 0 auto;width:22px;height:22px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round'%3E%3Ccircle cx='10' cy='10' r='6.5' fill='%23ffffff' fill-opacity='.25'/%3E%3Cpath d='M15.2 15.2L21 21'/%3E%3C/svg%3E") center/contain no-repeat;filter:drop-shadow(0 1px 2px rgba(20,70,170,.4))}
+body.skin-sky:not(.night-mode) #siteFooter{color:#58709a}
+@media (max-width:860px){
+  body.skin-sky:not(.night-mode) #bestVisualTitle{height:34px;font-size:13px;padding-right:18px}
+  body.skin-sky:not(.night-mode) .shape-card{border-radius:24px}
+  body.skin-sky:not(.night-mode) .shape-pill{padding:7px 10px 7px 7px}
+  body.skin-sky:not(.night-mode) .shape-flag{width:34px;height:34px}
+  body.skin-sky:not(.night-mode) .shape-name{font-size:15px}
+  body.skin-sky:not(.night-mode) .stat-row{height:32px;padding:0 16px;gap:10px}
+  body.skin-sky:not(.night-mode) .stat-label{font-size:13px}
+  body.skin-sky:not(.night-mode) .stat-val{font-size:16px}
+  body.skin-sky:not(.night-mode) .stat-pct{font-size:13px}
+  body.skin-sky:not(.night-mode) #missedBtn{height:38px;font-size:15px}
+}
+
+/* Glossy Blue — Appearance popover (frosted card, glossy pill header, pill skin selector, soft tile toggles, glossy slider and size pills).
+   Same footprint as the classic popover (250px wide, position untouched). */
+body.skin-sky:not(.night-mode) #dotAppearancePopover{width:250px;padding:10px 12px 12px;border:1px solid rgba(255,255,255,.85);border-radius:22px;background:linear-gradient(180deg,rgba(248,252,255,.97),rgba(222,238,253,.96));box-shadow:0 14px 34px rgba(40,100,190,.33),inset 0 1px 0 #fff;-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
+body.skin-sky:not(.night-mode) #dotAppearancePopover .pop-title-row{margin:0 0 10px;padding:3px;border-radius:999px;background:linear-gradient(180deg,#fff,#eaf4fe);box-shadow:0 3px 8px rgba(70,140,220,.18),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #dotAppearancePopover .pop-title{display:flex;align-items:center;gap:8px;font-size:15px;line-height:1.1;font-weight:800;color:#0f3f9c;letter-spacing:-.01em;text-transform:none}
+body.skin-sky:not(.night-mode) #dotAppearancePopover .pop-title svg{flex:0 0 auto;width:28px;height:28px;padding:4.5px;box-sizing:border-box;border-radius:50%;vertical-align:baseline;background:linear-gradient(180deg,#fff,#e4f0fd);box-shadow:0 2px 6px rgba(70,140,220,.28),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #dotAppearancePopover .row{gap:6px;margin-bottom:10px}
+body.skin-sky:not(.night-mode) #dotAppearancePopover .lbl{min-width:46px;font-size:13px;font-weight:700;color:#1e4a97}
+body.skin-sky:not(.night-mode) #dotAppearancePopover #skinOpenBtn{display:flex;align-items:center;gap:7px;height:32px;padding:0 12px 0 4px;border:none;border-radius:999px;font-size:13px;font-weight:800;text-align:left;color:#1d4a97;background:linear-gradient(180deg,#f7fbff,#e1eefc);box-shadow:0 2px 6px rgba(70,140,220,.18),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #dotAppearancePopover #skinOpenBtn:hover{background:linear-gradient(180deg,#fff,#d9eafc)}
+body.skin-sky:not(.night-mode) #dotAppearancePopover .skin-ico{flex:0 0 auto;width:24px;height:24px;border-radius:50%;font-size:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' %3E%3Cpath d='M12 2.2C6.4 2.2 2.2 6.4 2.2 11.6c0 4.8 3.7 8.6 8.3 8.6 1.8 0 2.3-1.3 1.4-2.4-.8-1 0-2.5 1.4-2.5h2.7c2.8 0 5.8-1.8 5.8-5.4C21.8 5.8 17.6 2.2 12 2.2z' fill='%233cc8d8' stroke='%231ea6c0' stroke-width='1'/%3E%3Ccircle cx='7.4' cy='10.2' r='1.7' fill='%237a4fd0'/%3E%3Ccircle cx='11' cy='6.6' r='1.7' fill='%23ff6f7a'/%3E%3Ccircle cx='16.2' cy='7.6' r='1.7' fill='%23ffd23f'/%3E%3Ccircle cx='7.8' cy='14.8' r='1.7' fill='%23ff9a3d'/%3E%3Ccircle cx='17.4' cy='13.4' r='1.9' fill='%23e9fbff' opacity='.9'/%3E%3C/svg%3E") center/16px no-repeat,linear-gradient(180deg,#fff,#e6f1fd);box-shadow:0 1px 4px rgba(70,140,220,.22),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #dotAppearancePopover .skin-caret{margin-left:auto;width:0;height:0;font-size:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid #4f7fc9}
+body.skin-sky:not(.night-mode) #dotAppearancePopover .row.mode-toggles{gap:8px;margin-bottom:11px}
+body.skin-sky:not(.night-mode) #dotAppearancePopover .mode-toggle{width:40px;height:40px;border:none;border-radius:14px;background:linear-gradient(180deg,#f4f9ff,#dcebfb);box-shadow:0 2px 6px rgba(80,140,210,.18),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #dotAppearancePopover .mode-toggle::before{content:'';position:absolute;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.5);box-shadow:inset 0 1px 2px rgba(120,170,225,.2)}
+body.skin-sky:not(.night-mode) #dotAppearancePopover .mode-toggle:hover{background:linear-gradient(180deg,#fff,#d6e8fc);box-shadow:0 3px 8px rgba(80,140,210,.26),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #dotAppearancePopover .mode-toggle:has(input:checked){background:linear-gradient(180deg,#4aa6ff,#2a6fe8);box-shadow:0 3px 8px rgba(42,111,232,.42),inset 0 1px 0 rgba(255,255,255,.5)}
+body.skin-sky:not(.night-mode) #dotAppearancePopover .mode-toggle:has(input:checked)::before{background:rgba(255,255,255,.22);box-shadow:none}
+body.skin-sky:not(.night-mode) #dotAppearancePopover .mode-toggle:focus-within{box-shadow:0 0 0 2px rgba(42,111,224,.35),0 2px 6px rgba(80,140,210,.18)}
+body.skin-sky:not(.night-mode) #dotAppearancePopover .mode-toggle .mode-ico{position:relative;width:21px;height:21px;font-size:0;filter:none;opacity:1;background:center/contain no-repeat}
+body.skin-sky:not(.night-mode) #dotAppearancePopover .mode-toggle[title="Night mode"] .mode-ico{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238fb0e0' stroke='%235b7fbf' stroke-width='1.8' stroke-linejoin='round'%3E%3Cpath d='M20 14.6A8.6 8.6 0 1 1 9.4 4a7 7 0 0 0 10.6 10.6z'/%3E%3C/svg%3E")}
+body.skin-sky:not(.night-mode) #dotAppearancePopover .mode-toggle[title="Physical mode"] .mode-ico{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' %3E%3Cg transform='rotate(45 12 12)'%3E%3Crect x='0.8' y='8.4' width='22.4' height='7.2' rx='2.4' fill='%238fb0e0' stroke='%235b7fbf' stroke-width='1.6'/%3E%3Cpath d='M6 8.8v6.4M10 8.8v6.4M14 8.8v6.4M18 8.8v6.4' stroke='%23bcd2f0' stroke-width='1.3' stroke-linecap='round'/%3E%3C/g%3E%3Cg transform='rotate(-45 12 12)'%3E%3Crect x='0.8' y='8.4' width='22.4' height='7.2' rx='2.4' fill='%238fb0e0' stroke='%235b7fbf' stroke-width='1.6'/%3E%3Cpath d='M6 8.8v6.4M10 8.8v6.4M14 8.8v6.4M18 8.8v6.4' stroke='%23bcd2f0' stroke-width='1.3' stroke-linecap='round'/%3E%3C/g%3E%3C/svg%3E")}
+body.skin-sky:not(.night-mode) #dotAppearancePopover .mode-toggle[title="Pin mode"] .mode-ico{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' %3E%3Ccircle cx='12' cy='8.6' r='6' fill='%238fb0e0' stroke='%235b7fbf' stroke-width='1.8'/%3E%3Crect x='10.4' y='13' width='3.2' height='9' rx='1.6' fill='%238fb0e0' stroke='%235b7fbf' stroke-width='1.6'/%3E%3Ccircle cx='10.2' cy='6.8' r='1.6' fill='%23fff' opacity='.55'/%3E%3C/svg%3E")}
+body.skin-sky:not(.night-mode) #dotAppearancePopover .mode-toggle[title="Night mode"]:has(input:checked) .mode-ico{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23fff' stroke='%23d6e8ff' stroke-width='1.8' stroke-linejoin='round'%3E%3Cpath d='M20 14.6A8.6 8.6 0 1 1 9.4 4a7 7 0 0 0 10.6 10.6z'/%3E%3C/svg%3E")}
+body.skin-sky:not(.night-mode) #dotAppearancePopover .mode-toggle[title="Physical mode"]:has(input:checked) .mode-ico{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' %3E%3Cg transform='rotate(45 12 12)'%3E%3Crect x='0.8' y='8.4' width='22.4' height='7.2' rx='2.4' fill='%23fff' stroke='%23d6e8ff' stroke-width='1.6'/%3E%3Cpath d='M6 8.8v6.4M10 8.8v6.4M14 8.8v6.4M18 8.8v6.4' stroke='%239fc3f5' stroke-width='1.3' stroke-linecap='round'/%3E%3C/g%3E%3Cg transform='rotate(-45 12 12)'%3E%3Crect x='0.8' y='8.4' width='22.4' height='7.2' rx='2.4' fill='%23fff' stroke='%23d6e8ff' stroke-width='1.6'/%3E%3Cpath d='M6 8.8v6.4M10 8.8v6.4M14 8.8v6.4M18 8.8v6.4' stroke='%239fc3f5' stroke-width='1.3' stroke-linecap='round'/%3E%3C/g%3E%3C/svg%3E")}
+body.skin-sky:not(.night-mode) #dotAppearancePopover .mode-toggle[title="Pin mode"]:has(input:checked) .mode-ico{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' %3E%3Ccircle cx='12' cy='8.6' r='6' fill='%23fff' stroke='%23d6e8ff' stroke-width='1.8'/%3E%3Crect x='10.4' y='13' width='3.2' height='9' rx='1.6' fill='%23fff' stroke='%23d6e8ff' stroke-width='1.6'/%3E%3Ccircle cx='10.2' cy='6.8' r='1.6' fill='%23fff' opacity='.55'/%3E%3C/svg%3E")}
+body.skin-sky:not(.night-mode) #dotAppearancePopover input[type=color]{width:42px;height:32px;padding:5px 6px;box-sizing:border-box;border:none;border-radius:14px;background:linear-gradient(180deg,#f7fbff,#e1eefc);box-shadow:0 2px 6px rgba(70,140,220,.18),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #dotAppearancePopover input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+body.skin-sky:not(.night-mode) #dotAppearancePopover input[type=color]::-webkit-color-swatch{border:none;border-radius:9px;box-shadow:inset 0 1px 2px rgba(255,255,255,.5),inset 0 -2px 4px rgba(0,0,0,.08)}
+body.skin-sky:not(.night-mode) #dotAppearancePopover input[type=color]::-moz-color-swatch{border:none;border-radius:9px}
+body.skin-sky:not(.night-mode) #dotAppearancePopover .val-badge{min-width:32px;font-size:12px;font-weight:800;color:#5a7ab5;text-align:left}
+body.skin-sky:not(.night-mode) #dotAppearancePopover input[type=range]{-webkit-appearance:none;appearance:none;flex:1;min-width:0;max-width:none!important;height:22px;margin:0;background:transparent;cursor:pointer}
+body.skin-sky:not(.night-mode) #dotAppearancePopover input[type=range]::-webkit-slider-runnable-track{height:10px;box-sizing:border-box;border:2px solid rgba(255,255,255,.95);border-radius:999px;background:linear-gradient(90deg,#4aa6ff,#2a6fe8) 0 0/calc(var(--f,.5)*100% + (.5 - var(--f,.5))*18px) 100% no-repeat,linear-gradient(180deg,#d4e6fa,#eef6ff);box-shadow:inset 0 1px 2px rgba(70,130,210,.3),0 1px 2px rgba(70,140,220,.15)}
+body.skin-sky:not(.night-mode) #dotAppearancePopover input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;margin-top:-5px;box-sizing:border-box;border:2.5px solid rgba(255,255,255,.96);border-radius:50%;background:radial-gradient(circle at 35% 30%,#8cc6ff,#2f7bf0 72%);box-shadow:0 2px 6px rgba(42,111,232,.5)}
+body.skin-sky:not(.night-mode) #dotAppearancePopover input[type=range]::-moz-range-track{height:6px;border:2px solid rgba(255,255,255,.95);border-radius:999px;background:linear-gradient(180deg,#d4e6fa,#eef6ff);box-shadow:inset 0 1px 2px rgba(70,130,210,.3)}
+body.skin-sky:not(.night-mode) #dotAppearancePopover input[type=range]::-moz-range-progress{height:6px;border-radius:999px;background:linear-gradient(90deg,#4aa6ff,#2a6fe8)}
+body.skin-sky:not(.night-mode) #dotAppearancePopover input[type=range]::-moz-range-thumb{width:13px;height:13px;border:2.5px solid rgba(255,255,255,.96);border-radius:50%;background:radial-gradient(circle at 35% 30%,#8cc6ff,#2f7bf0 72%);box-shadow:0 2px 6px rgba(42,111,232,.5)}
+body.skin-sky:not(.night-mode) #dotAppearancePopover .reset-icon-btn{width:30px;height:30px;border:none;border-radius:11px;font-size:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233f7ad6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.2 12a8.2 8.2 0 1 1-2.6-6'/%3E%3Cpath d='M20 3.2v5.4h-5.4'/%3E%3C/svg%3E") center/16px no-repeat,linear-gradient(180deg,#f7fbff,#e1eefc);box-shadow:0 2px 6px rgba(70,140,220,.18),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #dotAppearancePopover .reset-icon-btn:hover{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233f7ad6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.2 12a8.2 8.2 0 1 1-2.6-6'/%3E%3Cpath d='M20 3.2v5.4h-5.4'/%3E%3C/svg%3E") center/16px no-repeat,linear-gradient(180deg,#fff,#d6e8fc)}
+body.skin-sky:not(.night-mode) #dotAppearancePopover .row:has(> .lbl:only-child){margin-bottom:6px}
+body.skin-sky:not(.night-mode) #dotAppearancePopover .scale-presets{gap:5px;margin-top:0}
+body.skin-sky:not(.night-mode) #dotAppearancePopover .scale-preset-btn:not(#skinOpenBtn){height:28px;padding:0 2px;border:none;border-radius:999px;font-size:11px;font-weight:800;color:#5f7fb8;background:linear-gradient(180deg,rgba(255,255,255,.75),rgba(222,236,252,.85));box-shadow:0 2px 6px rgba(70,140,220,.16),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #dotAppearancePopover .scale-preset-btn:not(#skinOpenBtn):hover{color:#2a6fe0;background:linear-gradient(180deg,#fff,#d9eafc)}
+body.skin-sky:not(.night-mode) #dotAppearancePopover .scale-preset-btn.active:not(#skinOpenBtn){color:#fff;background:linear-gradient(180deg,#4aa6ff,#2a6fe8);box-shadow:0 0 0 2px rgba(255,255,255,.9),0 3px 8px rgba(42,111,232,.42),inset 0 1px 0 rgba(255,255,255,.5)}
+@media (max-width:640px){
+  body.skin-sky:not(.night-mode) #dotAppearancePopover{width:min(250px,85vw)}
+}
+
+/* Glossy Blue — Map Settings popover (same footprint as classic: 190px wide, position untouched). */
+body.skin-sky:not(.night-mode) #mapColorsPopover{padding:10px 12px 6px;border:1px solid rgba(255,255,255,.85);border-radius:22px;background:linear-gradient(180deg,rgba(248,252,255,.97),rgba(222,238,253,.96));box-shadow:0 14px 34px rgba(40,100,190,.33),inset 0 1px 0 #fff;-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
+body.skin-sky:not(.night-mode) #mapColorsPopover .pop-title-row{margin:0 0 10px;padding:3px 3px 3px 12px;border-radius:999px;background:linear-gradient(180deg,#fff,#eaf4fe);box-shadow:0 3px 8px rgba(70,140,220,.18),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #mapColorsPopover .pop-title{display:flex;align-items:center;gap:7px;font-size:12px;line-height:1.1;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#1e66d6}
+body.skin-sky:not(.night-mode) #mapColorsPopover .mp-ico{flex:0 0 auto;width:22px;height:13px;font-size:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 24' fill='%232a6fe0'%3E%3Cpath d='M2 5C4 2 9 1.5 13 2.5l1 3.5-2 3-3.5 2-2 4.5-2.2-2.5-.8-5.5-2-2z'/%3E%3Cpath d='M10.5 14.5l3.2-1.6 2.3 2.3-1 4.2-2.3 3.2-1.6-2.2z'/%3E%3Cpath d='M17 4c3-1.8 7-1.8 10.5-.6S33.5 3 36 4.5l2.5 1-2 3-4 1-2 3.2-3-1-2 2-2.2-3.2-3-1-2-3.2z'/%3E%3Cpath d='M17.5 11.5l4-1.2 3 2.2 1.2 4.2-2 5-3-1-2-4.2z'/%3E%3Cpath d='M30 16.5l4-1 3.2 2-1 3.2-5.2.2z'/%3E%3C/svg%3E") center/contain no-repeat}
+body.skin-sky:not(.night-mode) #mapColorsPopover .reset-icon-btn{width:28px;height:28px;border:none;border-radius:10px;font-size:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233f7ad6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.2 12a8.2 8.2 0 1 1-2.6-6'/%3E%3Cpath d='M20 3.2v5.4h-5.4'/%3E%3C/svg%3E") center/16px no-repeat,linear-gradient(180deg,#f7fbff,#e1eefc);box-shadow:0 2px 6px rgba(70,140,220,.18),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #mapColorsPopover .reset-icon-btn:hover{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233f7ad6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.2 12a8.2 8.2 0 1 1-2.6-6'/%3E%3Cpath d='M20 3.2v5.4h-5.4'/%3E%3C/svg%3E") center/16px no-repeat,linear-gradient(180deg,#fff,#d6e8fc)}
+body.skin-sky:not(.night-mode) #mapColorsPopover .row{gap:8px;margin-bottom:8px}
+body.skin-sky:not(.night-mode) #mapColorsPopover .lbl{font-size:13px;font-weight:700;color:#4a63ad}
+body.skin-sky:not(.night-mode) #mapColorsPopover input[type=color]{width:42px;height:30px;padding:0;box-sizing:border-box;border:2px solid rgba(255,255,255,.92);border-radius:12px;background:#fff;box-shadow:0 2px 7px rgba(70,140,220,.28),inset 0 1px 2px rgba(255,255,255,.6);overflow:hidden}
+body.skin-sky:not(.night-mode) #mapColorsPopover input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+body.skin-sky:not(.night-mode) #mapColorsPopover input[type=color]::-webkit-color-swatch{border:none;border-radius:9px;box-shadow:inset 0 1px 2px rgba(255,255,255,.55),inset 0 -2px 4px rgba(0,0,0,.07)}
+body.skin-sky:not(.night-mode) #mapColorsPopover input[type=color]::-moz-color-swatch{border:none;border-radius:9px}
+
+/* Glossy Blue — session name pill: no status chevron next to it; the pill itself turns grey when the session is saved. */
+body.skin-sky:not(.night-mode) .sess-dot{display:none}
+body.skin-sky:not(.night-mode) #sessionName.saved{background:linear-gradient(180deg,#bcc6d4,#8f9bae);box-shadow:0 3px 9px rgba(100,114,135,.35),inset 0 1px 0 rgba(255,255,255,.5);cursor:default}
+body.skin-sky:not(.night-mode) #sessionName.saved:hover{background:linear-gradient(180deg,#bcc6d4,#8f9bae)}
+body.skin-sky:not(.night-mode) #sessionName.saved::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23f4f7fb' d='M12 1.5l2.6 7.9 7.9 2.6-7.9 2.6L12 22.5l-2.6-7.9L1.5 12l7.9-2.6z'/%3E%3C/svg%3E")}
+
+/* Glossy Blue — the map button shows the icon assigned to the current map in the map selector (flag or ringed globe). */
+#mapPickIcon{display:none}
+body.skin-sky:not(.night-mode) #mapPickBtn::before{display:none}
+body.skin-sky:not(.night-mode) #mapPickIcon{display:block;flex:0 0 auto;width:26px;height:26px;filter:drop-shadow(0 2px 3px rgba(30,80,160,.3))}
+body.skin-sky:not(.night-mode) #mapPickIcon svg{display:block;width:100%;height:100%}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
@@ -933,7 +1307,7 @@ body.skin-sky:not(.night-mode) .rm{width:24px;height:24px;font-size:15px}
     </span>
     <span id="mapPickSlot">
       <button type="button" id="mapPickBtn" title="Map selection — pick which map you are playing on">
-      <span id="mapPickDot"></span>🗺 <span id="mapPickLabel">World</span>
+      <span id="mapPickDot"></span><span id="mapPickIcon"></span>🗺 <span id="mapPickLabel">World</span>
     </button>
     </span>
     <span id="quizIndicator" title="Prefecture quiz — find the named prefecture and click it"><span id="quizIndicatorIcon">🗾</span> <span id="quizIndicatorProgress"></span><button type="button" id="quizIndicatorReset" title="Reset quiz progress">↺</button></span>
@@ -991,6 +1365,20 @@ body.skin-sky:not(.night-mode) .rm{width:24px;height:24px;font-size:15px}
     <div id="msg" class="overlayMsg"></div>
     <svg id="map" preserveAspectRatio="xMidYMid meet">
       <defs>
+        <linearGradient id="skyLandNight" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0" stop-color="#223d6b" stop-opacity=".95"/><stop offset="1" stop-color="#1d3760" stop-opacity=".95"/></linearGradient>
+        <linearGradient id="skyLand" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0" stop-color="#eff7ff" stop-opacity=".93"/><stop offset="1" stop-color="#eaf4fd" stop-opacity=".92"/></linearGradient>
+        <!-- Glossy Blue city dots: glassy blue ball (lighter top-left) + soft white-blue halo. Stop colours are set from the dot colour by skyDotSync(). -->
+        <radialGradient id="skyDotGrad" cx="36%" cy="32%" r="78%">
+          <stop id="skyDotS0" offset="0" stop-color="#a9d0ff"/>
+          <stop id="skyDotS1" offset=".5" stop-color="#4f9cf0"/>
+          <stop id="skyDotS2" offset="1" stop-color="#2f78d8"/>
+        </radialGradient>
+        <radialGradient id="skyHaloGrad" cx="50%" cy="50%" r="50%">
+          <stop offset="0" stop-color="#ffffff" stop-opacity=".95"/>
+          <stop id="skyHaloS1" offset=".5" stop-color="#cfe6ff" stop-opacity=".5"/>
+          <stop id="skyHaloS2" offset="1" stop-color="#9ecbff" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="skyShapeGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#78baff"/><stop offset="1" stop-color="#3a86f0"/></linearGradient>
         <!-- Soft glow used for city dots in Night mode, so they read like lights seen from space.
              The filter region is sized just generously enough to hold the blur spread — a much
              larger region (the previous 700%) forces the browser to rasterize a far bigger canvas
@@ -1033,7 +1421,7 @@ body.skin-sky:not(.night-mode) .rm{width:24px;height:24px;font-size:15px}
     <button type="button" id="mapColorsBtn" title="Map settings">🗺 <span class="btn-label">Map settings</span></button>
     <button type="button" id="panelToggleBtn" title="Hide/show the city list">▾ Hide list</button>
     <div id="mapColorsPopover">
-      <div class="pop-title-row"><span class="pop-title">🗺 Map Settings</span><button type="button" id="resetMapColors" class="reset-icon-btn" title="Reset map colours">↺</button></div>
+      <div class="pop-title-row"><span class="pop-title"><span class="mp-ico">🗺</span> Map Settings</span><button type="button" id="resetMapColors" class="reset-icon-btn" title="Reset map colours">↺</button></div>
       <div class="row"><span class="lbl">Land</span><input type="color" id="landColor" value="#e8e4da"/></div>
       <div class="row"><span class="lbl">Sea</span><input type="color" id="seaColor" value="#c8dff0"/></div>
       <div class="row"><span class="lbl">Borders</span><input type="color" id="borderColor" value="#aaaaaa"/></div>
@@ -1042,7 +1430,7 @@ body.skin-sky:not(.night-mode) .rm{width:24px;height:24px;font-size:15px}
       <div class="pop-title-row"><span class="pop-title"><svg width="12" height="12" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-1px"><defs><clipPath id="ballClipPop"><circle cx="10" cy="10" r="9"/></clipPath><radialGradient id="ballGlossPop" cx="35%" cy="30%" r="70%"><stop offset="0%" stop-color="#fff" stop-opacity="0.6"/><stop offset="45%" stop-color="#fff" stop-opacity="0.1"/><stop offset="100%" stop-color="#000" stop-opacity="0.2"/></radialGradient></defs><g clip-path="url(#ballClipPop)"><rect x="0" y="0" width="20" height="20" fill="#f4c531"/><path d="M10 10 L20 10 A10 10 0 0 1 10 20 Z" fill="#3fb84f"/><path d="M10 10 L10 20 A10 10 0 0 1 0 10 Z" fill="#3b82f6"/><path d="M10 10 L0 10 A10 10 0 0 1 10 0 Z" fill="#e63946"/></g><circle cx="10" cy="10" r="9" fill="url(#ballGlossPop)"/></svg> Appearance</span></div>
       <div class="row">
         <span class="lbl">Skin</span>
-        <button type="button" id="skinOpenBtn" class="scale-preset-btn" title="Choose a skin" style="flex:1">🎨 <span id="skinOpenName">Classic</span> ▸</button>
+        <button type="button" id="skinOpenBtn" class="scale-preset-btn" title="Choose a skin" style="flex:1"><span class="skin-ico">🎨</span> <span id="skinOpenName">Classic</span><span class="skin-caret"> ▸</span></button>
       </div>
       <div class="row mode-toggles">
         <label class="mode-toggle" title="Night mode" aria-label="Night mode"><input type="checkbox" id="nightMode"><span class="mode-ico">🌙</span></label>
@@ -1084,7 +1472,7 @@ body.skin-sky:not(.night-mode) .rm{width:24px;height:24px;font-size:15px}
       <button type="button" class="skin-card" data-skin="sky">
         <span class="skin-thumb sk-sky"><i class="sk-bar"></i><i class="sk-land"></i><i class="sk-dot"></i></span>
         <span class="skin-name">Glossy Blue<span class="skin-check">✓</span></span>
-        <span class="skin-desc">Glossy pill buttons, sky-blue sea and cream land.</span>
+        <span class="skin-desc">Glossy pill buttons, frosted sky-blue sea and pale ice land. Turn on Night mode for the dark version.</span>
       </button>
     </div>
   </div>
@@ -1094,13 +1482,13 @@ body.skin-sky:not(.night-mode) .rm{width:24px;height:24px;font-size:15px}
 <div id="sessModal">
   <div id="sessBox">
     <div id="sessBoxHead">
-      <h2>📋 Sessions</h2>
+      <h2><span class="sess-ico">📋</span> Sessions</h2>
       <button id="sessClose">✕</button>
     </div>
     <div id="sessList"></div>
     <div id="sessBoxFoot">
       <input id="newSessNameInput" type="text" placeholder="New session name…" maxlength="60"/>
-      <button id="createSessBtn">＋ Create</button>
+      <button id="createSessBtn"><span class="ico">＋</span> Create</button>
     </div>
   </div>
 </div>
@@ -1129,7 +1517,7 @@ body.skin-sky:not(.night-mode) .rm{width:24px;height:24px;font-size:15px}
     <div id="otherStatsList" style="width:100%;margin-top:6px"></div>
 
     <div id="missedBtnWrap" style="display:none;width:100%;max-width:520px;margin-top:6px">
-      <button id="missedBtn">🔍 What did I miss?</button>
+      <button id="missedBtn"><span class="mb-ico">🔍</span> What did I miss?</button>
     </div>
     <div id="siteFooter">GeoQuiz by Eisman 2026</div>
   </div>
@@ -1156,7 +1544,7 @@ body.skin-sky:not(.night-mode) .rm{width:24px;height:24px;font-size:15px}
 <div id="mapModal">
   <div id="mapBox">
     <div id="mapBoxHead">
-      <h2>🗺 Map selection</h2>
+      <h2><span class="mb-ico">🗺</span> Map selection</h2>
       <button id="mapClose">✕</button>
     </div>
     <div id="mapList"></div>
@@ -1170,7 +1558,7 @@ body.skin-sky:not(.night-mode) .rm{width:24px;height:24px;font-size:15px}
 <div id="modePickModal">
   <div id="modePickBox">
     <div id="modePickHead">
-      <h2 id="modePickTitle">Choose a mode</h2>
+      <h2 id="modePickTitle"><span id="modePickIcon" class="mp-icon"></span><span id="modePickEmoji"></span><span id="modePickTitleText">Choose a mode</span></h2>
       <button id="modePickClose">✕</button>
     </div>
     <div id="modePickList">
@@ -1194,17 +1582,17 @@ body.skin-sky:not(.night-mode) .rm{width:24px;height:24px;font-size:15px}
 <div id="circleTimerModal">
   <div id="circleTimerBox" role="dialog" aria-modal="true" aria-labelledby="circleTimerTitle">
     <div id="circleTimerHead">
-      <h2 id="circleTimerTitle">🎯 Circle challenge — how do you want to play?</h2>
+      <h2 id="circleTimerTitle"><span class="ctm-ico"><svg viewBox="0 0 32 32" aria-hidden="true"><defs><radialGradient id="tmT" cx="35%" cy="28%" r="85%"><stop offset="0" stop-color="#8cc6ff"/><stop offset=".55" stop-color="#2f86d6"/><stop offset="1" stop-color="#14498f"/></radialGradient></defs><circle cx="16" cy="16" r="14.5" fill="url(#tmT)" stroke="rgba(10,50,110,.35)" stroke-width="1"/><ellipse cx="12.5" cy="8.6" rx="7" ry="3.6" fill="#fff" opacity=".28"/><circle cx="16" cy="16" r="8" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="16" cy="16" r="4.2" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="16" cy="16" r="1.5" fill="#fff"/></svg></span>Zones — Modes</h2>
       <button id="circleTimerClose" aria-label="Close">✕</button>
     </div>
     <div id="circleTimerList">
-      <button type="button" class="ctm-opt" data-timed="1">
-        <span class="ctm-title">🔥 Hard mode</span>
-        <span class="ctm-desc">60 seconds per circle, and 5 cities that are not inside the circle end the round. Either one ends the round and keeps your points.</span>
-      </button>
       <button type="button" class="ctm-opt" data-timed="0">
-        <span class="ctm-title">♾ Without timer</span>
-        <span class="ctm-desc">Take all the time you want on each circle, with no limit on wrong cities. Press Next circle when you are done.</span>
+        <span class="ctm-title"><span class="ctm-ico"><svg viewBox="0 0 32 32" aria-hidden="true"><defs><radialGradient id="tmE" cx="35%" cy="28%" r="85%"><stop offset="0" stop-color="#a6ecb3"/><stop offset=".55" stop-color="#4fbf6a"/><stop offset="1" stop-color="#2a8f4a"/></radialGradient></defs><circle cx="16" cy="16" r="14.5" fill="url(#tmE)" stroke="rgba(10,50,110,.35)" stroke-width="1"/><ellipse cx="12.5" cy="8.6" rx="7" ry="3.6" fill="#fff" opacity=".28"/><path d="M9.2 16c0-2.1 1.5-3.6 3.4-3.6 3.9 0 3.7 7.2 7.6 7.2 1.9 0 3.4-1.5 3.4-3.6s-1.5-3.6-3.4-3.6c-3.9 0-3.7 7.2-7.6 7.2-1.9 0-3.4-1.5-3.4-3.6z" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Easy</span>
+        <span class="ctm-desc">No time limit.</span>
+      </button>
+      <button type="button" class="ctm-opt" data-timed="1">
+        <span class="ctm-title"><span class="ctm-ico"><svg viewBox="0 0 32 32" aria-hidden="true"><defs><radialGradient id="tmH" cx="35%" cy="28%" r="85%"><stop offset="0" stop-color="#ffa59b"/><stop offset=".55" stop-color="#e5483f"/><stop offset="1" stop-color="#a8231d"/></radialGradient></defs><circle cx="16" cy="16" r="14.5" fill="url(#tmH)" stroke="rgba(10,50,110,.35)" stroke-width="1"/><ellipse cx="12.5" cy="8.6" rx="7" ry="3.6" fill="#fff" opacity=".28"/><circle cx="16" cy="17.6" r="6.6" fill="none" stroke="#fff" stroke-width="2.1"/><path d="M16 17.6V14.2" stroke="#fff" stroke-width="2.1" stroke-linecap="round"/><rect x="14" y="7.4" width="4" height="2.2" rx="1.1" fill="#fff"/><path d="M21.4 11.2l1.6-1.6" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></span>Hard</span>
+        <span class="ctm-desc">60s per round. 5 attempts to guess correct entries.</span>
       </button>
     </div>
   </div>
@@ -1461,12 +1849,12 @@ let currentRegion = 'world';
 const W_BASE = 1000, H_BASE = 500;
 
 const S = {
-  dotColor:'#cb6543', dotAlpha:0.75, uniformSize:false, uniformR:0, dotSizeMode:'normal',
-  landColor:'#e8e4da', seaColor:'#c8dff0', borderColor:'#aaaaaa',
+  dotColor:'#4f9cf0', dotAlpha:0.75, uniformSize:false, uniformR:0, dotSizeMode:'normal', // Glossy Blue is the default skin (palette = SKIN_PRESETS.sky)
+  landColor:'#e9f4fe', seaColor:'#bddcfa', borderColor:'#94bfea',
   countryMode:'any', specificCountry:'', specificAdmin1:'',
   nightMode:false, _preNight:null, // _preNight: colours saved when night mode is switched on, restored when switched off
   physicalMode:false, // shows a real satellite-image basemap instead of flat land/sea colours
-  skin:'classic', _preSkin:null, // skin: 'classic' | 'sky' (see SKINS); _preSkin: palette saved when a skin is applied, restored on Classic
+  skin:'sky', _preSkin:{ landColor:'#e8e4da', seaColor:'#c8dff0', borderColor:'#aaaaaa', dotColor:'#cb6543', dotAlpha:0.75 }, // skin: 'classic' | 'sky' (see SKINS); _preSkin: palette saved when a skin is applied, restored on Classic
   pinMode:false, // Pin mode: dots render as 3D-style map pins instead of flat circles
 };
 
@@ -1482,6 +1870,8 @@ function randomPinColorKey() { return PIN_COLOR_KEYS[Math.floor(Math.random() * 
 // Preset used when Night mode is enabled — sea darker than land, and warm
 // bright dots so cities read like lights photographed from space.
 const NIGHT_PRESET = { landColor:'#0d1420', seaColor:'#020409', borderColor:'#25324a', dotColor:'#ffe9a8', dotAlpha:0.92 };
+// Night mode with the Glossy Blue skin = the dark glossy look: navy sea, frosted dark-blue land, same warm city lights.
+const SKY_NIGHT_PRESET = { landColor:'#1b3358', seaColor:'#071428', borderColor:'#4a78b8', dotColor:'#ffe9a8', dotAlpha:0.92 };
 
 // Factory defaults for the "Dot Appearance" section (colour/alpha/size/scale only —
 // Night mode and Physical mode are toggles the user explicitly set and are never
@@ -1490,7 +1880,7 @@ const DOT_DEFAULTS = { dotColor:'#cb6543', dotAlpha:0.75, uniformSize:false, uni
 const MAP_DEFAULTS = { landColor:'#e8e4da', seaColor:'#c8dff0', borderColor:'#aaaaaa' };
 // Skins: a palette applied together with a body class that restyles the interface (CSS section "SKINS").
 const SKIN_PRESETS = {
-  sky: { landColor:'#efeada', seaColor:'#acdcfd', borderColor:'#d9d3c1', dotColor:'#ec6b4c', dotAlpha:0.85 }
+  sky: { landColor:'#e9f4fe', seaColor:'#bddcfa', borderColor:'#94bfea', dotColor:'#4f9cf0', dotAlpha:0.75 }
 };
 function mapDef() { const k = SKIN_PRESETS[S.skin]; return k ? { landColor:k.landColor, seaColor:k.seaColor, borderColor:k.borderColor } : MAP_DEFAULTS; }
 function dotDef() { const k = SKIN_PRESETS[S.skin]; return k ? Object.assign({}, DOT_DEFAULTS, { dotColor:k.dotColor, dotAlpha:k.dotAlpha }) : DOT_DEFAULTS; }
@@ -1645,6 +2035,7 @@ function onZoomEnd(e) {
   clearTimeout(_panningOffTimer);
   _panningOffTimer = setTimeout(() => {
     document.body.classList.remove('map-panning');
+    syncSkyMap();
   }, 220);
 }
 
@@ -2326,6 +2717,7 @@ async function drawMap(regionKey) {
 
   // Reset zoom
   currentTransform = d3.zoomIdentity;
+  if (typeof syncSkyMap === 'function') syncSkyMap();
   _physicalBakedTransform = d3.zoomIdentity;
   svg.call(zoomBehavior.transform, d3.zoomIdentity);
   document.getElementById('zoomLbl').textContent = '100%';
@@ -2528,6 +2920,7 @@ async function drawMap(regionKey) {
       const countyFeatures = topojson.feature(usCountiesData, usCountiesData.objects.counties);
       g.select('#countries-g').selectAll('path')
         .data(countyFeatures.features).join('path')
+        .classed('us-county', true) // any class opts a path out of the Glossy Blue gradient (too many counties) -> flat land colour
         .attr('d', path)
         .attr('fill', S.landColor)
         .attr('stroke', S.borderColor)
@@ -3126,6 +3519,7 @@ async function updatePhysicalLayer(g, W, H) {
     g.select('#nation-border-jp').attr('stroke', S.borderColor);
     g.selectAll('.region-outline').attr('stroke', S.borderColor);
     document.getElementById('mapWrap').style.background = S.seaColor;
+    syncSkyMap();
     return;
   }
   g.select('#sphere').attr('fill', 'none');
@@ -4734,9 +5128,6 @@ document.getElementById('circleBoardBody').addEventListener('click', e => {
 });
 document.getElementById('circleEndClose').onclick = closeCircleEnd;
 document.getElementById('circleBoardClose').onclick = closeCircleBoard;
-document.getElementById('circleEndModal').onclick = e => { if (e.target.id === 'circleEndModal') closeCircleEnd(); };
-document.getElementById('circleBoardModal').onclick = e => { if (e.target.id === 'circleBoardModal') closeCircleBoard(); };
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeCircleEnd(); closeCircleBoard(); } });
 
 // ─── GUESS ───────────────────────────────────────────────────────────────────
 function guess() {
@@ -4963,7 +5354,7 @@ document.getElementById('mapWrap').addEventListener('mouseleave', () => {
 
 // ─── DOTS ─────────────────────────────────────────────────────────────────────
 function dotStroke() {
-  if (S.skin === 'sky' && !S.nightMode) return 'rgba(255,255,255,.92)'; // soft white halo, like the reference look
+  if (S.skin === 'sky' && !S.nightMode) return '#fff'; // flat blue dots with a white outline
   return S.nightMode ? 'none' : 'rgba(0,0,0,1)';
 }
 const DOT_STROKE_WIDTH_BY_MODE = { normal: 0.2, small: 0.2, smaller: 0.2, tiny: 0.05 };
@@ -4972,9 +5363,20 @@ function dotStrokeWidth(pop) {
   // Outline thickness steps down together with dot size across all four
   // presets, so it never overwhelms a smaller dot or looks like an abrupt
   // change relative to everything else.
-  if (S.skin === 'sky') return ({ normal: 0.7, small: 0.55, smaller: 0.4, tiny: 0.15 })[S.dotSizeMode] || 0.7;
   return DOT_STROKE_WIDTH_BY_MODE[S.dotSizeMode] || 0.2;
 }
+// Glossy Blue (day): dots are glassy blue balls with a soft halo. The gradient stops follow the dot colour.
+function skyDay() { return S.skin === 'sky' && !S.nightMode && !S.physicalMode; }
+let _skyDotKey = '';
+function skyDotSync() {
+  if (_skyDotKey === S.dotColor) return; _skyDotKey = S.dotColor;
+  const h = S.dotColor, c = [1,3,5].map(i => parseInt(h.slice(i,i+2),16));
+  const mix = (t, k) => '#' + c.map(v => Math.round(k > 0 ? v + (255 - v) * k : v * (1 + k)).toString(16).padStart(2,'0')).join('');
+  const set = (id, col) => { const e = document.getElementById(id); if (e) e.setAttribute('stop-color', col); };
+  set('skyDotS0', mix(0, .55)); set('skyDotS1', mix(0, 0)); set('skyDotS2', mix(0, -.16));
+  set('skyHaloS1', mix(0, .7)); set('skyHaloS2', mix(0, .35));
+}
+function haloR(pop) { return dotR(pop) * 1.45 + 2.2; }
 function dotFill() {
   if (S.nightMode) return 'url(#cityLightGrad)';
   const h=S.dotColor, r=parseInt(h.slice(1,3),16), g=parseInt(h.slice(3,5),16), b=parseInt(h.slice(5,7),16);
@@ -5004,6 +5406,10 @@ function addDot(city) {
   const onMove = ev => { const rc=mapEl.getBoundingClientRect(); tooltip.style.left=(ev.clientX-rc.left+14)+'px'; tooltip.style.top=(ev.clientY-rc.top-46)+'px'; };
   const onOut = () => tooltip.style.display='none';
   const onClick = () => { tooltip.style.display='none'; highlightCity(city); };
+
+  dg.append('circle').attr('class','sky-halo')
+    .attr('cx',cx).attr('cy',cy).attr('r', haloR(city.pop)).attr('data-pop', city.pop||0)
+    .attr('fill','url(#skyHaloGrad)').style('pointer-events','none');
 
   dg.append('circle')
     .attr('class','main-dot')
@@ -5496,6 +5902,15 @@ function findPrefShape(features, prefId) {
 
 const SHAPE_MODE_LABELS = { usa: 'states', japan: 'prefectures', country: 'countries' };
 
+// Round flag shown in the Glossy Blue skin's top-N cards (hidden in other skins). Uses a flag image with
+// the regional-indicator emoji as a fallback (offline, or platforms that can't draw flag emoji as images).
+function shapeFlagHtml(mode, code) {
+  const cc = mode === 'usa' ? 'US' : mode === 'japan' ? 'JP' : String(code || '').toUpperCase();
+  if (!/^[A-Z]{2}$/.test(cc)) return '🌐';
+  const emoji = String.fromCodePoint(...[...cc].map(ch => 0x1F1E6 + ch.charCodeAt(0) - 65));
+  return `<img src="https://flagcdn.com/w80/${cc.toLowerCase()}.png" alt="" loading="lazy" onerror="this.replaceWith(document.createTextNode('${emoji}'))">`;
+}
+
 let shapeRenderToken = 0;
 async function renderTopShapes(top5, mode) {
   const wrap = document.getElementById('topShapesList');
@@ -5533,8 +5948,13 @@ async function renderTopShapes(top5, mode) {
     card.innerHTML = `
       <span class="shape-rank">${i + 1}</span>
       <div class="shape-icon">${iconHtml}</div>
-      <div class="shape-name">${item.name}</div>
-      <div class="shape-count">${item.count} ${item.count === 1 ? 'city' : 'cities'}</div>
+      <div class="shape-pill">
+        <span class="shape-flag">${shapeFlagHtml(mode, item.code)}</span>
+        <div class="shape-info">
+          <div class="shape-name">${item.name}</div>
+          <div class="shape-count">${item.count} ${item.count === 1 ? 'city' : 'cities'}</div>
+        </div>
+      </div>
     `;
     wrap.appendChild(card);
   });
@@ -6120,6 +6540,37 @@ function closeStatsCountryPanel() {
   scSetKb(null);
 }
 
+// While the country list is open, slide the stats pills to the left just enough that they
+// no longer sit under the list (only if they would overlap it); they slide back when it closes.
+let _statsShift = 0;
+function updateStatsShift() {
+  const list = document.getElementById('otherStatsList'), panel = scEl('scPanel');
+  if (!list || !panel) return;
+  let shift = 0;
+  if (panel.classList.contains('open')) {
+    const pr = panel.getBoundingClientRect(), gap = 12;
+    let need = 0, minLeft = Infinity;
+    list.querySelectorAll('.stat-row').forEach(r => {
+      const b = r.getBoundingClientRect();
+      const left = b.left + _statsShift, right = b.right + _statsShift;       // natural (unshifted) position
+      minLeft = Math.min(minLeft, left);
+      if (b.bottom > pr.top - 6 && b.top < pr.bottom + 6) need = Math.max(need, right - (pr.left - gap));
+    });
+    shift = Math.max(0, Math.min(need, minLeft - 6));                          // never push a pill off the left edge
+  }
+  if (Math.abs(shift - _statsShift) < 0.5) return;
+  _statsShift = shift;
+  list.style.transform = shift ? 'translateX(' + (-shift) + 'px)' : '';
+}
+(function () {
+  const list = document.getElementById('otherStatsList'), panel = document.getElementById('scPanel');
+  if (!list || !panel) return;
+  list.style.transition = 'transform .22s ease';
+  new MutationObserver(updateStatsShift).observe(panel, { attributes: true, attributeFilter: ['class'] });
+  new MutationObserver(updateStatsShift).observe(list, { childList: true });
+  window.addEventListener('resize', updateStatsShift);
+})();
+
 scEl('scBtn').onclick = e => {
   e.stopPropagation();
   if (scEl('scPanel').classList.contains('open')) { closeStatsCountryPanel(); return; }
@@ -6265,6 +6716,61 @@ function highlightCity(city) {
 // ─── REGION BUTTONS ──────────────────────────────────────────────────────────
 const regionColors = { world:'#2B4C7E', europe:'#1565C0', north_america:'#6A1B9A', usa:'#B71C1C', japan:'#AD1457', poland:'#DC143C', russia:'#3949AB', spain:'#F9A825', south_america:'#2E7D32', africa:'#BF360C', asia:'#E65100', oceania:'#00695C' };
 // Single-country maps get a flag emoji in the picker instead of the plain colour dot.
+const REGION_GLOBE_SHAPES = {"world": ["M12 14c6-5 15-4 17 2 1 5-5 7-4 12 1 5 8 6 6 13-2 6-8 10-12 6-3-3 0-7-3-11-3-5-9-6-8-12 1-4 2-7 4-10z", "M37 11c5-2 11 1 12 6 1 4-3 4-3 8 1 5 7 6 5 12-2 5-8 6-11 3-3-3-1-7-4-10-3-3-7-3-6-8 1-5 3-9 7-11z"], "europe": ["M11 41L15 36L22 38L26 34L24 28L28 24L26 16L32 9L38 14L36 22L44 20L53 24L50 32L44 36L40 34L38 45L34 51L31 42L27 43L25 47L17 49Z"], "north_america": ["M7 18L17 13L27 15L35 11L46 13L54 19L48 25L43 27L41 35L36 42L32 52L27 47L29 38L21 35L14 29L9 24Z"], "south_america": ["M24 10L36 11L46 19L45 28L39 36L35 49L30 57L26 49L24 37L19 28L21 18Z"], "africa": ["M20 12L34 10L45 15L50 25L55 29L46 34L43 45L36 55L30 52L28 40L21 34L12 28L11 19Z"], "asia": ["M6 24L18 14L35 11L51 14L59 24L52 31L56 40L48 43L42 38L38 47L32 42L28 34L20 33L16 40L11 32Z"], "oceania": ["M12 31L23 26L31 28L41 23L49 31L45 42L34 47L23 45L15 40Z", "M50 13L54 15L52 20L48 18Z", "M54 42L58 46L55 52L52 48Z"], "usa": ["M6 22L21 20L36 21L50 19L57 23L54 31L55 38L50 47L47 39L38 38L33 47L27 41L20 36L12 33L8 28Z"], "japan": ["M44 7L53 12L48 19L42 16Z", "M42 21L47 25L38 33L28 39L21 41L18 46L13 43L18 38L26 34L34 28L38 22Z", "M13 47L20 47L18 54L11 53Z"], "poland": ["M13 23L26 18L40 18L51 22L53 32L48 43L38 47L26 47L16 41L11 31Z"], "russia": ["M3 27L14 20L26 22L36 14L50 11L61 18L58 27L54 33L46 37L38 35L30 41L22 39L14 41L8 35Z"], "spain": ["M10 29L13 22L24 18L40 17L52 22L50 32L45 42L35 49L24 47L14 41Z"]};
+// Simplified globe icon for the Glossy Blue map-selection dialog: the same blue sphere + green land as the globe on the
+// map button, with a simplified silhouette of the continent / country. Shown only in that skin (CSS toggles it).
+// Map-selection icons (Glossy Blue skin): countries get a glossy round flag; continents keep the mini globe and
+// use the same earth with a thick, differently coloured outline so they are easy to tell apart at a glance.
+const REGION_FLAG_BODY = {
+  usa: `<rect width="64" height="64" fill="#fff"/>${[0,2,4,6,8,10,12].map(i => `<rect y="${i*64/13}" width="64" height="${64/13}" fill="#d9304a"/>`).join('')}<rect width="34" height="35" fill="#2b4fa6"/>${[[8,8],[17,8],[26,8],[12,15],[21,15],[8,22],[17,22],[26,22],[12,29],[21,29]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="1.8" fill="#fff"/>`).join('')}`,
+  japan: `<rect width="64" height="64" fill="#fff"/><circle cx="32" cy="32" r="14" fill="#e3243b"/>`,
+  poland: `<rect width="64" height="32" fill="#fff"/><rect y="32" width="64" height="32" fill="#dc2f4b"/>`,
+  russia: `<rect width="64" height="22" fill="#fff"/><rect y="21.3" width="64" height="21.4" fill="#2250b8"/><rect y="42.6" width="64" height="21.4" fill="#d9322a"/>`,
+  spain: `<rect width="64" height="64" fill="#c8102e"/><rect y="16" width="64" height="32" fill="#ffc61a"/>`
+};
+let _regionIconSeq = 0;
+// colour sets for the continent icon: world gives the shared sphere (s) + land (l); every entry's b = ring colour (top, bottom)
+const REGION_ICON_PAL = {
+  world:         { s:['#b2e0ff','#66b4fb','#3f88ec'], l:['#c9fbe6','#86e6c8'], b:['#7dbaff','#4a90f0'] },
+  europe:        { b:['#8e7bff','#5b43e0'] },
+  north_america: { b:['#d08cf5','#a043d6'] },
+  south_america: { b:['#4fd36f','#1f9d44'] },
+  africa:        { b:['#ff8a5c','#e0471a'] },
+  asia:          { b:['#ffc24d','#f08c0a'] },
+  oceania:       { b:['#33d6c8','#0e9d93'] }
+};
+function regionIconSVG(key) {
+  const id = 'rg-' + key + '-' + (++_regionIconSeq); // unique per instance (the same icon can be on screen twice)
+  if (REGION_FLAG_BODY[key]) {
+    return `<svg viewBox="0 0 64 64" width="30" height="30" aria-hidden="true"><defs><clipPath id="${id}-f"><circle cx="32" cy="32" r="30"/></clipPath><linearGradient id="${id}-s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#0a2a66" stop-opacity=".22"/></linearGradient></defs><g clip-path="url(#${id}-f)">${REGION_FLAG_BODY[key]}<rect width="64" height="64" fill="url(#${id}-s)"/><ellipse cx="22" cy="14" rx="16" ry="8" fill="#fff" opacity=".25"/></g><circle cx="32" cy="32" r="29.5" fill="none" stroke="#0f3f9c" stroke-opacity=".28"/></svg>`;
+  }
+  // Continents / World: one shared emoji-style earth (blue sphere + mint land) with a thick glossy outline;
+  // only the outline colour changes per continent (World = blue).
+  const P = Object.assign({}, REGION_ICON_PAL.world, { b: (REGION_ICON_PAL[key] || REGION_ICON_PAL.world).b });
+  const u = 'ri' + (++_regionIconSeq);
+  return `<svg viewBox="0 0 64 64" width="30" height="30" aria-hidden="true"><defs>` +
+    `<radialGradient id="${u}s" cx="34%" cy="26%" r="85%"><stop offset="0" stop-color="${P.s[0]}"/><stop offset=".55" stop-color="${P.s[1]}"/><stop offset="1" stop-color="${P.s[2]}"/></radialGradient>` +
+    `<linearGradient id="${u}l" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P.l[0]}"/><stop offset="1" stop-color="${P.l[1]}"/></linearGradient>` +
+    `<linearGradient id="${u}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P.b[0]}"/><stop offset="1" stop-color="${P.b[1]}"/></linearGradient>` +
+    `<clipPath id="${u}c"><circle cx="31" cy="32" r="22"/></clipPath></defs>` +
+    `<g transform="translate(32 32) scale(1.12) translate(-31 -32)">` +
+    `<circle cx="31" cy="32" r="22" fill="url(#${u}s)"/>` +
+    `<g clip-path="url(#${u}c)" fill="url(#${u}l)">` +
+    `<path d="M10 22C11 14 22 9 30 11C34 12 31 16 27 17C30 18 36 17 37 21C37 25 31 26 30 30C29 33 33 34 31 37C28 38 26 34 22 33C17 32 9 29 10 22z"/>` +
+    `<path d="M40 17C42 12 49 13 50 18C51 22 47 23 45 25C42 26 38 23 40 17z"/>` +
+    `<path d="M38 32C42 28 48 29 50 34C51 40 47 45 45 50C43 53 39 50 39 44C38 40 36 35 38 32z"/>` +
+    `<path d="M24 41C28 38 33 41 33 46C33 50 30 54 28 57C25 55 23 48 24 41z"/>` +
+    `</g>` +
+    `<ellipse cx="20" cy="17" rx="7" ry="3.6" fill="#fff" opacity=".14" transform="rotate(-30 22 19)"/></g>` +
+    `<circle cx="32" cy="32" r="27.5" fill="none" stroke="url(#${u}b)" stroke-width="6"/>` +
+    `<path d="M7.1 17.6A28.8 28.8 0 0 1 22.1 4.9" fill="none" stroke="#fff" stroke-opacity=".4" stroke-width="1.6" stroke-linecap="round"/></svg>`;
+}
+
+function regionGlobeSVG(key) {
+  const ds = REGION_GLOBE_SHAPES[key] || REGION_GLOBE_SHAPES.world;
+  const id = 'rg-' + key;
+  return `<svg viewBox="0 0 64 64" aria-hidden="true"><defs><radialGradient id="${id}-o" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#7cc4f5"/><stop offset=".55" stop-color="#2f86d6"/><stop offset="1" stop-color="#14498f"/></radialGradient><clipPath id="${id}-c"><circle cx="32" cy="32" r="30"/></clipPath></defs><circle cx="32" cy="32" r="30" fill="url(#${id}-o)"/><g clip-path="url(#${id}-c)">${ds.map(d => `<path fill="#5cbf6e" stroke="#3a9a4c" stroke-width="1" stroke-linejoin="round" d="${d}"/>`).join('')}<ellipse cx="22" cy="15" rx="15" ry="8" fill="#fff" opacity=".22"/></g><circle cx="32" cy="32" r="29.5" fill="none" stroke="#fff" stroke-opacity=".35"/></svg>`;
+}
 const regionFlags = { usa:'🇺🇸', japan:'🇯🇵', poland:'🇵🇱', russia:'🇷🇺', spain:'🇪🇸' };
 
 function tintRegionSelect(rk) {
@@ -6274,6 +6780,8 @@ function tintRegionSelect(rk) {
   // Keep the map-picker button in the session bar in sync
   const lbl = document.getElementById('mapPickLabel');
   const dot = document.getElementById('mapPickDot');
+  const pickIcon = document.getElementById('mapPickIcon');
+  if (pickIcon) { try { pickIcon.innerHTML = regionIconSVG(rk); } catch (e) { /* icons not defined yet */ } } // same icon as in the map selector (Glossy Blue shows it)
   const opt = sel.querySelector('option[value="' + rk + '"]');
   if (lbl) lbl.textContent = quizMode && quizRegion === rk && QUIZ_CFG[rk] ? QUIZ_CFG[rk].label : ((opt && opt.textContent) || (REGIONS[rk] && REGIONS[rk].label) || rk);
   if (dot) {
@@ -6321,7 +6829,7 @@ function buildMapList() {
       const icon = regionFlags[o.value]
         ? `<span class="map-opt-flag">${regionFlags[o.value]}</span>`
         : `<span class="map-opt-dot" style="background:${regionColors[o.value] || '#2B4C7E'}"></span>`;
-      btn.innerHTML = `${icon}<span>${o.textContent}</span><span class="map-opt-check"></span>`;
+      btn.innerHTML = `${icon}<span class="map-opt-globe">${regionIconSVG(o.value)}</span><span>${o.textContent}</span><span class="map-opt-check"></span>`;
       btn.onclick = () => {
         if (QUIZ_CFG[o.value] || CIRCLE_CFG[o.value]) { closeMapModal(); openModePickModal(o.value); return; }
         closeMapModal();
@@ -6334,6 +6842,8 @@ function buildMapList() {
     list.appendChild(group);
   });
   list.dataset.built = '1';
+  const hi = document.querySelector('#mapBoxHead .mb-ico');
+  if (hi) hi.insertAdjacentHTML('beforeend', regionIconSVG('world')); // emoji stays for Classic; the skin CSS hides it and shows this svg
 }
 
 function openMapModal() {
@@ -6345,8 +6855,6 @@ function closeMapModal() { document.getElementById('mapModal').classList.remove(
 
 document.getElementById('mapPickBtn').onclick = e => { e.stopPropagation(); openMapModal(); };
 document.getElementById('mapClose').onclick = closeMapModal;
-document.getElementById('mapModal').onclick = e => { if (e.target.id === 'mapModal') closeMapModal(); };
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMapModal(); });
 
 // ─── MODE PICKER MODAL — Normal vs region quiz, shown after picking Japan / USA ──
 let modePickRegion = null; // map ('japan' | 'usa') the open modal is choosing a mode for
@@ -6356,8 +6864,13 @@ function openModePickModal(rk) {
   const mapName = (REGIONS[rk] && REGIONS[rk].label) || rk;
   const quizBtn = document.querySelector('.modepick-opt[data-quiz="1"]');
   if (quizBtn) quizBtn.style.display = cfg ? '' : 'none';   // maps without a find-and-click quiz (Europe, World) only offer Normal + Circle challenge
-  document.getElementById('modePickTitle').textContent = cfg ? cfg.modalTitle : `🗺 ${mapName} — choose a mode`;
-  document.getElementById('modePickNormalDesc').textContent = cfg ? cfg.normalDesc : `Find and type cities from ${rk === 'world' ? 'all over the world' : mapName}, same as any other map.`;
+  { // title = emoji + text; the Glossy Blue skin swaps the emoji for the map's icon (see CSS)
+    const t = cfg ? cfg.modalTitle : `🗺 ${mapName} — choose a mode`, m = t.match(/^(\S+)\s+([\s\S]*)$/);
+    document.getElementById('modePickEmoji').textContent = m ? m[1] + ' ' : '';
+    document.getElementById('modePickTitleText').textContent = m ? m[2] : t;
+    document.getElementById('modePickIcon').innerHTML = typeof regionIconSVG === 'function' ? regionIconSVG(rk) : '';
+  }
+  document.getElementById('modePickNormalDesc').textContent = 'Guess as many cities as you can in this region.';
   if (cfg) {
     document.getElementById('modePickQuizTitle').textContent = cfg.quizTitle;
     document.getElementById('modePickQuizDesc').textContent = cfg.quizDesc;
@@ -6367,7 +6880,7 @@ function openModePickModal(rk) {
   const ccfg = CIRCLE_CFG[rk];
   const circleBtn = document.getElementById('modePickCircleBtn');
   circleBtn.style.display = ccfg ? '' : 'none';
-  if (ccfg) { document.getElementById('modePickCircleTitle').textContent = ccfg.title; document.getElementById('modePickCircleDesc').textContent = ccfg.desc; }
+  if (ccfg) { document.getElementById('modePickCircleTitle').textContent = 'Zones'; document.getElementById('modePickCircleDesc').textContent = 'Guess as many cities as you can in specific locations of this region. 3 rounds, get more points for bigger cities!'; }
   const activeQuiz = currentRegion === rk ? (circleMode && circleRegion === rk ? '2' : (quizMode && quizRegion === rk ? '1' : '0')) : null;
   document.querySelectorAll('.modepick-opt').forEach(btn => {
     const isCurrent = activeQuiz !== null && btn.dataset.quiz === activeQuiz;
@@ -6401,9 +6914,8 @@ document.querySelectorAll('.modepick-opt').forEach(btn => {
   };
 });
 document.getElementById('modePickClose').onclick = closeModePickModal;
-document.getElementById('modePickModal').onclick = e => { if (e.target.id === 'modePickModal') closeModePickModal(); };
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModePickModal(); });
 
+// Menu windows close only with their ✕ button (no click-outside / Escape).
 // ─── CIRCLE CHALLENGE: TIMER CHOICE WINDOW ───────────────────────────────────
 let circleTimerRegion = null;
 function openCircleTimerModal(rk) {
@@ -6422,8 +6934,6 @@ document.querySelectorAll('#circleTimerList .ctm-opt').forEach(btn => {
   };
 });
 document.getElementById('circleTimerClose').onclick = closeCircleTimerModal;
-document.getElementById('circleTimerModal').onclick = e => { if (e.target.id === 'circleTimerModal') closeCircleTimerModal(); };
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCircleTimerModal(); });
 
 function setRegion(rk, quizWanted) {
   // Save current region's cities before switching
@@ -6714,7 +7224,7 @@ document.getElementById('sortByPop').onchange=e=>{
 document.getElementById('dotColor').oninput=e=>{ S.dotColor=e.target.value; applyDotStyles(); persistSession(); };
 document.getElementById('dotAlpha').oninput=e=>{ S.dotAlpha=parseInt(e.target.value)/100; document.getElementById('dotAlphaVal').textContent=e.target.value+'%'; applyDotStyles(); drawNightCanvas(); };
 
-function refreshDotSizes() { svg.selectAll('.city-dot circle.main-dot').each(function(){ const pop = +d3.select(this).attr('data-pop'); d3.select(this).attr('r', dotR(pop)).attr('stroke-width', dotStrokeWidth(pop)); }); refreshPinGeom(); drawNightCanvas(); }
+function refreshDotSizes() { svg.selectAll('.city-dot circle.main-dot').each(function(){ const pop = +d3.select(this).attr('data-pop'); d3.select(this).attr('r', dotR(pop)).attr('stroke-width', dotStrokeWidth(pop)); }); svg.selectAll('.city-dot circle.sky-halo').each(function(){ d3.select(this).attr('r', haloR(+d3.select(this).attr('data-pop'))); }); refreshPinGeom(); drawNightCanvas(); }
 function setDotSizeMode(mode) {
   const cfg = DOT_SIZE_MODES[mode];
   if (!cfg) return;
@@ -6731,6 +7241,16 @@ document.querySelectorAll('#dotSizePresets .scale-preset-btn').forEach(btn => {
 
 // Push the current land/sea/border colours (S.landColor/seaColor/borderColor)
 // onto the live map. Shared by the individual colour pickers and Night mode.
+
+// Glossy Blue map look (see CSS "Glossy Blue — the map itself"): toggles .sky-tex on #mapWrap and keeps the
+// coast-glow size (--sky-k) in step with the zoom level so it stays the same size on screen.
+function syncSkyMap() {
+  const w = document.getElementById('mapWrap'); if (!w) return;
+  w.classList.toggle('sky-tex', S.skin === 'sky' && !S.nightMode && !S.physicalMode);
+  w.classList.toggle('sky-night', S.skin === 'sky' && !!S.nightMode && !S.physicalMode);
+  w.style.setProperty('--sky-k', currentTransform.k);
+  w.classList.toggle('sky-far', currentTransform.k < 0.9); // zoomed far out: flat land, lighter glow (see CSS)
+}
 function applyMapColors() {
   const borderStroke = S.physicalMode ? 'none' : S.borderColor;
   svg.select('#countries-g').selectAll('path').attr('fill', S.physicalMode ? 'none' : S.landColor).attr('stroke', borderStroke);
@@ -6742,6 +7262,7 @@ function applyMapColors() {
   svg.selectAll('.region-outline').attr('stroke', borderStroke);
   svg.select('#sphere').attr('fill', S.physicalMode ? 'none' : S.seaColor);
   document.getElementById('mapWrap').style.background = S.physicalMode ? '#05070c' : S.seaColor;
+  syncSkyMap();
 }
 
 // Re-apply fill/stroke/glow to every existing dot from the current S settings.
@@ -6767,7 +7288,7 @@ document.getElementById('nightMode').onchange = e => {
   if (S.nightMode) {
     // Remember the current palette so switching Night mode back off restores it
     S._preNight = { landColor:S.landColor, seaColor:S.seaColor, borderColor:S.borderColor, dotColor:S.dotColor, dotAlpha:S.dotAlpha };
-    Object.assign(S, NIGHT_PRESET);
+    Object.assign(S, S.skin === 'sky' ? SKY_NIGHT_PRESET : NIGHT_PRESET);
   } else if (S._preNight) {
     Object.assign(S, S._preNight);
     S._preNight = null;
@@ -6831,6 +7352,7 @@ document.getElementById('resetMapColors').onclick = () => {
 // comes back when Classic is chosen again) and toggles body.skin-sky, which restyles the whole interface.
 function syncSkinUI() {
   document.body.classList.toggle('skin-sky', S.skin === 'sky');
+  syncSkyMap();
   const cur = S.skin || 'classic';
   document.querySelectorAll('#skinList .skin-card').forEach(b => b.classList.toggle('current', b.dataset.skin === cur));
   const nm = document.querySelector('#skinList .skin-card[data-skin="' + cur + '"] .skin-name');
@@ -6860,10 +7382,15 @@ function setSkin(name) {
 }
 const skinModal = document.getElementById('skinModal');
 const closeSkinModal = () => skinModal.classList.remove('open');
+(function(){ // Glossy Blue slider: --f = fill fraction, kept in sync on user input and on programmatic .value changes
+  const el=document.getElementById('dotAlpha'); if(!el) return;
+  const d=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value');
+  const upd=()=>el.style.setProperty('--f',((+d.get.call(el)-el.min)/(el.max-el.min)).toFixed(4));
+  Object.defineProperty(el,'value',{get(){return d.get.call(el);},set(v){d.set.call(el,v);upd();},configurable:true});
+  el.addEventListener('input',upd); upd();
+})();
 document.getElementById('skinOpenBtn').onclick = () => { syncSkinUI(); skinModal.classList.add('open'); };
 document.getElementById('skinClose').onclick = closeSkinModal;
-skinModal.addEventListener('mousedown', e => { if (e.target === skinModal) closeSkinModal(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && skinModal.classList.contains('open')) closeSkinModal(); });
 // The Sky skin's city list starts right under the top row, so keep its height available to CSS (--bar-h).
 (function () {
   const bar = document.getElementById('sessionBar');
@@ -6871,6 +7398,51 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && skinModal.
   sync();
   if (window.ResizeObserver) new ResizeObserver(sync).observe(bar);
   window.addEventListener('resize', sync);
+})();
+// Glossy Blue: the info message (#msg) sits on the same row as the summary pill ("You named N cities…"), pinned to the
+// left edge and vertically centred on the pill. The message keeps its natural size; when the pill (centred in the row, which
+// the city panel narrows) would run into it, the pill is nudged right to keep a gap. Only if the pill has already reached the
+// right end of the row does the message shrink (wrapping onto more lines) instead of being covered.
+(function () {
+  const msg = document.getElementById('msg'), bar = document.getElementById('summaryBar'), row = document.getElementById('statusRow');
+  if (!msg || !bar || !row) return;
+  const GAP = 16;
+  let raf = 0, burst = 0;
+  function reset() { msg.style.maxWidth = ''; msg.style.top = ''; bar.style.transform = ''; }
+  function place() {
+    raf = 0;
+    bar.style.transform = '';
+    const sky = document.body.classList.contains('skin-sky');
+    const r0 = bar.getBoundingClientRect();
+    const barOn = sky && row.style.display !== 'none' && bar.style.display !== 'none' && r0.width > 0;
+    if (!barOn) { reset(); return; }                                   // no pill: CSS fallback position for the message
+    const pr = (msg.offsetParent || document.body).getBoundingClientRect();
+    const left = parseFloat(getComputedStyle(msg).left) || 6;
+    const msgOn = msg.textContent.trim() !== '' && getComputedStyle(msg).display !== 'none';
+    let shift = 0;
+    msg.style.maxWidth = 'none';
+    if (msgOn) {
+      const mw = msg.getBoundingClientRect().width;                    // natural width
+      const need = pr.left + left + mw + GAP - r0.left;                // how far the pill must move right
+      const inner = row.getBoundingClientRect().right - (parseFloat(getComputedStyle(row).paddingRight) || 0);
+      const room = Math.max(0, inner - r0.right);                      // how far it can move before the row's right end
+      shift = Math.max(0, Math.min(need, room));
+      if (need > room) msg.style.maxWidth = Math.max(80, r0.left + shift - pr.left - left - GAP) + 'px';
+    } else msg.style.maxWidth = '';
+    if (shift > 0) bar.style.transform = 'translateX(' + Math.round(shift) + 'px)';
+    msg.style.top = (r0.top - pr.top + (r0.height - msg.offsetHeight) / 2) + 'px';
+  }
+  const queue = () => { if (!raf) raf = requestAnimationFrame(place); };
+  // the city panel slides in/out with a CSS transition on the row's margin: keep re-placing for its duration
+  const follow = () => { const t0 = performance.now(); cancelAnimationFrame(burst); (function step() { place(); if (performance.now() - t0 < 600) burst = requestAnimationFrame(step); })(); };
+  if (window.ResizeObserver) { const ro = new ResizeObserver(queue); ro.observe(bar); ro.observe(row); ro.observe(msg); }
+  new MutationObserver(queue).observe(msg, { childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+  new MutationObserver(queue).observe(bar, { childList: true, characterData: true, subtree: true });
+  new MutationObserver(queue).observe(row, { attributes: true, attributeFilter: ['style'] });
+  new MutationObserver(follow).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  row.addEventListener('transitionrun', follow);
+  window.addEventListener('resize', queue);
+  queue();
 })();
 document.querySelectorAll('#skinList .skin-card').forEach(b => { b.onclick = () => { setSkin(b.dataset.skin); closeSkinModal(); }; });
 syncSkinUI();
@@ -6999,7 +7571,9 @@ async function restoreState(snap) {
   document.getElementById('borderColor').value  = S.borderColor;
   document.getElementById('nightMode').checked  = !!S.nightMode;
   document.getElementById('physicalMode').checked = !!S.physicalMode;
-  S.skin = (snap.S && snap.S.skin) || 'classic';
+  S.skin = (snap.S && snap.S.skin) || 'sky';
+  if (S.skin === 'sky' && ((S.landColor === '#efeada' && S.seaColor === '#acdcfd') || (S.landColor === '#ebe8df' && S.seaColor === '#b9d8ee') || (S.landColor === '#e9f4fe' && S.borderColor === '#bcd8f3'))) { S.landColor = SKIN_PRESETS.sky.landColor; S.seaColor = SKIN_PRESETS.sky.seaColor; S.borderColor = SKIN_PRESETS.sky.borderColor; } // first Sky palette -> softer one
+  if (S.skin === 'sky' && (S.dotColor === '#ec6b4c' || S.dotColor === '#2f6fe0' || S.dotColor === '#f1a27f')) { S.dotColor = SKIN_PRESETS.sky.dotColor; S.dotAlpha = SKIN_PRESETS.sky.dotAlpha; } // earlier Glossy Blue dot colours -> soft apricot
   syncSkinUI();
   document.body.classList.toggle('night-mode', !!S.nightMode);
   document.getElementById('pinMode').checked = !!S.pinMode;
@@ -7082,6 +7656,8 @@ function updateSessionBar() {
     dotEl.className = 'sess-dot ' + (saved ? 'saved' : 'active');
     const label = saved ? 'Saved' : 'Active';
     dotEl.title = label; dotEl.setAttribute('aria-label', label);
+    nameEl.classList.toggle('saved', saved); // Glossy Blue greys the name pill out for a saved (read-only) session
+    nameEl.title = saved ? 'Saved (read-only)' : 'Click to rename';
   };
   if (sess) {
     nameEl.textContent = sess.name;
@@ -7135,14 +7711,14 @@ function renderSessionList() {
     card.innerHTML = `
       <div class="sess-card-top">
         <span class="sess-card-name" title="${sess.name}">${sess.name}</span>
-        <span class="sess-badge ${sess.status}">${sess.status === 'saved' ? '🔒 Saved' : '● Active'}</span>
+        <span class="sess-badge ${sess.status}">${sess.status === 'saved' ? '<span class="ico">🔒</span> Saved' : '<span class="ico">●</span> Active'}</span>
       </div>
       <div class="sess-card-meta">${cityCount} ${cityCount===1?'city':'cities'} · ${regionLabel} · ${updated}</div>
       <div class="sess-card-actions">
-        ${!isCurrent ? `<button class="sca primary" data-action="load" data-id="${sess.id}">Load</button>` : '<span style="font-size:11px;color:var(--accent2);font-weight:600">▶ Current</span>'}
-        ${sess.status === 'active' ? `<button class="sca success" data-action="freeze" data-id="${sess.id}">💾 Save</button>` : ''}
-        ${sess.status === 'active' ? `<button class="sca" data-action="rename" data-id="${sess.id}">Rename</button>` : ''}
-        <button class="sca danger" data-action="delete" data-id="${sess.id}">Delete</button>
+        ${!isCurrent ? `<button class="sca primary" data-action="load" data-id="${sess.id}"><span class="ico sky-only"></span>Load</button>` : '<span class="sess-cur"><span class="ico">▶</span> Current</span>'}
+        ${sess.status === 'active' ? `<button class="sca success" data-action="freeze" data-id="${sess.id}"><span class="ico">💾</span> Save</button>` : ''}
+        ${sess.status === 'active' ? `<button class="sca" data-action="rename" data-id="${sess.id}"><span class="ico sky-only"></span>Rename</button>` : ''}
+        <button class="sca danger" data-action="delete" data-id="${sess.id}"><span class="ico sky-only"></span>Delete</button>
       </div>`;
     list.appendChild(card);
   });
@@ -7220,7 +7796,6 @@ document.getElementById('sessionName').onclick = () => {
 
 document.getElementById('sessManagerBtn').onclick = openSessModal;
 document.getElementById('sessClose').onclick      = closeSessModal;
-document.getElementById('sessModal').onclick = e => { if (e.target === document.getElementById('sessModal')) closeSessModal(); };
 
 document.getElementById('createSessBtn').onclick = async () => {
   const input = document.getElementById('newSessNameInput');
@@ -7859,10 +8434,6 @@ document.getElementById('missedBtn').addEventListener('click', () => {
 document.getElementById('missedClose').addEventListener('click', () => {
   document.getElementById('missedModal').style.display = 'none';
 });
-document.getElementById('missedModal').addEventListener('click', e => {
-  if (e.target === document.getElementById('missedModal'))
-    document.getElementById('missedModal').style.display = 'none';
-});
 
 // ─── MOBILE: HIDE/SHOW CITY LIST PANEL ────────────────────────────────────
 // On narrow screens the found-cities panel (plus the top-countries panel)
@@ -7930,6 +8501,548 @@ document.getElementById('missedModal').addEventListener('click', e => {
 #cadm .gr{position:absolute;left:0;right:0;border-bottom:1px solid #eee;white-space:nowrap;overflow:hidden}
 #cadm .gr.off{background:#fde8e8;color:#999;text-decoration:line-through}
 #cadm #cast{margin-left:auto;font-weight:600}
+
+/* ═══════════ Glossy Blue — DARK (Night mode while the Glossy Blue skin is selected) ═══════════
+   Same glossy pill UI, recoloured to deep navy. Every rule below is generated from the light skin rules above
+   (selector :not(.night-mode) -> .night-mode, colours re-mapped: pale surfaces -> navy glass, dark text -> ice-blue text,
+   saturated brand buttons kept). Night mode's own glowing city-light canvas is unchanged. */
+body.skin-sky.night-mode{--bg:#0a1424;--surface:#13223d;--border:#26406a;--text:#d6e6ff;--text2:#8ea8d2;--text3:#6882ac;--accent:#ff9068;--accent2:#5ea6ff;--glass:rgba(16,32,60,.6);--glass-border:rgba(150,190,255,.16);--sky-shadow:0 4px 12px rgba(0,6,24,.55),inset 0 1px 0 rgba(255,255,255,.1);--sky-pill:linear-gradient(180deg,#223f70,#162b4f);font-family:'Nunito',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+body.skin-sky.night-mode button,body.skin-sky.night-mode input,body.skin-sky.night-mode select{font-family:inherit}
+body.skin-sky.night-mode #bottomPanels{border-top-color:#1d3f7a}
+body.skin-sky.night-mode #sessionBar{gap:14px;padding:12px 18px;background:linear-gradient(180deg,rgba(16,37,70,0.94),rgba(21,47,90,0.9));border-bottom:1px solid rgba(255,255,255,0.13);border-radius:0 0 22px 22px;box-shadow:0 6px 18px rgba(0,8,30,0.36),inset 0 -1px 0 rgba(255,255,255,0.17)}
+body.skin-sky.night-mode #sessNameWrap{gap:4px;flex:0 0 auto}
+body.skin-sky.night-mode #sessionName{flex:0 0 auto;overflow:visible}
+body.skin-sky.night-mode #inputControls{gap:12px}
+body.skin-sky.night-mode #sessionName{position:relative;display:inline-flex;align-items:center;height:34px;padding:0 16px 0 36px;max-width:170px;border-radius:999px;color:#ffffff;font-size:14px;font-weight:800;background:linear-gradient(180deg,#4aa6ff,#2a6fe8);box-shadow:0 3px 9px rgba(0,8,30,0.68),inset 0 1px 0 rgba(255,255,255,0.14)}
+body.skin-sky.night-mode #sessionName:hover{background:linear-gradient(180deg,#5cb2ff,#3a7cf0)}
+body.skin-sky.night-mode #sessionName::before{content:'';position:absolute;left:11px;top:50%;width:17px;height:17px;transform:translateY(-50%);background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffd23f' d='M12 1.5l2.6 7.9 7.9 2.6-7.9 2.6L12 22.5l-2.6-7.9L1.5 12l7.9-2.6z'/%3E%3C/svg%3E") center/contain no-repeat}
+body.skin-sky.night-mode .sess-dot,body.skin-sky.night-mode .sess-dot.saved{position:relative;width:12px;height:24px;background:none;box-shadow:none}
+body.skin-sky.night-mode .sess-dot::before,body.skin-sky.night-mode .sess-dot::after{content:'';position:absolute;left:2px;width:8px;height:2px;border-radius:2px;background:#2a6fe8}
+body.skin-sky.night-mode .sess-dot::before{top:5px;transform:rotate(28deg)}
+body.skin-sky.night-mode .sess-dot::after{bottom:5px;transform:rotate(-28deg)}
+body.skin-sky.night-mode .sess-dot.saved::before,body.skin-sky.night-mode .sess-dot.saved::after{background:#2e9d5a}
+body.skin-sky.night-mode #mapPickBtn{height:44px;padding:0 20px 0 7px;gap:10px;font-size:0;border:none;border-radius:999px;background:var(--sky-pill);box-shadow:var(--sky-shadow);color:#aac4f0}
+body.skin-sky.night-mode #mapPickBtn:hover{background:linear-gradient(180deg,#101a28,#112447)}
+body.skin-sky.night-mode #mapPickBtn::before{content:'';flex:0 0 auto;width:34px;height:34px;border-radius:50%;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3CradialGradient id='o' cx='35%25' cy='30%25' r='80%25'%3E%3Cstop offset='0' stop-color='%237cc4f5'/%3E%3Cstop offset='.55' stop-color='%232f86d6'/%3E%3Cstop offset='1' stop-color='%2394baec'/%3E%3C/radialGradient%3E%3CclipPath id='c'%3E%3Ccircle cx='32' cy='32' r='30'/%3E%3C/clipPath%3E%3C/defs%3E%3Ccircle cx='32' cy='32' r='30' fill='url(%23o)'/%3E%3Cg clip-path='url(%23c)'%3E%3Cpath fill='%2391d49d' d='M12 14c6-5 15-4 17 2 1 5-5 7-4 12 1 5 8 6 6 13-2 6-8 10-12 6-3-3 0-7-3-11-3-5-9-6-8-12 1-4 2-7 4-10z'/%3E%3Cpath fill='%2391d49d' d='M37 11c5-2 11 1 12 6 1 4-3 4-3 8 1 5 7 6 5 12-2 5-8 6-11 3-3-3-1-7-4-10-3-3-7-3-6-8 1-5 3-9 7-11z'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat}
+body.skin-sky.night-mode #mapPickDot{display:none}
+body.skin-sky.night-mode #mapPickLabel{font-size:21px;font-weight:800;color:#aac4f0}
+body.skin-sky.night-mode #mapPickBtn::after{content:'';flex:0 0 auto;width:8px;height:8px;margin:-4px 2px 0 8px;border-right:2.5px solid #a6c1ee;border-bottom:2.5px solid #a6c1ee;transform:rotate(45deg)}
+body.skin-sky.night-mode #cityInputWrap{height:48px;width:540px;flex:1 1 300px;min-width:240px;border:none;border-radius:999px;background:linear-gradient(180deg,#0c1a33,#0f203f);box-shadow:0 0 0 3px rgba(255,255,255,0.17),0 0 0 5px rgba(32,69,136,0.55),0 6px 14px rgba(0,8,30,0.36),inset 0 2px 5px rgba(0,10,35,0.26)}
+body.skin-sky.night-mode #cityInputWrap:focus-within{background:#101a28;box-shadow:0 0 0 3px rgba(255,255,255,0.18),0 0 0 5px rgba(42,111,224,0.65),0 6px 14px rgba(0,8,30,0.45)}
+body.skin-sky.night-mode #cityInputWrap::before{content:'';position:absolute;left:17px;top:50%;width:22px;height:26px;transform:translateY(-50%);pointer-events:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 28'%3E%3Cpath fill='%23a6c0ef' d='M12 0C5.9 0 1 4.8 1 10.8 1 18.6 12 28 12 28s11-9.4 11-17.2C23 4.8 18.1 0 12 0z'/%3E%3Ccircle cx='12' cy='10.6' r='4.2' fill='%23ffffff'/%3E%3C/svg%3E") center/contain no-repeat}
+body.skin-sky.night-mode #cityInput{padding:0 184px 0 54px;text-overflow:ellipsis;font-size:16px;font-weight:700;color:#a6c1ee;border-radius:999px}
+body.skin-sky.night-mode #cityInput::placeholder{color:#9dacc8;font-weight:700}
+body.skin-sky.night-mode #countryFilterBtn{right:5px;top:5px;bottom:5px;width:172px;padding:0 14px 0 42px;border:none;border-radius:999px;background:linear-gradient(180deg,#0e1f3d,#12284e);box-shadow:inset 0 1px 0 rgba(255,255,255,0.28),0 1px 3px rgba(0,8,30,0.4);font-size:15px;font-weight:800;color:#9db6df}
+body.skin-sky.night-mode #countryFilterBtn:hover{background:linear-gradient(180deg,#0d1b36,#142a53);color:#a6c1ee}
+body.skin-sky.night-mode #countryFilterBtn.filtering{color:#6d9ced}
+body.skin-sky.night-mode #countryFilterBtn::before{content:'';position:absolute;left:13px;top:50%;width:20px;height:20px;transform:translateY(-50%);background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239db6df' stroke-width='1.8'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cellipse cx='12' cy='12' rx='4.2' ry='10'/%3E%3Cpath d='M2 12h20'/%3E%3C/svg%3E") center/contain no-repeat}
+body.skin-sky.night-mode #cfCaret{border-left-width:4.5px;border-right-width:4.5px;border-top-width:5.5px}
+body.skin-sky.night-mode #guessBtn,body.skin-sky.night-mode #clearBtn,body.skin-sky.night-mode #sessManagerBtn{display:inline-flex;align-items:center;gap:9px;height:46px;border:none;border-radius:999px;font-size:0;white-space:nowrap;box-shadow:0 0 0 3px rgba(255,255,255,0.1),0 5px 13px rgba(0,8,30,0.5),inset 0 1px 0 rgba(255,255,255,0.14),inset 0 -3px 5px rgba(0,0,0,0.08)}
+body.skin-sky.night-mode #guessBtn::before,body.skin-sky.night-mode #clearBtn::before,body.skin-sky.night-mode #sessManagerBtn::before{content:'';flex:0 0 auto;width:22px;height:22px;background-position:center;background-repeat:no-repeat;background-size:contain}
+body.skin-sky.night-mode #guessBtn::after,body.skin-sky.night-mode #clearBtn::after,body.skin-sky.night-mode #sessManagerBtn::after{font-size:17px;font-weight:800;letter-spacing:.01em}
+body.skin-sky.night-mode #guessBtn{padding:0 24px 0 20px;background:linear-gradient(180deg,#1fcb83,#08a65f);color:#ffffff}
+body.skin-sky.night-mode #guessBtn:hover{filter:brightness(1.07);background:linear-gradient(180deg,#1fcb83,#08a65f)}
+body.skin-sky.night-mode #guessBtn::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.8' stroke-linecap='round'%3E%3Ccircle cx='10' cy='10' r='6.5'/%3E%3Cpath d='M15.2 15.2L21 21'/%3E%3C/svg%3E")}
+body.skin-sky.night-mode #guessBtn::after{content:'Find';color:#ffffff}
+body.skin-sky.night-mode #clearBtn{padding:0 24px 0 20px;background:linear-gradient(180deg,#f46a82,#dc4560);color:#ffffff}
+body.skin-sky.night-mode #clearBtn:hover{filter:brightness(1.06);background:linear-gradient(180deg,#f46a82,#dc4560)}
+body.skin-sky.night-mode #clearBtn::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'%3E%3Cpath d='M9 2h6l1 2h5v2H3V4h5zM5 8h14l-1.2 13a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8zm4 3v8h1.6v-8zm4.4 0v8H15v-8z'/%3E%3C/svg%3E")}
+body.skin-sky.night-mode #clearBtn::after{content:'Clear all';color:#ffffff}
+body.skin-sky.night-mode #sessManagerBtn{padding:0 44px 0 18px;color:#a6c1ee;background:var(--sky-pill) no-repeat right 18px center/10px,var(--sky-pill);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 16' fill='none' stroke='%23a6c0ef' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 2l6 6-6 6'/%3E%3C/svg%3E"),linear-gradient(180deg,#101a28,#0e203d)}
+body.skin-sky.night-mode #sessManagerBtn:hover{color:#a6c1ee}
+body.skin-sky.night-mode #sessManagerBtn::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a6c0ef' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='4' width='16' height='18' rx='2.5'/%3E%3Crect x='8.5' y='2' width='7' height='4' rx='1.4' fill='%23a6c0ef'/%3E%3Cpath d='M8 11h1.5M12 11h4M8 15h1.5M12 15h4'/%3E%3C/svg%3E")}
+body.skin-sky.night-mode #sessManagerBtn::after{content:'Sessions';color:#a6c1ee}
+body.skin-sky.night-mode #statusRow{background:transparent;border-bottom:none;backdrop-filter:none;-webkit-backdrop-filter:none;padding:10px 12px 0}
+body.skin-sky.night-mode #summaryBar{padding:7px 30px 7px 9px;border-radius:999px;background:var(--sky-pill);box-shadow:var(--sky-shadow);font-size:20px;font-weight:600;color:#a0bbe8}
+body.skin-sky.night-mode #summaryBar::before{content:'';display:inline-block;vertical-align:middle;width:44px;height:44px;margin-right:14px;border-radius:50%;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'%3E%3Ccircle cx='9' cy='8.5' r='3.3'/%3E%3Cpath d='M2.8 19c.4-3.6 3-5.6 6.2-5.6s5.8 2 6.2 5.6z'/%3E%3Ccircle cx='17' cy='9.5' r='2.5'/%3E%3Cpath d='M16.6 13.6c2.7-.2 4.5 1.4 4.8 4.4h-4.3c-.1-1.8-.1-3.3-.5-4.4z'/%3E%3C/svg%3E") center/26px no-repeat,linear-gradient(180deg,#19c77f,#09985a);box-shadow:inset 0 1px 0 rgba(255,255,255,0.11),0 2px 5px rgba(9,152,90,0.35)}
+body.skin-sky.night-mode #summaryBar strong{color:#a6c1ee;font-size:22px;font-weight:800}
+body.skin-sky.night-mode #summaryBar .pop-total{color:#6a9ef1;font-size:22px;font-weight:800}
+body.skin-sky.night-mode #msg:empty{display:none}
+body.skin-sky.night-mode #msg{top:104px;left:20px;min-height:38px;display:flex;align-items:center;padding:6px 20px 6px 46px;border:none;border-radius:999px;background:var(--sky-pill);box-shadow:var(--sky-shadow);font-size:15px;font-weight:700;color:#a6c1ee}
+body.skin-sky.night-mode #msg.ok{color:#9bedaf}
+body.skin-sky.night-mode #msg.err{color:#e37888}
+body.skin-sky.night-mode #msg.dup{color:#eabb87}
+body.skin-sky.night-mode #msg.info{color:#a0b6d8}
+body.skin-sky.night-mode #msg::before{content:'';position:absolute;left:10px;top:50%;width:24px;height:24px;transform:translateY(-50%);border-radius:50%;background:center/16px no-repeat #2a6fe0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3.4' stroke-linecap='round'%3E%3Cpath d='M12 11v6'/%3E%3Cpath d='M12 6.6v.1'/%3E%3C/svg%3E")}
+body.skin-sky.night-mode #msg.ok::before{background-color:#38b457;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.6 4.6L19 7.6'/%3E%3C/svg%3E")}
+body.skin-sky.night-mode #msg.err::before{background-color:#e0455f;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3.4' stroke-linecap='round'%3E%3Cpath d='M7 7l10 10M17 7L7 17'/%3E%3C/svg%3E")}
+body.skin-sky.night-mode #msg.dup::before{background-color:#f09a1a}
+body.skin-sky.night-mode .zbtn-wrap{bottom:18px;gap:8px}
+@media (min-width:861px){
+body.skin-sky.night-mode .zbtn-wrap{right:calc(24px + var(--list-w))}
+}
+@media (max-width:860px){
+body.skin-sky.night-mode .zbtn-wrap{right:calc(14px + env(safe-area-inset-right))}
+}
+body.skin-sky.night-mode #zoomLbl{padding:4px 14px;border:none;border-radius:999px;background:rgba(16,26,40,0.88);box-shadow:var(--sky-shadow);font-size:14px;font-weight:800;color:#9eadc7}
+body.skin-sky.night-mode .zbtn{width:42px;height:42px;border:none;border-radius:15px;background:var(--sky-pill);box-shadow:var(--sky-shadow);color:#a6c1ee;font-size:26px;font-weight:900}
+body.skin-sky.night-mode .zbtn:hover{background:linear-gradient(180deg,#101a28,#112549)}
+body.skin-sky.night-mode #resetViewBtn svg{display:none}
+body.skin-sky.night-mode #resetViewBtn::before{content:'';width:24px;height:24px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a6c0ef' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='6.5'/%3E%3Cpath d='M12 1.5v5M12 17.5v5M1.5 12h5M17.5 12h5'/%3E%3C/svg%3E") center/contain no-repeat}
+body.skin-sky.night-mode #mapColorsBtn,body.skin-sky.night-mode #dotAppearanceBtn{left:18px;width:46px;height:46px;padding:0;gap:0;justify-content:center;border:none;border-radius:16px;background:var(--sky-pill);box-shadow:var(--sky-shadow);font-size:0;overflow:hidden}
+body.skin-sky.night-mode #mapColorsBtn:hover,body.skin-sky.night-mode #dotAppearanceBtn:hover{background:linear-gradient(180deg,#101a28,#112549)}
+body.skin-sky.night-mode #mapColorsBtn.active,body.skin-sky.night-mode #dotAppearanceBtn.active{box-shadow:0 0 0 3px rgba(42,111,224,0.55),var(--sky-shadow)}
+body.skin-sky.night-mode #mapColorsBtn{bottom:18px}
+body.skin-sky.night-mode #dotAppearanceBtn{bottom:76px}
+body.skin-sky.night-mode #dotAppearanceBtn svg{width:28px;height:28px}
+body.skin-sky.night-mode #mapColorsBtn::before{content:'';width:28px;height:28px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 24' fill='%239eabc7'%3E%3Cpath d='M2 3l6-1 6 1 3 3-1 3-3 1-2 4-3 1-2-4-4-2zM18 2l5-1 4 2-1 3-4 1-2 3-3-1zM20 12l4-1 3 3 1 5-3 2-3-3zM28 4l6-1 4 3-1 3-5 1-3 3-3-2zM33 15l4 1 1 3-3 1z'/%3E%3C/svg%3E") center/contain no-repeat}
+body.skin-sky.night-mode #mapColorsPopover,body.skin-sky.night-mode #dotAppearancePopover{left:76px;bottom:18px;border:none;border-radius:18px;padding:12px 14px;box-shadow:0 10px 30px rgba(0,8,30,0.58),0 0 0 1px rgba(255,255,255,0.14)}
+body.skin-sky.night-mode .scale-preset-btn,body.skin-sky.night-mode .reset-icon-btn,body.skin-sky.night-mode .mode-toggle,body.skin-sky.night-mode select,body.skin-sky.night-mode input[type=color]{border-color:#162f5d;border-radius:999px}
+body.skin-sky.night-mode .reset-icon-btn,body.skin-sky.night-mode input[type=color]{border-radius:8px}
+body.skin-sky.night-mode .mode-toggle{border-radius:12px}
+body.skin-sky.night-mode .scale-preset-btn.active{background:linear-gradient(180deg,#4aa6ff,#2a6fe8);border-color:#2a6fe8}
+body.skin-sky.night-mode #mapModal{background:rgba(2,8,22,0.62);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
+body.skin-sky.night-mode #mapBox{width:600px;max-height:90vh;border-radius:28px;border:1px solid rgba(255,255,255,0.14);background:linear-gradient(180deg,rgba(12,27,50,0.97),rgba(16,36,70,0.96));box-shadow:0 20px 50px rgba(0,8,30,0.59),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #mapBoxHead{margin:12px 12px 4px;padding:6px 8px 6px 16px;border:none;border-radius:999px;background:linear-gradient(180deg,#101a28,#0e1f3d);box-shadow:0 4px 12px rgba(0,8,30,0.32),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #mapBoxHead h2{display:flex;align-items:center;gap:10px;font-size:20px;line-height:1.1;font-weight:800;color:#91b0ec;letter-spacing:-.01em}
+body.skin-sky.night-mode #mapBoxHead .mb-ico{display:block;width:28px;height:28px;font-size:0;filter:drop-shadow(0 2px 3px rgba(0,8,30,0.48))}
+body.skin-sky.night-mode #mapBoxHead .mb-ico svg{display:block;width:100%;height:100%}
+body.skin-sky.night-mode #mapClose{display:flex;align-items:center;justify-content:center;width:34px;height:34px;padding:0;border-radius:50%;font-size:18px;font-weight:700;color:#719fea;background:linear-gradient(180deg,#101a28,#0f2040);box-shadow:0 2px 8px rgba(0,8,30,0.47),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #mapClose:hover{background:linear-gradient(180deg,#101a28,#12264c)}
+body.skin-sky.night-mode #mapList{padding:6px 18px 18px}
+body.skin-sky.night-mode .map-group-title{margin:10px 4px 9px;font-size:12px;font-weight:800;letter-spacing:.14em;color:#97acce}
+body.skin-sky.night-mode .map-group+.map-group{margin-top:14px}
+body.skin-sky.night-mode .map-grid{grid-template-columns:repeat(3,1fr);gap:10px}
+body.skin-sky.night-mode .map-opt{gap:10px;min-height:46px;padding:6px 12px 6px 10px;border:1.5px solid transparent;border-radius:17px;background:linear-gradient(180deg,#0c1832,#0f2141);box-shadow:0 3px 8px rgba(0,8,30,0.29),inset 0 1px 0 rgba(255,255,255,0.28);font-size:14px;font-weight:800;color:#91b0ec}
+body.skin-sky.night-mode .map-opt:hover{border-color:transparent;background:linear-gradient(180deg,#101a28,#112448);box-shadow:0 5px 12px rgba(0,8,30,0.43),inset 0 1px 0 rgba(255,255,255,0.28);transform:translateY(-1px)}
+body.skin-sky.night-mode .map-opt.current{border-color:#3b8cf0;background:linear-gradient(180deg,#0f2041,#132852);box-shadow:0 3px 10px rgba(0,8,30,0.5),inset 0 1px 0 rgba(255,255,255,0.22)}
+body.skin-sky.night-mode .map-opt-dot,body.skin-sky.night-mode .map-opt-flag{display:none}
+body.skin-sky.night-mode .map-opt-globe{display:block;flex:0 0 auto;height:30px;filter:drop-shadow(0 2px 3px rgba(0,8,30,0.48))}
+body.skin-sky.night-mode .map-opt-globe svg{display:block}
+body.skin-sky.night-mode .map-opt-check{font-size:17px;font-weight:800;color:#719fea}
+@media (max-width:640px){
+body.skin-sky.night-mode #mapBox{width:94vw;border-radius:24px}
+body.skin-sky.night-mode #mapList{padding:6px 12px 16px}
+body.skin-sky.night-mode .map-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+body.skin-sky.night-mode .map-opt{font-size:13px;gap:8px;padding:6px 9px 6px 8px}
+}
+body.skin-sky.night-mode #modePickModal{background:rgba(2,8,22,0.62);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
+body.skin-sky.night-mode #modePickBox{width:460px;border-radius:28px;border:1px solid rgba(255,255,255,0.14);background:linear-gradient(180deg,rgba(12,27,50,0.97),rgba(16,36,70,0.96));box-shadow:0 20px 50px rgba(0,8,30,0.59),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #modePickHead{margin:12px 12px 4px;padding:6px 8px 6px 16px;border:none;border-radius:999px;background:linear-gradient(180deg,#101a28,#0e1f3d);box-shadow:0 4px 12px rgba(0,8,30,0.32),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #modePickHead h2{display:flex;align-items:center;gap:10px;font-size:19px;line-height:1.1;font-weight:800;color:#91b0ec;letter-spacing:-.01em}
+body.skin-sky.night-mode #modePickEmoji{display:none}
+body.skin-sky.night-mode .mp-icon{display:block;flex:0 0 auto;height:30px;filter:drop-shadow(0 2px 3px rgba(0,8,30,0.48))}
+body.skin-sky.night-mode .mp-icon svg{display:block}
+body.skin-sky.night-mode #modePickClose{display:flex;align-items:center;justify-content:center;width:34px;height:34px;padding:0;border-radius:50%;font-size:18px;font-weight:700;color:#719fea;background:linear-gradient(180deg,#101a28,#0f2040);box-shadow:0 2px 8px rgba(0,8,30,0.47),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #modePickClose:hover{background:linear-gradient(180deg,#101a28,#12264c)}
+body.skin-sky.night-mode #modePickList{gap:12px;padding:10px 18px 20px}
+body.skin-sky.night-mode .modepick-opt{gap:5px;padding:14px 18px;border:1.5px solid transparent;border-radius:22px;background:linear-gradient(180deg,#0c1832,#0f1f3f);box-shadow:0 3px 10px rgba(0,8,30,0.29),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode .modepick-opt:hover{border-color:transparent;background:linear-gradient(180deg,#101a28,#102346);box-shadow:0 5px 14px rgba(0,8,30,0.43),inset 0 1px 0 rgba(255,255,255,0.28);transform:translateY(-1px)}
+body.skin-sky.night-mode .modepick-opt.current{border-color:#4f93ef;background:linear-gradient(180deg,#0f2041,#132851);box-shadow:0 3px 12px rgba(0,8,30,0.5),inset 0 1px 0 rgba(255,255,255,0.22)}
+body.skin-sky.night-mode .modepick-title{font-size:17px;font-weight:800;color:#91b0ec}
+body.skin-sky.night-mode .modepick-desc{font-size:13px;font-weight:500;line-height:1.5;color:#99accc}
+body.skin-sky.night-mode .modepick-check:empty{display:none}
+body.skin-sky.night-mode .modepick-check{display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;font-size:17px;font-weight:800;color:#719fea;background:linear-gradient(180deg,#101a28,#112448);box-shadow:0 2px 6px rgba(0,8,30,0.5),inset 0 1px 0 rgba(255,255,255,0.28)}
+@media (max-width:520px){
+body.skin-sky.night-mode #modePickBox{width:94vw;border-radius:24px}
+body.skin-sky.night-mode #modePickList{padding:8px 12px 16px}
+}
+body.skin-sky.night-mode #sessModal{background:rgba(2,8,22,0.62);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
+body.skin-sky.night-mode #sessBox{width:640px;max-height:90vh;border-radius:30px;border:1px solid rgba(255,255,255,0.14);background:linear-gradient(180deg,rgba(12,27,50,0.97),rgba(16,36,70,0.96));box-shadow:0 20px 50px rgba(0,8,30,0.59),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #sessBoxHead{margin:14px 14px 6px;padding:6px 8px;border:none;border-radius:999px;background:linear-gradient(180deg,#101a28,#0e1f3d);box-shadow:0 4px 12px rgba(0,8,30,0.32),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #sessBoxHead h2{display:flex;align-items:center;gap:14px;font-size:24px;line-height:1.1;font-weight:800;color:#91b0ec;letter-spacing:-.01em}
+body.skin-sky.night-mode #sessBoxHead .sess-ico{flex:0 0 auto;width:46px;height:46px;border-radius:50%;font-size:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231a5fd6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4.5' y='4.5' width='15' height='17.5' rx='2.6'/%3E%3Crect x='8.5' y='2' width='7' height='4.4' rx='1.4' fill='%231a5fd6'/%3E%3Cpath d='M8.5 11h7M8.5 14.5h7M8.5 18h4.5'/%3E%3C/svg%3E") center/25px no-repeat,linear-gradient(180deg,#101a28,#0f2141);box-shadow:0 3px 10px rgba(0,8,30,0.5),inset 0 1px 0 rgba(255,255,255,0.28),0 0 0 1px rgba(255,255,255,0.16)}
+body.skin-sky.night-mode #sessClose{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:46px;height:46px;padding:0;border-radius:50%;font-size:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231a5fd6' stroke-width='2.8' stroke-linecap='round'%3E%3Cpath d='M5.5 5.5l13 13M18.5 5.5l-13 13'/%3E%3C/svg%3E") center/22px no-repeat,linear-gradient(180deg,#101a28,#0f2141);box-shadow:0 3px 10px rgba(0,8,30,0.5),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #sessClose:hover{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231a5fd6' stroke-width='2.8' stroke-linecap='round'%3E%3Cpath d='M5.5 5.5l13 13M18.5 5.5l-13 13'/%3E%3C/svg%3E") center/22px no-repeat,linear-gradient(180deg,#101a28,#12274e)}
+body.skin-sky.night-mode #sessList{padding:8px 14px 6px}
+body.skin-sky.night-mode .sess-card{gap:6px;margin-bottom:12px;padding:16px 22px 18px;border:1px solid rgba(255,255,255,0.14);border-radius:26px;cursor:default;background:linear-gradient(180deg,rgba(16,26,40,0.72),rgba(15,33,64,0.7));box-shadow:0 4px 14px rgba(0,8,30,0.25),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode .sess-card:hover{border-color:rgba(255,255,255,0.15);box-shadow:0 6px 18px rgba(0,8,30,0.4),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode .sess-card.current{border-color:rgba(255,255,255,0.14);background:linear-gradient(180deg,rgba(16,26,40,0.8),rgba(16,35,69,0.78))}
+body.skin-sky.night-mode .sess-card-top{align-items:flex-start;gap:12px}
+body.skin-sky.night-mode .sess-card-name{font-size:22px;line-height:1.25;font-weight:800;color:#91b0ec}
+body.skin-sky.night-mode .sess-badge{display:inline-flex;align-items:center;gap:8px;padding:7px 16px;border-radius:999px;font-size:15px;font-weight:700;color:#6a9ef1;background:linear-gradient(180deg,#101a28,#0e1f3d);box-shadow:0 2px 8px rgba(0,8,30,0.36),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode .sess-badge.saved{color:#8be8b5}
+body.skin-sky.night-mode .sess-card-meta{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;color:#9cacc9}
+body.skin-sky.night-mode .sess-card-meta::before{content:'';flex:0 0 auto;width:20px;height:20px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239aabcb' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3.5' y='5' width='17' height='15.5' rx='3.2'/%3E%3Cpath d='M3.5 10h17M8 2.8v4M16 2.8v4'/%3E%3Cpath d='M7.5 13.5h2M11 13.5h2M14.5 13.5h2M7.5 16.8h2M11 16.8h2' stroke-width='1.8'/%3E%3C/svg%3E") center/contain no-repeat}
+body.skin-sky.night-mode .sess-card-actions{flex-wrap:wrap;align-items:center;gap:12px;margin-top:12px}
+body.skin-sky.night-mode .sess-card .ico,body.skin-sky.night-mode #createSessBtn .ico{display:inline-block;flex:0 0 auto;width:18px;height:18px;font-size:0;background:center/contain no-repeat}
+body.skin-sky.night-mode .sess-badge .ico{width:10px;height:10px}
+body.skin-sky.night-mode .sess-badge.active .ico{border-radius:50%;background:#2a7bff}
+body.skin-sky.night-mode .sess-badge.saved .ico{width:15px;height:15px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' %3E%3Crect x='4.5' y='10.5' width='15' height='11' rx='3' fill='%238be8b5'/%3E%3Cpath d='M8 10.5V8a4 4 0 0 1 8 0v2.5' fill='none' stroke='%238be8b5' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E")}
+body.skin-sky.night-mode .sca,body.skin-sky.night-mode .sess-cur{display:inline-flex;align-items:center;gap:9px;height:42px;padding:0 20px;border:1px solid rgba(255,255,255,0.14);border-radius:999px;font-size:16px;font-weight:800;line-height:1;color:#a0b5db;background:linear-gradient(180deg,#101a28,#0e1f3d);box-shadow:0 3px 9px rgba(0,8,30,0.29),inset 0 1px 0 rgba(255,255,255,0.28);transition:transform .12s,box-shadow .12s,background .12s}
+body.skin-sky.night-mode .sca:hover{background:linear-gradient(180deg,#101a28,#112448);box-shadow:0 5px 12px rgba(0,8,30,0.43),inset 0 1px 0 rgba(255,255,255,0.28);transform:translateY(-1px)}
+body.skin-sky.night-mode .sess-cur{padding:0 20px 0 16px;color:#719fea;background:linear-gradient(180deg,#0e1e3d,#12274d);box-shadow:0 2px 7px rgba(0,8,30,0.29),inset 0 1px 0 rgba(255,255,255,0.25)}
+body.skin-sky.night-mode .sess-cur .ico{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232a7bff' stroke='%232a7bff' stroke-width='2' stroke-linejoin='round'%3E%3Cpath d='M6.5 4.5l13 7.5-13 7.5z'/%3E%3C/svg%3E")}
+body.skin-sky.night-mode .sca.success{border:none;color:#ffffff;background:linear-gradient(180deg,#38c27a,#1f9d58);box-shadow:0 4px 11px rgba(30,150,88,0.38),inset 0 1px 0 rgba(255,255,255,0.13),inset 0 -2px 4px rgba(0,0,0,0.08)}
+body.skin-sky.night-mode .sca.success:hover{background:linear-gradient(180deg,#43cd85,#25a862);box-shadow:0 6px 14px rgba(30,150,88,0.42),inset 0 1px 0 rgba(255,255,255,0.13)}
+body.skin-sky.night-mode .sca.success .ico{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' %3E%3Cpath fill='%23ffffff' d='M5 2.5h11.6L21.5 7.4V19a2.5 2.5 0 0 1-2.5 2.5H5A2.5 2.5 0 0 1 2.5 19V5A2.5 2.5 0 0 1 5 2.5z'/%3E%3Crect x='6.5' y='2.5' width='8' height='5.4' rx='1' fill='%238be8b5'/%3E%3Crect x='7' y='12.2' width='10' height='9.3' rx='1.6' fill='%238be8b5'/%3E%3Crect x='10.4' y='14.6' width='3.2' height='4.6' rx='.8' fill='%23ffffff'/%3E%3C/svg%3E")}
+body.skin-sky.night-mode .sca.primary{border:none;color:#ffffff;background:linear-gradient(180deg,#4aa6ff,#2a6fe8);box-shadow:0 4px 11px rgba(0,8,30,0.68),inset 0 1px 0 rgba(255,255,255,0.14)}
+body.skin-sky.night-mode .sca.primary:hover{background:linear-gradient(180deg,#5cb2ff,#3a7cf0);box-shadow:0 6px 14px rgba(0,8,30,0.76),inset 0 1px 0 rgba(255,255,255,0.14)}
+body.skin-sky.night-mode .sca.primary .ico{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h13.5M12.5 5.5l6.5 6.5-6.5 6.5'/%3E%3C/svg%3E")}
+body.skin-sky.night-mode .sca[data-action=rename] .ico{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2398a8cd' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 12a8 8 0 1 1-2.7-6'/%3E%3Cpath d='M19.8 3.2v5.2h-5.2'/%3E%3C/svg%3E")}
+body.skin-sky.night-mode .sca.danger{color:#f26980;border-color:#461019;background:linear-gradient(180deg,#101a28,#380d16)}
+body.skin-sky.night-mode .sca.danger:hover{background:linear-gradient(180deg,#101a28,#410f18)}
+body.skin-sky.night-mode .sca.danger .ico{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ef4a66'%3E%3Cpath d='M9 2h6l1 2h5v2H3V4h5zM5 8h14l-1.2 13a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8zm4 3v8h1.6v-8zm4.4 0v8H15v-8z'/%3E%3C/svg%3E")}
+body.skin-sky.night-mode .sess-empty{padding:26px 0;font-size:15px;font-weight:700;color:#9cacc9}
+body.skin-sky.night-mode #sessBoxFoot{align-items:stretch;gap:10px;margin:6px 14px 14px;padding:7px;border:none;border-radius:34px;background:linear-gradient(180deg,rgba(16,26,40,0.75),rgba(15,32,63,0.72));box-shadow:0 3px 12px rgba(0,8,30,0.25),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #newSessNameInput{min-width:0;height:50px;padding:0 16px 0 52px;border:1.5px solid #1f4285;border-radius:26px;font-size:17px;font-weight:700;color:#a6c1ee;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%235d97e8'%3E%3Cpath d='M3 17.25V21h3.75L17.8 9.94l-3.75-3.75zM20.7 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75z'/%3E%3C/svg%3E") 18px center/20px no-repeat,linear-gradient(180deg,#0d1b36,#0f2141);box-shadow:inset 0 2px 5px rgba(0,10,35,0.24)}
+body.skin-sky.night-mode #newSessNameInput::placeholder{color:#9dacc8;font-weight:700}
+body.skin-sky.night-mode #newSessNameInput:focus{border-color:#2a6fe0;background-color:#101a28;box-shadow:0 0 0 3px rgba(42,111,224,0.2),inset 0 2px 5px rgba(0,10,35,0.17)}
+body.skin-sky.night-mode #createSessBtn{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:50px;padding:0 28px;border:none;border-radius:26px;font-size:18px;font-weight:800;color:#ffffff;background:linear-gradient(180deg,#4aa6ff,#2a6fe8);box-shadow:0 4px 12px rgba(0,8,30,0.72),inset 0 1px 0 rgba(255,255,255,0.14),inset 0 -3px 5px rgba(0,0,0,0.08)}
+body.skin-sky.night-mode #createSessBtn:hover{background:linear-gradient(180deg,#5cb2ff,#3a7cf0)}
+body.skin-sky.night-mode #createSessBtn .ico{width:20px;height:20px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M12 4.5v15M4.5 12h15'/%3E%3C/svg%3E")}
+@media (max-width:640px){
+body.skin-sky.night-mode #sessBox{width:94vw;border-radius:24px}
+body.skin-sky.night-mode #sessBoxHead{margin:10px 10px 4px}
+body.skin-sky.night-mode #sessBoxHead h2{font-size:20px;gap:10px}
+body.skin-sky.night-mode #sessBoxHead .sess-ico,body.skin-sky.night-mode #sessClose{width:40px;height:40px}
+body.skin-sky.night-mode #sessList{padding:6px 10px 4px}
+body.skin-sky.night-mode .sess-card{padding:13px 16px 15px;border-radius:22px}
+body.skin-sky.night-mode .sess-card-name{font-size:18px}
+body.skin-sky.night-mode .sess-badge{padding:5px 12px;font-size:13px}
+body.skin-sky.night-mode .sess-card-meta{font-size:13px;gap:8px;align-items:flex-start}
+body.skin-sky.night-mode .sess-card-meta::before{width:18px;height:18px}
+body.skin-sky.night-mode .sess-card-actions{gap:8px}
+body.skin-sky.night-mode .sca,body.skin-sky.night-mode .sess-cur{height:38px;padding:0 15px;font-size:14px;gap:7px}
+body.skin-sky.night-mode #sessBoxFoot{margin:4px 10px 10px;padding:6px;border-radius:30px}
+body.skin-sky.night-mode #newSessNameInput{height:44px;font-size:15px;padding-left:46px;background-position:16px center}
+body.skin-sky.night-mode #createSessBtn{height:44px;padding:0 16px;font-size:15px;gap:6px;flex:0 0 auto}
+}
+@media (max-width:420px){
+body.skin-sky.night-mode .sess-badge{display:none}
+}
+body.skin-sky.night-mode{--pw:300px}
+body.skin-sky.night-mode #panel{border:none;border-radius:24px;background:linear-gradient(180deg,rgba(12,26,51,0.94),rgba(15,33,65,0.92));box-shadow:0 10px 30px rgba(0,8,30,0.45),0 0 0 1px rgba(255,255,255,0.22) inset}
+@media (min-width:861px){
+body.skin-sky.night-mode #panel{top:calc(var(--bar-h,72px) + 12px);bottom:12px;right:calc(var(--sbw,0px) + var(--list-w) - var(--pw) + 12px)}
+body.skin-sky.night-mode #sessionBar{margin-right:0}
+body.skin-sky.night-mode #listCollapseBtn{top:calc(50% + var(--bar-h,72px) / 2)}
+body.skin-sky.night-mode #listCollapseBtn{border:none;border-radius:12px 0 0 12px;box-shadow:-3px 2px 10px rgba(0,8,30,0.45);background:var(--sky-pill);color:#a6c1ee}
+}
+@media (max-width:860px){
+body.skin-sky.night-mode #panel{margin:10px;width:auto}
+}
+body.skin-sky.night-mode #panelHeader{padding:16px 14px 10px 16px;border-bottom:none;background:transparent}
+body.skin-sky.night-mode #panelTitle{display:flex;align-items:center;gap:8px;font-size:19px;font-weight:800;color:#a6c1ee;text-transform:none;letter-spacing:0}
+body.skin-sky.night-mode #panelTitle::before{content:'';width:26px;height:26px;flex:0 0 auto;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26' fill='%232a6fe0'%3E%3Cpath d='M3 24V12h6v12zM10 24V4h7v20zM18 24V9h5v15z'/%3E%3Cg fill='%23e9f4fe'%3E%3Cpath d='M12 7h1.6v1.8H12zM14.4 7H16v1.8h-1.6zM12 11h1.6v1.8H12zM14.4 11H16v1.8h-1.6zM12 15h1.6v1.8H12zM14.4 15H16v1.8h-1.6zM4.6 15h1.6v1.8H4.6zM19.6 13h1.6v1.8h-1.6z'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat}
+body.skin-sky.night-mode #sortLabel{gap:6px;font-size:13px;font-weight:600;color:#95abd0}
+body.skin-sky.night-mode #sortLabel::after{content:'';flex:0 0 auto;width:7px;height:7px;margin:-3px 0 0 2px;border-right:2px solid #22314c;border-bottom:2px solid #22314c;transform:rotate(45deg)}
+body.skin-sky.night-mode #sortLabel input{appearance:none;-webkit-appearance:none;width:20px;height:20px;margin:0;border:2px solid #223d75;border-radius:6px;background:#101a28;display:inline-grid;place-content:center}
+body.skin-sky.night-mode #sortLabel input:checked{background:#2a6fe0;border-color:#2a6fe0}
+body.skin-sky.night-mode #sortLabel input:checked::before{content:'';width:9px;height:5px;border-left:2.5px solid rgba(255,255,255,0.16);border-bottom:2.5px solid rgba(255,255,255,0.16);transform:rotate(-45deg) translate(1px,-1px)}
+body.skin-sky.night-mode #foundGrid{gap:7px;padding:4px 12px 14px}
+body.skin-sky.night-mode .fi,body.skin-sky.night-mode .fi-empty{padding:8px 10px 8px 9px;gap:12px;border:none;border-radius:16px;background:rgba(16,26,40,0.62);box-shadow:0 1px 0 rgba(255,255,255,0.25) inset}
+body.skin-sky.night-mode .fi:hover{background:#101a28}
+body.skin-sky.night-mode .fi.highlighted{background:#101a28;box-shadow:0 0 0 2px rgba(42,111,224,0.45)}
+body.skin-sky.night-mode .fi.fi-is-capital{background:#11254a}
+body.skin-sky.night-mode .fi.fi-pref{background:#4e3f12;padding-left:12px}
+body.skin-sky.night-mode .fi-num{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:38px;height:38px;min-width:38px;border-radius:50%;background:#112448;color:#a6c1ee;font-size:15px;font-weight:800;text-align:center}
+body.skin-sky.night-mode .fi-dot{display:none}
+body.skin-sky.night-mode .fi-name{font-size:15px;font-weight:800;color:#a6c1ee}
+body.skin-sky.night-mode .fi-pop{font-size:15px;font-weight:600;color:#a3aec2}
+body.skin-sky.night-mode .fi-capital{color:#a6c1ee;font-size:14px}
+body.skin-sky.night-mode .fi-meta{display:flex;align-items:center;gap:5px;font-size:14px;font-weight:600;color:#a3afc2}
+body.skin-sky.night-mode .fi-meta::before{content:'';flex:0 0 auto;width:12px;height:14px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 28'%3E%3Cpath fill='%23a2b0c6' d='M12 0C5.9 0 1 4.8 1 10.8 1 18.6 12 28 12 28s11-9.4 11-17.2C23 4.8 18.1 0 12 0z'/%3E%3Ccircle cx='12' cy='10.6' r='4' fill='%23ffffff'/%3E%3C/svg%3E") center/contain no-repeat}
+body.skin-sky.night-mode .rm{width:26px;height:26px;border-radius:50%;font-size:17px;color:#a3b3cc}
+body.skin-sky.night-mode .rm:hover{color:#e37888;background:#3f0f18}
+body.skin-sky.night-mode .fi-empty-bar{background:rgba(42,111,224,0.12)}
+body.skin-sky.night-mode{--pw:290px}
+body.skin-sky.night-mode #sessionBar{padding:10px 20px;gap:18px}
+body.skin-sky.night-mode #sessionName{height:30px;padding:0 14px 0 31px;font-size:13px}
+body.skin-sky.night-mode #sessionName::before{left:10px;width:15px;height:15px}
+body.skin-sky.night-mode #mapPickBtn{height:38px;padding:0 16px 0 6px;gap:8px}
+body.skin-sky.night-mode #mapPickBtn::before{width:30px;height:30px}
+body.skin-sky.night-mode #mapPickLabel{font-size:18px}
+body.skin-sky.night-mode #cityInputWrap{height:42px;width:500px}
+body.skin-sky.night-mode #cityInputWrap::before{left:15px;width:18px;height:22px}
+body.skin-sky.night-mode #cityInput{padding:0 168px 0 46px;font-size:15px}
+body.skin-sky.night-mode #countryFilterBtn{width:152px;padding:0 12px 0 36px;font-size:13px}
+body.skin-sky.night-mode #countryFilterBtn::before{left:11px;width:17px;height:17px}
+body.skin-sky.night-mode #guessBtn,body.skin-sky.night-mode #clearBtn,body.skin-sky.night-mode #sessManagerBtn{height:40px;gap:8px}
+body.skin-sky.night-mode #guessBtn::before,body.skin-sky.night-mode #clearBtn::before,body.skin-sky.night-mode #sessManagerBtn::before{width:19px;height:19px}
+body.skin-sky.night-mode #guessBtn::after,body.skin-sky.night-mode #clearBtn::after,body.skin-sky.night-mode #sessManagerBtn::after{font-size:15px}
+body.skin-sky.night-mode #guessBtn,body.skin-sky.night-mode #clearBtn{padding:0 20px 0 16px}
+body.skin-sky.night-mode #sessManagerBtn{padding:0 38px 0 16px;background-position:right 15px center}
+body.skin-sky.night-mode #statusRow{padding:12px 12px 0}
+body.skin-sky.night-mode #summaryBar{padding:5px 24px 5px 6px;font-size:17px}
+body.skin-sky.night-mode #summaryBar::before{width:36px;height:36px;margin-right:12px;background-size:22px,auto}
+body.skin-sky.night-mode #summaryBar strong,body.skin-sky.night-mode #summaryBar .pop-total{font-size:19px}
+body.skin-sky.night-mode #msg{top:calc(var(--bar-h,72px) + 14px);left:22px;min-height:32px;padding:5px 18px 5px 40px;font-size:13px}
+body.skin-sky.night-mode #msg::before{left:9px;width:20px;height:20px;background-size:13px}
+body.skin-sky.night-mode .zbtn-wrap{gap:10px}
+body.skin-sky.night-mode #zoomLbl{font-size:12px;padding:3px 12px}
+body.skin-sky.night-mode .zbtn{width:36px;height:36px;border-radius:13px;font-size:22px}
+body.skin-sky.night-mode #resetViewBtn::before{width:20px;height:20px}
+body.skin-sky.night-mode #mapColorsBtn,body.skin-sky.night-mode #dotAppearanceBtn{left:20px;width:40px;height:40px;border-radius:14px}
+body.skin-sky.night-mode #mapColorsBtn{bottom:20px}
+body.skin-sky.night-mode #dotAppearanceBtn{bottom:72px}
+body.skin-sky.night-mode #dotAppearanceBtn svg{width:24px;height:24px}
+body.skin-sky.night-mode #mapColorsBtn::before{width:24px;height:24px}
+body.skin-sky.night-mode #mapColorsPopover,body.skin-sky.night-mode #dotAppearancePopover{left:70px;bottom:20px}
+body.skin-sky.night-mode #panelHeader{padding:16px 16px 12px 18px}
+body.skin-sky.night-mode #panelTitle{font-size:17px;gap:8px}
+body.skin-sky.night-mode #panelTitle::before{width:22px;height:22px}
+body.skin-sky.night-mode #sortLabel{font-size:12px;gap:6px}
+body.skin-sky.night-mode #sortLabel input{width:17px;height:17px;border-radius:5px}
+body.skin-sky.night-mode #foundGrid{gap:10px;padding:4px 14px 16px}
+body.skin-sky.night-mode .fi,body.skin-sky.night-mode .fi-empty{padding:7px 10px 7px 8px;gap:12px;border-radius:14px}
+body.skin-sky.night-mode .fi-num{width:32px;height:32px;min-width:32px;font-size:13px}
+body.skin-sky.night-mode .fi-name,body.skin-sky.night-mode .fi-pop{font-size:13.5px}
+body.skin-sky.night-mode .fi-meta{font-size:12px;gap:4px}
+body.skin-sky.night-mode .fi-meta::before{width:10px;height:12px}
+body.skin-sky.night-mode .fi-capital{font-size:12px}
+body.skin-sky.night-mode .rm{width:24px;height:24px;font-size:15px}
+body.skin-sky.night-mode{--pw:270px}
+body.skin-sky.night-mode #sessionBar{padding:7px 16px;gap:14px}
+body.skin-sky.night-mode #sessionName{height:26px;padding:0 11px 0 26px;font-size:12px}
+body.skin-sky.night-mode #sessionName::before{left:8px;width:13px;height:13px}
+body.skin-sky.night-mode .sess-dot,body.skin-sky.night-mode .sess-dot.saved{height:18px}
+body.skin-sky.night-mode #mapPickBtn{height:32px;padding:0 12px 0 5px;gap:7px}
+body.skin-sky.night-mode #mapPickBtn::before{width:24px;height:24px}
+body.skin-sky.night-mode #mapPickLabel{font-size:15px}
+body.skin-sky.night-mode #mapPickBtn::after{width:6px;height:6px;margin:-3px 1px 0 5px;border-width:2px}
+body.skin-sky.night-mode #cityInputWrap{height:34px;width:440px;box-shadow:0 0 0 2px rgba(255,255,255,0.17),0 0 0 4px rgba(32,69,136,0.5),0 4px 10px rgba(0,8,30,0.32),inset 0 1px 4px rgba(0,10,35,0.24)}
+body.skin-sky.night-mode #cityInputWrap::before{left:12px;width:14px;height:18px}
+body.skin-sky.night-mode #cityInput{padding:0 138px 0 36px;font-size:13px}
+body.skin-sky.night-mode #countryFilterBtn{right:4px;top:4px;bottom:4px;width:126px;padding:0 10px 0 30px;font-size:12px}
+body.skin-sky.night-mode #countryFilterBtn::before{left:9px;width:14px;height:14px}
+body.skin-sky.night-mode #guessBtn,body.skin-sky.night-mode #clearBtn,body.skin-sky.night-mode #sessManagerBtn{height:32px;gap:6px;box-shadow:0 0 0 2px rgba(255,255,255,0.1),0 3px 9px rgba(0,8,30,0.47),inset 0 1px 0 rgba(255,255,255,0.14),inset 0 -2px 4px rgba(0,0,0,0.08)}
+body.skin-sky.night-mode #guessBtn::before,body.skin-sky.night-mode #clearBtn::before,body.skin-sky.night-mode #sessManagerBtn::before{width:15px;height:15px}
+body.skin-sky.night-mode #guessBtn::after,body.skin-sky.night-mode #clearBtn::after,body.skin-sky.night-mode #sessManagerBtn::after{font-size:13px}
+body.skin-sky.night-mode #guessBtn,body.skin-sky.night-mode #clearBtn{padding:0 15px 0 12px}
+body.skin-sky.night-mode #sessManagerBtn{padding:0 30px 0 13px;background-position:right 12px center,center;background-size:7px,auto}
+body.skin-sky.night-mode #statusRow{padding:10px 12px 0}
+body.skin-sky.night-mode #summaryBar{padding:4px 18px 4px 5px;font-size:14px}
+body.skin-sky.night-mode #summaryBar::before{width:28px;height:28px;margin-right:10px;background-size:17px,auto}
+body.skin-sky.night-mode #summaryBar strong,body.skin-sky.night-mode #summaryBar .pop-total{font-size:15px}
+body.skin-sky.night-mode #msg{min-height:26px;padding:3px 14px 3px 32px;font-size:12px}
+body.skin-sky.night-mode #msg::before{left:7px;width:17px;height:17px;background-size:11px}
+body.skin-sky.night-mode .zbtn-wrap{gap:7px}
+body.skin-sky.night-mode #zoomLbl{font-size:11px;padding:2px 10px}
+body.skin-sky.night-mode .zbtn{width:30px;height:30px;border-radius:11px;font-size:19px}
+body.skin-sky.night-mode #resetViewBtn::before{width:16px;height:16px}
+body.skin-sky.night-mode #mapColorsBtn,body.skin-sky.night-mode #dotAppearanceBtn{left:16px;width:32px;height:32px;border-radius:11px}
+body.skin-sky.night-mode #mapColorsBtn{bottom:16px}
+body.skin-sky.night-mode #dotAppearanceBtn{bottom:56px}
+body.skin-sky.night-mode #dotAppearanceBtn svg{width:19px;height:19px}
+body.skin-sky.night-mode #mapColorsBtn::before{width:19px;height:19px}
+body.skin-sky.night-mode #mapColorsPopover,body.skin-sky.night-mode #dotAppearancePopover{left:58px;bottom:16px}
+body.skin-sky.night-mode #panelHeader{padding:12px 14px 8px 16px}
+body.skin-sky.night-mode #panelTitle{font-size:15px;gap:7px}
+body.skin-sky.night-mode #panelTitle::before{width:18px;height:18px}
+body.skin-sky.night-mode #sortLabel{font-size:11px;gap:5px}
+body.skin-sky.night-mode #sortLabel input{width:14px;height:14px;border-width:1.5px;border-radius:4px}
+body.skin-sky.night-mode #sortLabel::after{width:6px;height:6px}
+body.skin-sky.night-mode #foundGrid{gap:8px;padding:2px 12px 14px}
+body.skin-sky.night-mode .fi,body.skin-sky.night-mode .fi-empty{padding:5px 8px 5px 6px;gap:10px;border-radius:12px}
+body.skin-sky.night-mode .fi-num{width:26px;height:26px;min-width:26px;font-size:11px}
+body.skin-sky.night-mode .fi-name,body.skin-sky.night-mode .fi-pop{font-size:12px}
+body.skin-sky.night-mode .fi-meta{font-size:10.5px}
+body.skin-sky.night-mode .fi-meta::before{width:9px;height:11px}
+body.skin-sky.night-mode .fi-capital{font-size:11px}
+body.skin-sky.night-mode .rm{width:20px;height:20px;font-size:13px}
+body.skin-sky.night-mode #panel{background:linear-gradient(180deg,rgba(14,32,59,0.96),rgba(15,33,65,0.95));box-shadow:0 10px 28px rgba(0,8,30,0.4),inset 0 0 0 1px rgba(255,255,255,0.21)}
+body.skin-sky.night-mode #panelTitle{color:#afc7f1}
+body.skin-sky.night-mode #panelTitle::before{filter:saturate(1.1) brightness(.92)}
+body.skin-sky.night-mode #sortLabel{color:#9eadc7;font-weight:600}
+body.skin-sky.night-mode #sortLabel::after{border-color:#5b86d0}
+body.skin-sky.night-mode #sortLabel input{border:1.5px solid #1d3465;background:#101a28;box-shadow:0 1px 2px rgba(0,8,30,0.27)}
+body.skin-sky.night-mode #foundGrid{gap:6px;padding:2px 10px 14px 12px;scrollbar-width:thin;scrollbar-color:#253f71 transparent}
+body.skin-sky.night-mode #foundGrid::-webkit-scrollbar{width:5px}
+body.skin-sky.night-mode #foundGrid::-webkit-scrollbar-thumb{background:#253f71;border-radius:5px}
+body.skin-sky.night-mode #foundGrid::-webkit-scrollbar-track{background:transparent}
+body.skin-sky.night-mode .fi,body.skin-sky.night-mode .fi-empty{border-radius:16px;background:linear-gradient(180deg,rgba(16,26,40,0.62),rgba(12,27,52,0.5));box-shadow:0 1px 3px rgba(0,8,30,0.23),inset 0 1px 0 rgba(255,255,255,0.24)}
+body.skin-sky.night-mode .fi:hover{background:linear-gradient(180deg,rgba(16,26,40,0.9),rgba(11,27,49,0.8))}
+body.skin-sky.night-mode .fi.fi-is-capital{background:linear-gradient(180deg,#0f1e40,#112348);box-shadow:0 1px 3px rgba(0,8,30,0.29),inset 0 1px 0 rgba(255,255,255,0.17)}
+body.skin-sky.night-mode .fi-num{background:radial-gradient(circle at 35% 30%,#0d1d39,#112449);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.2),0 1px 2px rgba(0,8,30,0.32);color:#90abeb;font-weight:800}
+body.skin-sky.night-mode .fi-name{color:#afc7f1;font-weight:800}
+body.skin-sky.night-mode .fi-pop{color:#9eadc7;font-weight:500}
+body.skin-sky.night-mode .fi-meta{color:#9daec8;font-weight:500}
+body.skin-sky.night-mode .fi-capital{color:#a4c1ef}
+body.skin-sky.night-mode .rm{color:#97adce;font-weight:300}
+body.skin-sky.night-mode .rm:hover{color:#e37888;background:rgba(63,15,24,0.8)}
+@media (min-width:861px){
+body.skin-sky.night-mode #listCollapseBtn{right:calc(var(--sbw,0px) + var(--list-w) + 12px);width:18px;height:52px;border-radius:12px 0 0 12px;background:linear-gradient(180deg,rgba(13,29,56,0.97),rgba(15,33,65,0.96));box-shadow:-4px 2px 10px rgba(0,8,30,0.4),inset 1px 0 0 rgba(255,255,255,0.24)}
+body.skin-sky.list-collapsed.night-mode #listCollapseBtn{right:var(--sbw,0px);box-shadow:-4px 2px 10px rgba(0,8,30,0.4)}
+}
+body.skin-sky.night-mode #bottomPanels{border-top:none;background:linear-gradient(180deg,#12274b 0%,#152e59 100%)}
+body.skin-sky.night-mode #bestVisual{position:relative;overflow:hidden;gap:18px;padding:22px 24px 18px;background:radial-gradient(ellipse 60% 45% at 18% 20%,rgba(16,26,40,0.55),transparent 70%),
+  radial-gradient(ellipse 55% 50% at 85% 75%,rgba(16,26,40,0.45),transparent 70%),
+  linear-gradient(180deg,#12294e,#15305b)}
+body.skin-sky.night-mode #bestVisual>*{position:relative;z-index:1}
+body.skin-sky.night-mode #bestVisualTitle{display:inline-flex;align-items:center;gap:9px;height:38px;padding:0 22px 0 10px;border-radius:999px;font-size:15px;font-weight:900;letter-spacing:.07em;color:#719ef4;background:var(--sky-pill);box-shadow:0 6px 16px rgba(0,8,30,0.4),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #bestVisualTitle::before{content:'';flex:0 0 auto;width:26px;height:26px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E %3Cdefs%3E %3CradialGradient id='o' cx='35%25' cy='30%25' r='80%25'%3E%3Cstop offset='0' stop-color='%237cc4f5'/%3E%3Cstop offset='.55' stop-color='%232f86d6'/%3E%3Cstop offset='1' stop-color='%2394baec'/%3E%3C/radialGradient%3E %3CradialGradient id='g' cx='32%25' cy='24%25' r='55%25'%3E%3Cstop offset='0' stop-color='%23ffffff' stop-opacity='.55'/%3E%3Cstop offset='1' stop-color='%23ffffff' stop-opacity='0'/%3E%3C/radialGradient%3E %3CclipPath id='c'%3E%3Ccircle cx='32' cy='32' r='29'/%3E%3C/clipPath%3E %3C/defs%3E %3Ccircle cx='32' cy='32' r='29' fill='url(%23o)'/%3E %3Cg clip-path='url(%23c)'%3E %3Cpath fill='%2391d49d' d='M12 14c6-5 15-4 17 2 1 5-5 7-4 12 1 5 8 6 6 13-2 6-8 10-12 6-3-3 0-7-3-11-3-5-9-6-8-12 1-4 2-7 4-10z'/%3E %3Cpath fill='%2391d49d' d='M37 11c5-2 11 1 12 6 1 4-3 4-3 8 1 5 7 6 5 12-2 5-8 6-11 3-3-3-1-7-4-10-3-3-7-3-6-8 1-5 3-9 7-11z'/%3E %3Cpath fill='%238fd89a' d='M44 44c3-1 7 1 6 4-1 3-6 4-8 2-1-2 0-5 2-6z'/%3E %3Cg fill='none' stroke='%23ffffff' stroke-opacity='.22' stroke-width='1'%3E %3Cellipse cx='32' cy='32' rx='13' ry='29'/%3E%3Cline x1='32' y1='3' x2='32' y2='61'/%3E %3Cellipse cx='32' cy='32' rx='29' ry='11'/%3E%3Cline x1='3' y1='32' x2='61' y2='32'/%3E %3C/g%3E %3Ccircle cx='32' cy='32' r='29' fill='url(%23g)'/%3E %3C/g%3E %3Ccircle cx='32' cy='32' r='29' fill='none' stroke='%23a4c4ef' stroke-opacity='.55' stroke-width='2'/%3E %3C/svg%3E") center/contain no-repeat;filter:drop-shadow(0 2px 2px rgba(0,8,30,0.48))}
+body.skin-sky.night-mode #topShapesList{gap:16px;align-items:stretch}
+body.skin-sky.night-mode .shape-card{gap:10px;padding:16px 12px 12px;border:none;border-radius:28px;max-width:260px;background:linear-gradient(180deg,rgba(12,28,53,0.96),rgba(16,35,66,0.92));box-shadow:0 10px 26px rgba(0,8,30,0.4),inset 0 1px 0 rgba(255,255,255,0.28),0 0 0 1px rgba(255,255,255,0.13)}
+body.skin-sky.night-mode .shape-rank{top:10px;left:10px;display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;font-size:17px;font-weight:900;color:#6da5ee;background:radial-gradient(circle at 35% 28%,#101a28,#0f2241);box-shadow:0 2px 6px rgba(0,8,30,0.36),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode .shape-icon{margin-top:6px;padding:6px 4px 2px}
+body.skin-sky.night-mode .shape-icon svg path{fill:#4c9cff;fill:url(#skyShapeGrad) #4c9cff;fill-opacity:1;stroke:#3c86f0;stroke-width:.5}
+body.skin-sky.night-mode .shape-icon svg{filter:drop-shadow(0 4px 3px rgba(0,8,30,0.45))}
+body.skin-sky.night-mode .shape-fallback{opacity:.7}
+body.skin-sky.night-mode .shape-pill{display:flex;align-items:center;gap:10px;width:100%;min-width:0;padding:9px 12px 9px 9px;border-radius:22px;background:linear-gradient(180deg,rgba(16,26,40,0.95),rgba(13,29,56,0.85));box-shadow:0 2px 8px rgba(0,8,30,0.25),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode .shape-flag{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:40px;height:40px;overflow:hidden;border-radius:50%;font-size:26px;line-height:1;background:#101a28;box-shadow:0 0 0 3px rgba(255,255,255,0.18),0 2px 6px rgba(0,8,30,0.5)}
+body.skin-sky.night-mode .shape-flag img{width:100%;height:100%;object-fit:cover;display:block}
+body.skin-sky.night-mode .shape-info{display:flex;flex-direction:column;min-width:0;flex:1;line-height:1.2}
+body.skin-sky.night-mode .shape-name{font-size:18px;font-weight:900;color:#afc7f1;text-align:left}
+body.skin-sky.night-mode .shape-count{font-size:14px;font-weight:700;color:#92abd3}
+body.skin-sky.night-mode .shape-empty{color:#9eadc7;font-weight:700;font-style:normal}
+body.skin-sky.night-mode #statsCountryRow{max-width:520px;border-top:none;padding-top:2px;margin-top:2px}
+body.skin-sky.night-mode #statsCountryWrap{height:38px;border:none;border-radius:999px;background:linear-gradient(180deg,#0c1a33,#0f203f);box-shadow:0 0 0 3px rgba(255,255,255,0.17),0 0 0 5px rgba(32,69,136,0.55),0 6px 14px rgba(0,8,30,0.36),inset 0 2px 5px rgba(0,10,35,0.26)}
+body.skin-sky.night-mode #statsCountryWrap:focus-within{background:#101a28;box-shadow:0 0 0 3px rgba(255,255,255,0.18),0 0 0 5px rgba(42,111,224,0.65),0 6px 14px rgba(0,8,30,0.45)}
+body.skin-sky.night-mode #statsCountryLbl{left:18px;right:150px;font-size:13px;font-weight:700;color:#9dacc8}
+body.skin-sky.night-mode #scBtn{right:4px;top:4px;bottom:4px;width:140px;padding:0 12px;border:none;border-radius:999px;background:linear-gradient(180deg,#0e1f3d,#12284e);box-shadow:inset 0 1px 0 rgba(255,255,255,0.28),0 1px 3px rgba(0,8,30,0.4);font-size:13px;font-weight:800;color:#9db6df}
+body.skin-sky.night-mode #scBtn:hover{background:linear-gradient(180deg,#0d1b36,#142a53);color:#a6c1ee}
+body.skin-sky.night-mode #scBtn.filtering{color:#6d9ced}
+body.skin-sky.night-mode #scPanel{border:none;border-radius:18px;padding:6px;box-shadow:0 10px 30px rgba(0,8,30,0.58),0 0 0 1px rgba(255,255,255,0.14)}
+body.skin-sky.night-mode #scPanel .cf-opt{padding:7px 10px;border-radius:10px;font-size:13px;font-weight:700;color:#a6c1ee}
+body.skin-sky.night-mode #scPanel .cf-opt:hover{background:#0f2241}
+body.skin-sky.night-mode #scPanel .cf-opt.active{background:#11254a;color:#6d9ced}
+body.skin-sky.night-mode #scPanel .cf-sep{color:#99adcc;border-top-color:#13284f}
+body.skin-sky.night-mode #otherStatsList{display:flex;flex-direction:column;gap:8px;margin-top:4px!important}
+body.skin-sky.night-mode .stat-row{align-self:center;width:fit-content;max-width:100%;justify-content:center;align-items:center;gap:12px;height:36px;padding:0 22px;border-radius:999px;background:var(--sky-pill);box-shadow:var(--sky-shadow)}
+body.skin-sky.night-mode .stat-row.stat-complete{background:linear-gradient(180deg,#413a0f,#675718)}
+body.skin-sky.night-mode .stat-label{flex:0 1 auto;margin:0;gap:8px;height:auto;padding:0;border-radius:0;background:none;box-shadow:none;font-size:15px;font-weight:800;color:#799ee2}
+body.skin-sky.night-mode .stat-val,body.skin-sky.night-mode .stat-pct{display:flex;align-items:center;height:auto;padding:0;border-radius:0;background:none;box-shadow:none;color:#799ee2}
+body.skin-sky.night-mode .stat-val{font-size:18px;font-weight:900}
+body.skin-sky.night-mode .stat-pct{min-width:0;font-size:14px;font-weight:700}
+body.skin-sky.night-mode .stat-check{width:19px;height:19px;line-height:19px;font-size:12px}
+body.skin-sky.night-mode .best-empty{color:#9eadc7;font-weight:700;font-style:normal}
+body.skin-sky.night-mode #missedBtnWrap{max-width:100%!important;margin-top:8px!important}
+body.skin-sky.night-mode #missedBtn{display:flex;align-items:center;justify-content:center;gap:9px;height:42px;padding:0 18px;border:2px solid rgba(255,255,255,0.14);border-radius:999px;font-size:17px;font-weight:800;letter-spacing:.01em;color:#ffffff;text-shadow:0 1px 2px rgba(0,8,30,0.63);background:linear-gradient(180deg,rgba(16,26,40,0.34) 0 48%,rgba(16,26,40,0) 50%),linear-gradient(180deg,#6bb5ff,#3a8cf6);box-shadow:0 8px 20px rgba(0,8,30,0.68),inset 0 1px 0 rgba(255,255,255,0.17),inset 0 -4px 8px rgba(0,10,35,0.24)}
+body.skin-sky.night-mode #missedBtn:hover{filter:brightness(1.06);background:linear-gradient(180deg,rgba(16,26,40,0.34) 0 48%,rgba(16,26,40,0) 50%),linear-gradient(180deg,#6bb5ff,#3a8cf6)}
+body.skin-sky.night-mode #missedBtn .mb-ico{display:none}
+body.skin-sky.night-mode #missedBtn::before{content:'';flex:0 0 auto;width:22px;height:22px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.6' stroke-linecap='round'%3E%3Ccircle cx='10' cy='10' r='6.5' fill='%23ffffff' fill-opacity='.25'/%3E%3Cpath d='M15.2 15.2L21 21'/%3E%3C/svg%3E") center/contain no-repeat;filter:drop-shadow(0 1px 2px rgba(0,8,30,0.64))}
+body.skin-sky.night-mode #siteFooter{color:#9eadc7}
+@media (max-width:860px){
+body.skin-sky.night-mode #bestVisualTitle{height:34px;font-size:13px;padding-right:18px}
+body.skin-sky.night-mode .shape-card{border-radius:24px}
+body.skin-sky.night-mode .shape-pill{padding:7px 10px 7px 7px}
+body.skin-sky.night-mode .shape-flag{width:34px;height:34px}
+body.skin-sky.night-mode .shape-name{font-size:15px}
+body.skin-sky.night-mode .stat-row{height:32px;padding:0 16px;gap:10px}
+body.skin-sky.night-mode .stat-label{font-size:13px}
+body.skin-sky.night-mode .stat-val{font-size:16px}
+body.skin-sky.night-mode .stat-pct{font-size:13px}
+body.skin-sky.night-mode #missedBtn{height:38px;font-size:15px}
+}
+body.skin-sky.night-mode #dotAppearancePopover{width:250px;padding:10px 12px 12px;border:1px solid rgba(255,255,255,0.14);border-radius:22px;background:linear-gradient(180deg,rgba(12,27,50,0.97),rgba(16,36,70,0.96));box-shadow:0 14px 34px rgba(0,8,30,0.59),inset 0 1px 0 rgba(255,255,255,0.28);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
+body.skin-sky.night-mode #dotAppearancePopover .pop-title-row{margin:0 0 10px;padding:3px;border-radius:999px;background:linear-gradient(180deg,#101a28,#0e1f3d);box-shadow:0 3px 8px rgba(0,8,30,0.32),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #dotAppearancePopover .pop-title{display:flex;align-items:center;gap:8px;font-size:15px;line-height:1.1;font-weight:800;color:#91b0ec;letter-spacing:-.01em;text-transform:none}
+body.skin-sky.night-mode #dotAppearancePopover .pop-title svg{flex:0 0 auto;width:28px;height:28px;padding:4.5px;box-sizing:border-box;border-radius:50%;vertical-align:baseline;background:linear-gradient(180deg,#101a28,#0f2141);box-shadow:0 2px 6px rgba(0,8,30,0.5),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #dotAppearancePopover .row{gap:6px;margin-bottom:10px}
+body.skin-sky.night-mode #dotAppearancePopover .lbl{min-width:46px;font-size:13px;font-weight:700;color:#8eafe9}
+body.skin-sky.night-mode #dotAppearancePopover #skinOpenBtn{display:flex;align-items:center;gap:7px;height:32px;padding:0 12px 0 4px;border:none;border-radius:999px;font-size:13px;font-weight:800;text-align:left;color:#8eb0e9;background:linear-gradient(180deg,#0c1a33,#102244);box-shadow:0 2px 6px rgba(0,8,30,0.32),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #dotAppearancePopover #skinOpenBtn:hover{background:linear-gradient(180deg,#101a28,#11254a)}
+body.skin-sky.night-mode #dotAppearancePopover .skin-ico{flex:0 0 auto;width:24px;height:24px;border-radius:50%;font-size:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' %3E%3Cpath d='M12 2.2C6.4 2.2 2.2 6.4 2.2 11.6c0 4.8 3.7 8.6 8.3 8.6 1.8 0 2.3-1.3 1.4-2.4-.8-1 0-2.5 1.4-2.5h2.7c2.8 0 5.8-1.8 5.8-5.4C21.8 5.8 17.6 2.2 12 2.2z' fill='%233cc8d8' stroke='%237bd8ea' stroke-width='1'/%3E%3Ccircle cx='7.4' cy='10.2' r='1.7' fill='%237a4fd0'/%3E%3Ccircle cx='11' cy='6.6' r='1.7' fill='%23ff6f7a'/%3E%3Ccircle cx='16.2' cy='7.6' r='1.7' fill='%23ffd23f'/%3E%3Ccircle cx='7.8' cy='14.8' r='1.7' fill='%23ff9a3d'/%3E%3Ccircle cx='17.4' cy='13.4' r='1.9' fill='%23e9fbff' opacity='.9'/%3E%3C/svg%3E") center/16px no-repeat,linear-gradient(180deg,#101a28,#0f2040);box-shadow:0 1px 4px rgba(0,8,30,0.4),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #dotAppearancePopover .skin-caret{margin-left:auto;width:0;height:0;font-size:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid #4f7fc9}
+body.skin-sky.night-mode #dotAppearancePopover .row.mode-toggles{gap:8px;margin-bottom:11px}
+body.skin-sky.night-mode #dotAppearancePopover .mode-toggle{width:40px;height:40px;border:none;border-radius:14px;background:linear-gradient(180deg,#0c1a35,#112448);box-shadow:0 2px 6px rgba(0,8,30,0.32),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #dotAppearancePopover .mode-toggle::before{content:'';position:absolute;width:28px;height:28px;border-radius:50%;background:rgba(16,26,40,0.5);box-shadow:inset 0 1px 2px rgba(0,10,35,0.24)}
+body.skin-sky.night-mode #dotAppearancePopover .mode-toggle:hover{background:linear-gradient(180deg,#101a28,#12264c);box-shadow:0 3px 8px rgba(0,8,30,0.47),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #dotAppearancePopover .mode-toggle:has(input:checked){background:linear-gradient(180deg,#4aa6ff,#2a6fe8);box-shadow:0 3px 8px rgba(0,8,30,0.76),inset 0 1px 0 rgba(255,255,255,0.14)}
+body.skin-sky.night-mode #dotAppearancePopover .mode-toggle:has(input:checked)::before{background:rgba(16,26,40,0.22);box-shadow:none}
+body.skin-sky.night-mode #dotAppearancePopover .mode-toggle:focus-within{box-shadow:0 0 0 2px rgba(42,111,224,0.35),0 2px 6px rgba(0,8,30,0.32)}
+body.skin-sky.night-mode #dotAppearancePopover .mode-toggle .mode-ico{position:relative;width:21px;height:21px;font-size:0;filter:none;opacity:1;background:center/contain no-repeat}
+body.skin-sky.night-mode #dotAppearancePopover .mode-toggle[title="Night mode"] .mode-ico{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238fb0e0' stroke='%2391a9d4' stroke-width='1.8' stroke-linejoin='round'%3E%3Cpath d='M20 14.6A8.6 8.6 0 1 1 9.4 4a7 7 0 0 0 10.6 10.6z'/%3E%3C/svg%3E")}
+body.skin-sky.night-mode #dotAppearancePopover .mode-toggle[title="Physical mode"] .mode-ico{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' %3E%3Cg transform='rotate(45 12 12)'%3E%3Crect x='0.8' y='8.4' width='22.4' height='7.2' rx='2.4' fill='%238fb0e0' stroke='%2391a9d4' stroke-width='1.6'/%3E%3Cpath d='M6 8.8v6.4M10 8.8v6.4M14 8.8v6.4M18 8.8v6.4' stroke='%23bcd2f0' stroke-width='1.3' stroke-linecap='round'/%3E%3C/g%3E%3Cg transform='rotate(-45 12 12)'%3E%3Crect x='0.8' y='8.4' width='22.4' height='7.2' rx='2.4' fill='%238fb0e0' stroke='%2391a9d4' stroke-width='1.6'/%3E%3Cpath d='M6 8.8v6.4M10 8.8v6.4M14 8.8v6.4M18 8.8v6.4' stroke='%23bcd2f0' stroke-width='1.3' stroke-linecap='round'/%3E%3C/g%3E%3C/svg%3E")}
+body.skin-sky.night-mode #dotAppearancePopover .mode-toggle[title="Pin mode"] .mode-ico{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' %3E%3Ccircle cx='12' cy='8.6' r='6' fill='%238fb0e0' stroke='%2391a9d4' stroke-width='1.8'/%3E%3Crect x='10.4' y='13' width='3.2' height='9' rx='1.6' fill='%238fb0e0' stroke='%2391a9d4' stroke-width='1.6'/%3E%3Ccircle cx='10.2' cy='6.8' r='1.6' fill='%23ffffff' opacity='.55'/%3E%3C/svg%3E")}
+body.skin-sky.night-mode #dotAppearancePopover .mode-toggle[title="Night mode"]:has(input:checked) .mode-ico{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff' stroke='%23d6e8ff' stroke-width='1.8' stroke-linejoin='round'%3E%3Cpath d='M20 14.6A8.6 8.6 0 1 1 9.4 4a7 7 0 0 0 10.6 10.6z'/%3E%3C/svg%3E")}
+body.skin-sky.night-mode #dotAppearancePopover .mode-toggle[title="Physical mode"]:has(input:checked) .mode-ico{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' %3E%3Cg transform='rotate(45 12 12)'%3E%3Crect x='0.8' y='8.4' width='22.4' height='7.2' rx='2.4' fill='%23ffffff' stroke='%23d6e8ff' stroke-width='1.6'/%3E%3Cpath d='M6 8.8v6.4M10 8.8v6.4M14 8.8v6.4M18 8.8v6.4' stroke='%239fc3f5' stroke-width='1.3' stroke-linecap='round'/%3E%3C/g%3E%3Cg transform='rotate(-45 12 12)'%3E%3Crect x='0.8' y='8.4' width='22.4' height='7.2' rx='2.4' fill='%23ffffff' stroke='%23d6e8ff' stroke-width='1.6'/%3E%3Cpath d='M6 8.8v6.4M10 8.8v6.4M14 8.8v6.4M18 8.8v6.4' stroke='%239fc3f5' stroke-width='1.3' stroke-linecap='round'/%3E%3C/g%3E%3C/svg%3E")}
+body.skin-sky.night-mode #dotAppearancePopover .mode-toggle[title="Pin mode"]:has(input:checked) .mode-ico{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' %3E%3Ccircle cx='12' cy='8.6' r='6' fill='%23ffffff' stroke='%23d6e8ff' stroke-width='1.8'/%3E%3Crect x='10.4' y='13' width='3.2' height='9' rx='1.6' fill='%23ffffff' stroke='%23d6e8ff' stroke-width='1.6'/%3E%3Ccircle cx='10.2' cy='6.8' r='1.6' fill='%23ffffff' opacity='.55'/%3E%3C/svg%3E")}
+body.skin-sky.night-mode #dotAppearancePopover input[type=color]{width:42px;height:32px;padding:5px 6px;box-sizing:border-box;border:none;border-radius:14px;background:linear-gradient(180deg,#0c1a33,#102244);box-shadow:0 2px 6px rgba(0,8,30,0.32),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #dotAppearancePopover input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+body.skin-sky.night-mode #dotAppearancePopover input[type=color]::-webkit-color-swatch{border:none;border-radius:9px;box-shadow:inset 0 1px 2px rgba(255,255,255,0.14),inset 0 -2px 4px rgba(0,0,0,0.08)}
+body.skin-sky.night-mode #dotAppearancePopover input[type=color]::-moz-color-swatch{border:none;border-radius:9px}
+body.skin-sky.night-mode #dotAppearancePopover .val-badge{min-width:32px;font-size:12px;font-weight:800;color:#95aad0;text-align:left}
+body.skin-sky.night-mode #dotAppearancePopover input[type=range]{-webkit-appearance:none;appearance:none;flex:1;min-width:0;max-width:none!important;height:22px;margin:0;background:transparent;cursor:pointer}
+body.skin-sky.night-mode #dotAppearancePopover input[type=range]::-webkit-slider-runnable-track{height:10px;box-sizing:border-box;border:2px solid rgba(255,255,255,0.15);border-radius:999px;background:linear-gradient(90deg,#4aa6ff,#2a6fe8) 0 0/calc(var(--f,.5)*100% + (.5 - var(--f,.5))*18px) 100% no-repeat,linear-gradient(180deg,#12274e,#0d1d39);box-shadow:inset 0 1px 2px rgba(0,10,35,0.36),0 1px 2px rgba(0,8,30,0.27)}
+body.skin-sky.night-mode #dotAppearancePopover input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;margin-top:-5px;box-sizing:border-box;border:2.5px solid rgba(255,255,255,0.15);border-radius:50%;background:radial-gradient(circle at 35% 30%,#1d407d,#2f7bf0 72%);box-shadow:0 2px 6px rgba(0,8,30,0.85)}
+body.skin-sky.night-mode #dotAppearancePopover input[type=range]::-moz-range-track{height:6px;border:2px solid rgba(255,255,255,0.15);border-radius:999px;background:linear-gradient(180deg,#12274e,#0d1d39);box-shadow:inset 0 1px 2px rgba(0,10,35,0.36)}
+body.skin-sky.night-mode #dotAppearancePopover input[type=range]::-moz-range-progress{height:6px;border-radius:999px;background:linear-gradient(90deg,#4aa6ff,#2a6fe8)}
+body.skin-sky.night-mode #dotAppearancePopover input[type=range]::-moz-range-thumb{width:13px;height:13px;border:2.5px solid rgba(255,255,255,0.15);border-radius:50%;background:radial-gradient(circle at 35% 30%,#1d407d,#2f7bf0 72%);box-shadow:0 2px 6px rgba(0,8,30,0.85)}
+body.skin-sky.night-mode #dotAppearancePopover .reset-icon-btn{width:30px;height:30px;border:none;border-radius:11px;font-size:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233f7ad6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.2 12a8.2 8.2 0 1 1-2.6-6'/%3E%3Cpath d='M20 3.2v5.4h-5.4'/%3E%3C/svg%3E") center/16px no-repeat,linear-gradient(180deg,#0c1a33,#102244);box-shadow:0 2px 6px rgba(0,8,30,0.32),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #dotAppearancePopover .reset-icon-btn:hover{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233f7ad6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.2 12a8.2 8.2 0 1 1-2.6-6'/%3E%3Cpath d='M20 3.2v5.4h-5.4'/%3E%3C/svg%3E") center/16px no-repeat,linear-gradient(180deg,#101a28,#12264c)}
+body.skin-sky.night-mode #dotAppearancePopover .row:has(> .lbl:only-child){margin-bottom:6px}
+body.skin-sky.night-mode #dotAppearancePopover .scale-presets{gap:5px;margin-top:0}
+body.skin-sky.night-mode #dotAppearancePopover .scale-preset-btn:not(#skinOpenBtn){height:28px;padding:0 2px;border:none;border-radius:999px;font-size:11px;font-weight:800;color:#95aad0;background:linear-gradient(180deg,rgba(16,26,40,0.75),rgba(16,35,70,0.85));box-shadow:0 2px 6px rgba(0,8,30,0.29),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #dotAppearancePopover .scale-preset-btn:not(#skinOpenBtn):hover{color:#719fea;background:linear-gradient(180deg,#101a28,#11254a)}
+body.skin-sky.night-mode #dotAppearancePopover .scale-preset-btn.active:not(#skinOpenBtn){color:#ffffff;background:linear-gradient(180deg,#4aa6ff,#2a6fe8);box-shadow:0 0 0 2px rgba(255,255,255,0.16),0 3px 8px rgba(0,8,30,0.76),inset 0 1px 0 rgba(255,255,255,0.14)}
+@media (max-width:640px){
+body.skin-sky.night-mode #dotAppearancePopover{width:min(250px,85vw)}
+}
+body.skin-sky.night-mode #mapColorsPopover{padding:10px 12px 6px;border:1px solid rgba(255,255,255,0.14);border-radius:22px;background:linear-gradient(180deg,rgba(12,27,50,0.97),rgba(16,36,70,0.96));box-shadow:0 14px 34px rgba(0,8,30,0.59),inset 0 1px 0 rgba(255,255,255,0.28);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
+body.skin-sky.night-mode #mapColorsPopover .pop-title-row{margin:0 0 10px;padding:3px 3px 3px 12px;border-radius:999px;background:linear-gradient(180deg,#101a28,#0e1f3d);box-shadow:0 3px 8px rgba(0,8,30,0.32),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #mapColorsPopover .pop-title{display:flex;align-items:center;gap:7px;font-size:12px;line-height:1.1;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#70a0eb}
+body.skin-sky.night-mode #mapColorsPopover .mp-ico{flex:0 0 auto;width:22px;height:13px;font-size:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 24' fill='%232a6fe0'%3E%3Cpath d='M2 5C4 2 9 1.5 13 2.5l1 3.5-2 3-3.5 2-2 4.5-2.2-2.5-.8-5.5-2-2z'/%3E%3Cpath d='M10.5 14.5l3.2-1.6 2.3 2.3-1 4.2-2.3 3.2-1.6-2.2z'/%3E%3Cpath d='M17 4c3-1.8 7-1.8 10.5-.6S33.5 3 36 4.5l2.5 1-2 3-4 1-2 3.2-3-1-2 2-2.2-3.2-3-1-2-3.2z'/%3E%3Cpath d='M17.5 11.5l4-1.2 3 2.2 1.2 4.2-2 5-3-1-2-4.2z'/%3E%3Cpath d='M30 16.5l4-1 3.2 2-1 3.2-5.2.2z'/%3E%3C/svg%3E") center/contain no-repeat}
+body.skin-sky.night-mode #mapColorsPopover .reset-icon-btn{width:28px;height:28px;border:none;border-radius:10px;font-size:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233f7ad6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.2 12a8.2 8.2 0 1 1-2.6-6'/%3E%3Cpath d='M20 3.2v5.4h-5.4'/%3E%3C/svg%3E") center/16px no-repeat,linear-gradient(180deg,#0c1a33,#102244);box-shadow:0 2px 6px rgba(0,8,30,0.32),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #mapColorsPopover .reset-icon-btn:hover{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233f7ad6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.2 12a8.2 8.2 0 1 1-2.6-6'/%3E%3Cpath d='M20 3.2v5.4h-5.4'/%3E%3C/svg%3E") center/16px no-repeat,linear-gradient(180deg,#101a28,#12264c)}
+body.skin-sky.night-mode #mapColorsPopover .row{gap:8px;margin-bottom:8px}
+body.skin-sky.night-mode #mapColorsPopover .lbl{font-size:13px;font-weight:700;color:#94a3d1}
+body.skin-sky.night-mode #mapColorsPopover input[type=color]{width:42px;height:30px;padding:0;box-sizing:border-box;border:2px solid rgba(255,255,255,0.15);border-radius:12px;background:#101a28;box-shadow:0 2px 7px rgba(0,8,30,0.5),inset 0 1px 2px rgba(255,255,255,0.17);overflow:hidden}
+body.skin-sky.night-mode #mapColorsPopover input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+body.skin-sky.night-mode #mapColorsPopover input[type=color]::-webkit-color-swatch{border:none;border-radius:9px;box-shadow:inset 0 1px 2px rgba(255,255,255,0.15),inset 0 -2px 4px rgba(0,0,0,0.07)}
+body.skin-sky.night-mode #mapColorsPopover input[type=color]::-moz-color-swatch{border:none;border-radius:9px}
+body.skin-sky.night-mode .sess-dot{display:none}
+body.skin-sky.night-mode #sessionName.saved{background:linear-gradient(180deg,#3a455b,#495465);box-shadow:0 3px 9px rgba(0,8,30,0.63),inset 0 1px 0 rgba(255,255,255,0.14);cursor:default}
+body.skin-sky.night-mode #sessionName.saved:hover{background:linear-gradient(180deg,#3a455b,#495465)}
+body.skin-sky.night-mode #sessionName.saved::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23f4f7fb' d='M12 1.5l2.6 7.9 7.9 2.6-7.9 2.6L12 22.5l-2.6-7.9L1.5 12l7.9-2.6z'/%3E%3C/svg%3E")}
+body.skin-sky.night-mode #mapPickBtn::before{display:none}
+body.skin-sky.night-mode #mapPickIcon{display:block;flex:0 0 auto;width:26px;height:26px;filter:drop-shadow(0 2px 3px rgba(0,8,30,0.48))}
+body.skin-sky.night-mode #mapPickIcon svg{display:block;width:100%;height:100%}
+
+/* Glossy Blue dark — the map: deep-navy sea with a soft glow, frosted dark-blue land (class .sky-night is put on #mapWrap by syncSkyMap()) */
+#mapWrap.sky-night{background-image:radial-gradient(ellipse at 26% 14%,rgba(110,160,255,.16),rgba(110,160,255,0) 55%),radial-gradient(ellipse at 82% 92%,rgba(40,90,190,.3),rgba(40,90,190,0) 62%),linear-gradient(180deg,#0b1d3a,#06122a)!important}
+#mapWrap.sky-night::after{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;box-shadow:inset 0 0 110px rgba(0,6,22,.65)}
+#mapWrap.sky-night #sphere{fill:transparent}
+#mapWrap.sky-night #countries-g path.us-county{stroke:#4a78b8;stroke-opacity:.5}
+#mapWrap.sky-night #countries-g path:not([class])[fill="#1b3358"]{fill:url(#skyLandNight)}
+#mapWrap.sky-night.sky-far #countries-g path:not([class])[fill="#1b3358"]{fill:#1f3b69}
+#mapWrap.sky-night.sky-far #countries-g{filter:drop-shadow(0 0 calc(1.2px / var(--sky-k,1)) rgba(70,140,255,.4))}
+#mapWrap.sky-night #countries-g{filter:drop-shadow(0 0 calc(1.6px / var(--sky-k,1)) rgba(70,140,255,.55)) drop-shadow(0 0 calc(6px / var(--sky-k,1)) rgba(60,120,230,.32))}
+
+/* Glossy Blue — info message (#msg): compact, on the same row as the summary pill but pinned to the left edge of the screen */
+body.skin-sky:not(.night-mode) #msg,body.skin-sky.night-mode #msg{top:calc(var(--bar-h,72px) + 20px);left:6px;min-height:24px;padding:3px 13px 3px 28px;font-size:12px;line-height:1.2;font-weight:700;box-shadow:0 2px 6px rgba(40,100,180,.18),inset 0 1px 0 rgba(255,255,255,.4)}
+body.skin-sky.night-mode #msg{box-shadow:0 2px 6px rgba(0,8,30,.4),inset 0 1px 0 rgba(255,255,255,.1)}
+body.skin-sky:not(.night-mode) #msg::before,body.skin-sky.night-mode #msg::before{left:5px;width:17px;height:17px;background-size:11px}
+/* keep it clear of the centred summary pill: it may only use the space to the left of it (wraps onto more lines if needed); a script (placeInfoMsg) measures the pill and keeps the message vertically centred on it with a gap */
+body.skin-sky:not(.night-mode) #msg,body.skin-sky.night-mode #msg{max-width:calc((100vw - var(--list-w,0px)) / 2 - 225px);line-height:1.15}
+
+/* Glossy Blue — Circle challenge "how do you want to play?" dialog: same frosted card / pill header / soft pill options as the Map selection dialog. */
+body.skin-sky:not(.night-mode) #circleTimerModal{background:rgba(110,168,232,.38);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
+body.skin-sky:not(.night-mode) #circleTimerBox{width:460px;border-radius:28px;border:1px solid rgba(255,255,255,.85);background:linear-gradient(180deg,rgba(248,252,255,.97),rgba(222,238,253,.96));box-shadow:0 20px 50px rgba(40,100,190,.33),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #circleTimerHead{margin:12px 12px 4px;padding:6px 8px 6px 16px;border:none;border-radius:999px;background:linear-gradient(180deg,#fff,#eaf4fe);box-shadow:0 4px 12px rgba(70,140,220,.18),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #circleTimerHead h2{font-size:17px;line-height:1.15;font-weight:800;color:#0f3f9c;letter-spacing:-.01em}
+body.skin-sky:not(.night-mode) #circleTimerClose{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:34px;height:34px;padding:0;border-radius:50%;font-size:18px;font-weight:700;color:#2a6fe0;background:linear-gradient(180deg,#fff,#e6f1fd);box-shadow:0 2px 8px rgba(70,140,220,.26),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #circleTimerClose:hover{background:linear-gradient(180deg,#fff,#d6e8fc)}
+body.skin-sky:not(.night-mode) #circleTimerList{padding:6px 18px 18px;gap:10px}
+body.skin-sky:not(.night-mode) .ctm-opt{gap:4px;padding:12px 16px;border:1.5px solid transparent;border-radius:17px;background:linear-gradient(180deg,#f8fbff,#e5f1fd);box-shadow:0 3px 8px rgba(80,140,210,.16),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) .ctm-opt:hover,body.skin-sky:not(.night-mode) .ctm-opt:focus-visible{border-color:transparent;background:linear-gradient(180deg,#fff,#dcebfc);box-shadow:0 5px 12px rgba(80,140,210,.24),inset 0 1px 0 #fff;transform:translateY(-1px)}
+body.skin-sky:not(.night-mode) .ctm-title{font-size:15px;font-weight:800;color:#0f3f9c}
+body.skin-sky:not(.night-mode) .ctm-desc{font-size:12.5px;line-height:1.4;font-weight:600;color:#5a7ab5}
+body.skin-sky.night-mode #circleTimerModal{background:rgba(2,8,22,0.62);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
+body.skin-sky.night-mode #circleTimerBox{width:460px;border-radius:28px;border:1px solid rgba(255,255,255,0.14);background:linear-gradient(180deg,rgba(12,27,50,0.97),rgba(16,36,70,0.96));box-shadow:0 20px 50px rgba(0,8,30,0.59),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #circleTimerHead{margin:12px 12px 4px;padding:6px 8px 6px 16px;border:none;border-radius:999px;background:linear-gradient(180deg,#101a28,#0e1f3d);box-shadow:0 4px 12px rgba(0,8,30,0.32),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #circleTimerHead h2{font-size:17px;line-height:1.15;font-weight:800;color:#91b0ec;letter-spacing:-.01em}
+body.skin-sky.night-mode #circleTimerClose{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:34px;height:34px;padding:0;border-radius:50%;font-size:18px;font-weight:700;color:#719fea;background:linear-gradient(180deg,#101a28,#0f2040);box-shadow:0 2px 8px rgba(0,8,30,0.47),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #circleTimerClose:hover{background:linear-gradient(180deg,#101a28,#12264c)}
+body.skin-sky.night-mode #circleTimerList{padding:6px 18px 18px;gap:10px}
+body.skin-sky.night-mode .ctm-opt{gap:4px;padding:12px 16px;border:1.5px solid transparent;border-radius:17px;background:linear-gradient(180deg,#0c1832,#0f2141);box-shadow:0 3px 8px rgba(0,8,30,0.29),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode .ctm-opt:hover,body.skin-sky.night-mode .ctm-opt:focus-visible{border-color:transparent;background:linear-gradient(180deg,#101a28,#112448);box-shadow:0 5px 12px rgba(0,8,30,0.43),inset 0 1px 0 rgba(255,255,255,0.28);transform:translateY(-1px)}
+body.skin-sky.night-mode .ctm-title{font-size:15px;font-weight:800;color:#91b0ec}
+body.skin-sky.night-mode .ctm-desc{font-size:12.5px;line-height:1.4;font-weight:600;color:#7f9bc9}
+
+/* Hard option in a reddish tone */
+.ctm-opt[data-timed="1"]:hover,.ctm-opt[data-timed="1"]:focus-visible{border-color:#d9534f}
+body.skin-sky:not(.night-mode) .ctm-opt[data-timed="1"]{background:linear-gradient(180deg,#fff6f4,#fde0dc);box-shadow:0 3px 8px rgba(220,90,80,.18),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) .ctm-opt[data-timed="1"]:hover,body.skin-sky:not(.night-mode) .ctm-opt[data-timed="1"]:focus-visible{background:linear-gradient(180deg,#fff,#fbd3ce);box-shadow:0 5px 12px rgba(220,90,80,.28),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) .ctm-opt[data-timed="1"] .ctm-title{color:#b3261e}
+body.skin-sky:not(.night-mode) .ctm-opt[data-timed="1"] .ctm-desc{color:#b0605a}
+body.skin-sky.night-mode .ctm-opt[data-timed="1"]{background:linear-gradient(180deg,#2a1218,#3a1820)}
+body.skin-sky.night-mode .ctm-opt[data-timed="1"]:hover,body.skin-sky.night-mode .ctm-opt[data-timed="1"]:focus-visible{background:linear-gradient(180deg,#34161e,#471c26)}
+body.skin-sky.night-mode .ctm-opt[data-timed="1"] .ctm-title{color:#ff9a8f}
+body.skin-sky.night-mode .ctm-opt[data-timed="1"] .ctm-desc{color:#c98a86}
+
+/* Glossy Blue — the typing-bar country filter list looks and animates like the stats country list */
+body.skin-sky:not(.night-mode) #countryFilterPanel{width:220px;border:none;border-radius:18px;padding:6px;box-shadow:0 10px 30px rgba(50,110,190,.32),0 0 0 1px rgba(255,255,255,.8)}
+body.skin-sky:not(.night-mode) #countryFilterPanel .cf-opt{padding:7px 10px;border-radius:10px;font-size:13px;font-weight:700;color:#15356b}
+body.skin-sky:not(.night-mode) #countryFilterPanel .cf-opt:hover{background:#e3f1fe}
+body.skin-sky:not(.night-mode) #countryFilterPanel .cf-opt.active{background:#d9eafc;color:#1a5fd6}
+body.skin-sky:not(.night-mode) #countryFilterPanel .cf-sep{color:#8aa1c4;border-top-color:#d6e6f7}
+body.skin-sky.night-mode #countryFilterPanel{width:220px;border:none;border-radius:18px;padding:6px;box-shadow:0 10px 30px rgba(0,8,30,0.58),0 0 0 1px rgba(255,255,255,0.14)}
+body.skin-sky.night-mode #countryFilterPanel .cf-opt{padding:7px 10px;border-radius:10px;font-size:13px;font-weight:700;color:#a6c1ee}
+body.skin-sky.night-mode #countryFilterPanel .cf-opt:hover{background:#0f2241}
+body.skin-sky.night-mode #countryFilterPanel .cf-opt.active{background:#11254a;color:#6d9ced}
+body.skin-sky.night-mode #countryFilterPanel .cf-sep{color:#99adcc;border-top-color:#13284f}
 </style>
 <div id="cadm"><div class="w">
 <div class="bar"><b>City data editor</b>
