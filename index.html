@@ -6,9 +6,10 @@
 <title>World City Quiz</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'> <defs> <radialGradient id='o' cx='35%25' cy='30%25' r='80%25'><stop offset='0' stop-color='%237cc4f5'/><stop offset='.55' stop-color='%232f86d6'/><stop offset='1' stop-color='%2314498f'/></radialGradient> <radialGradient id='g' cx='32%25' cy='24%25' r='55%25'><stop offset='0' stop-color='%23fff' stop-opacity='.55'/><stop offset='1' stop-color='%23fff' stop-opacity='0'/></radialGradient> <clipPath id='c'><circle cx='32' cy='32' r='29'/></clipPath> </defs> <circle cx='32' cy='32' r='29' fill='url(%23o)'/> <g clip-path='url(%23c)'> <path fill='%235cbf6e' d='M12 14c6-5 15-4 17 2 1 5-5 7-4 12 1 5 8 6 6 13-2 6-8 10-12 6-3-3 0-7-3-11-3-5-9-6-8-12 1-4 2-7 4-10z'/> <path fill='%235cbf6e' d='M37 11c5-2 11 1 12 6 1 4-3 4-3 8 1 5 7 6 5 12-2 5-8 6-11 3-3-3-1-7-4-10-3-3-7-3-6-8 1-5 3-9 7-11z'/> <path fill='%238fd89a' d='M44 44c3-1 7 1 6 4-1 3-6 4-8 2-1-2 0-5 2-6z'/> <g fill='none' stroke='%23fff' stroke-opacity='.22' stroke-width='1'> <ellipse cx='32' cy='32' rx='13' ry='29'/><line x1='32' y1='3' x2='32' y2='61'/> <ellipse cx='32' cy='32' rx='29' ry='11'/><line x1='3' y1='32' x2='61' y2='32'/> </g> <circle cx='32' cy='32' r='29' fill='url(%23g)'/> </g> <circle cx='32' cy='32' r='29' fill='none' stroke='%230d3a75' stroke-opacity='.55' stroke-width='2'/> </svg>"/>
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'> <defs> <radialGradient id='o' cx='35%25' cy='30%25' r='80%25'><stop offset='0' stop-color='%237cc4f5'/><stop offset='.55' stop-color='%232f86d6'/><stop offset='1' stop-color='%2314498f'/></radialGradient> <radialGradient id='g' cx='32%25' cy='24%25' r='55%25'><stop offset='0' stop-color='%23fff' stop-opacity='.55'/><stop offset='1' stop-color='%23fff' stop-opacity='0'/></radialGradient> <clipPath id='c'><circle cx='32' cy='32' r='29'/></clipPath> </defs> <circle cx='32' cy='32' r='29' fill='url(%23o)'/> <g clip-path='url(%23c)'> <path fill='%235cbf6e' d='M12 14c6-5 15-4 17 2 1 5-5 7-4 12 1 5 8 6 6 13-2 6-8 10-12 6-3-3 0-7-3-11-3-5-9-6-8-12 1-4 2-7 4-10z'/> <path fill='%235cbf6e' d='M37 11c5-2 11 1 12 6 1 4-3 4-3 8 1 5 7 6 5 12-2 5-8 6-11 3-3-3-1-7-4-10-3-3-7-3-6-8 1-5 3-9 7-11z'/> <path fill='%238fd89a' d='M44 44c3-1 7 1 6 4-1 3-6 4-8 2-1-2 0-5 2-6z'/> <g fill='none' stroke='%23fff' stroke-opacity='.22' stroke-width='1'> <ellipse cx='32' cy='32' rx='13' ry='29'/><line x1='32' y1='3' x2='32' y2='61'/> <ellipse cx='32' cy='32' rx='29' ry='11'/><line x1='3' y1='32' x2='61' y2='32'/> </g> <circle cx='32' cy='32' r='29' fill='url(%23g)'/> </g> <circle cx='32' cy='32' r='29' fill='none' stroke='%230d3a75' stroke-opacity='.55' stroke-width='2'/> </svg>"/>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script defer src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -521,6 +522,14 @@ body.night-mode #circleBoardBtn{background:rgba(20,24,32,.85)}
 /* Circle challenge: end-of-game results + scoreboard modals */
 #circleEndModal,#circleBoardModal{display:none;position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.45);align-items:center;justify-content:center}
 #circleEndModal.open,#circleBoardModal.open{display:flex}
+/* Zones: "leave without saving?" confirmation (sits above the other Zones windows) */
+#circleLeaveModal{display:none;position:fixed;inset:0;z-index:130;background:rgba(0,0,0,.45);align-items:center;justify-content:center}
+#circleLeaveModal.open{display:flex}
+#circleLeaveModal .cm-box{width:400px}
+#circleLeaveModal .cm-leave-warn{font-size:13.5px;line-height:1.5;color:var(--text2);text-align:center}
+#circleLeaveModal .cm-leave-q{font-size:15px;font-weight:700;color:var(--text);text-align:center}
+.cm-btn.danger{background:#d64550;border-color:#d64550;color:#fff}
+.cm-btn.danger:hover:not(:disabled){background:#bb2f3b;border-color:#bb2f3b}
 .cm-box{background:var(--surface);color:var(--text);border-radius:12px;width:440px;max-width:94vw;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.28);overflow:hidden}
 #circleBoardModal .cm-box{width:560px}
 .cm-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);flex-shrink:0}
@@ -1528,7 +1537,7 @@ body.skin-sky:not(.night-mode) #mapPickIcon svg{display:block;width:100%;height:
     <div id="panelHeader">
       <span id="panelTitle">Cities</span>
       <label id="sortLabel"><input type="checkbox" id="sortByPop"> Sort by population</label>
-      <button type="button" id="circleBoardBtn" title="Scoreboard — best saved games" aria-label="Scoreboard">🏆</button>
+      <button type="button" id="circleBoardBtn" title="Scoreboard — best saved games" aria-label="Scoreboard"><svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="trB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe680"/><stop offset=".55" stop-color="#f6b92f"/><stop offset="1" stop-color="#d98a12"/></linearGradient></defs><path d="M9 6.5H5.2v2.4a4.4 4.4 0 0 0 4.2 4.4M23 6.5h3.8v2.4a4.4 4.4 0 0 1-4.2 4.4" fill="none" stroke="#e3a21c" stroke-width="2.2" stroke-linecap="round"/><path d="M9 4.5h14v7.2a7 7 0 0 1-14 0z" fill="url(#trB)" stroke="#b86e0a" stroke-width="1"/><path d="M14 18.2h4V22h-4z" fill="url(#trB)" stroke="#b86e0a" stroke-width=".8"/><rect x="10" y="22" width="12" height="5" rx="1.7" fill="url(#trB)" stroke="#b86e0a" stroke-width="1"/><path d="M12.2 7c-.1 3 .5 5 2.2 6.3" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="1.7" stroke-linecap="round"/></svg></button>
     </div>
     <div id="foundGrid"></div>
     <input type="file" id="fileInput" accept=".xlsx,.txt,.tsv" style="display:none"/>
@@ -1607,8 +1616,20 @@ body.skin-sky:not(.night-mode) #mapPickIcon svg{display:block;width:100%;height:
 </div>
 <div id="circleBoardModal">
   <div class="cm-box">
-    <div class="cm-head"><h2>🏆 Circle challenge · Scoreboard</h2><button class="cm-x" id="circleBoardClose" aria-label="Close">✕</button></div>
+    <div class="cm-head"><h2 id="circleBoardTitle"><span class="cb-ico"><svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="trT" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe680"/><stop offset=".55" stop-color="#f6b92f"/><stop offset="1" stop-color="#d98a12"/></linearGradient></defs><path d="M9 6.5H5.2v2.4a4.4 4.4 0 0 0 4.2 4.4M23 6.5h3.8v2.4a4.4 4.4 0 0 1-4.2 4.4" fill="none" stroke="#e3a21c" stroke-width="2.2" stroke-linecap="round"/><path d="M9 4.5h14v7.2a7 7 0 0 1-14 0z" fill="url(#trT)" stroke="#b86e0a" stroke-width="1"/><path d="M14 18.2h4V22h-4z" fill="url(#trT)" stroke="#b86e0a" stroke-width=".8"/><rect x="10" y="22" width="12" height="5" rx="1.7" fill="url(#trT)" stroke="#b86e0a" stroke-width="1"/><path d="M12.2 7c-.1 3 .5 5 2.2 6.3" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="1.7" stroke-linecap="round"/></svg></span><span id="circleBoardTitleText">Circle challenge · Scoreboard</span></h2><button class="cm-x" id="circleBoardClose" aria-label="Close">✕</button></div>
     <div class="cm-body" id="circleBoardBody" style="padding-top:8px"></div>
+  </div>
+</div>
+
+<!-- ZONES: LEAVE CONFIRMATION — shown when the player tries to leave Zones mid-session -->
+<div id="circleLeaveModal">
+  <div class="cm-box" role="alertdialog" aria-modal="true" aria-labelledby="circleLeaveTitle">
+    <div class="cm-head"><h2 id="circleLeaveTitle"><span class="cl-ico"><svg viewBox="0 0 32 32" aria-hidden="true"><defs><radialGradient id="tmL" cx="35%" cy="28%" r="85%"><stop offset="0" stop-color="#ffa59b"/><stop offset=".55" stop-color="#e5483f"/><stop offset="1" stop-color="#a8231d"/></radialGradient></defs><circle cx="16" cy="16" r="14.5" fill="url(#tmL)" stroke="rgba(10,50,110,.35)" stroke-width="1"/><ellipse cx="12.5" cy="8.6" rx="7" ry="3.6" fill="#fff" opacity=".28"/><path d="M16 8.5v9" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="16" cy="22.6" r="1.9" fill="#fff"/></svg></span>Leave Zones?</h2><button class="cm-x" id="circleLeaveClose" aria-label="Close and keep playing">✕</button></div>
+    <div class="cm-body">
+      <div class="cm-leave-warn">Leaving will end the current session and <b>no score will be saved</b>.</div>
+      <div class="cm-leave-q">Are you sure you want to leave?</div>
+      <div class="cm-actions"><button class="cm-btn danger" id="circleLeaveBtn">Leave</button></div>
+    </div>
   </div>
 </div>
 
@@ -2060,11 +2081,11 @@ let _physicalBakedTransform = d3.zoomIdentity;
 // transform on every event (cheap), but defer the actual work to a single
 // requestAnimationFrame callback, so no matter how many ticks arrive, the
 // expensive part runs at most once per frame — same cadence as drag.
-let _zoomFrameQueued = false;
+let _zoomFrameQueued = false, _lastZoomLbl = '';
 let _zoomingOffTimer = null;
 function onZoom(e) {
   currentTransform = e.transform;
-  document.body.classList.add('map-zooming');
+  if (!document.body.classList.contains('map-zooming')) document.body.classList.add('map-zooming');
   clearTimeout(_zoomingOffTimer);
   _zoomingOffTimer = setTimeout(() => document.body.classList.remove('map-zooming'), 180);
   if (_zoomFrameQueued) return;
@@ -2078,7 +2099,8 @@ function applyZoomFrame() {
   const t = currentTransform;
   const mapGNode = document.getElementById('map-g');
   if (mapGNode) mapGNode.style.transform = `translate(${t.x}px,${t.y}px) scale(${t.k})`;
-  document.getElementById('zoomLbl').textContent = Math.round(t.k * 100) + '%';
+  const _zl = Math.round(t.k * 100) + '%';
+  if (_zl !== _lastZoomLbl) { _lastZoomLbl = _zl; document.getElementById('zoomLbl').textContent = _zl; }   // only touch the DOM when the number changes
   drawNightCanvas();
   // The satellite raster lives in an untransformed layer (see renderPhysicalBasemap)
   // so it stays sharp instead of being stretched by this transform — but that means
@@ -4069,7 +4091,25 @@ const COUNTRY_CAPITALS = {
   'VU':'Port Vila','VE':'Caracas','VN':'Hanoi','YE':'Sanaa','ZM':'Lusaka','ZW':'Harare',
 };
 
-function loadCitiesFromBuffer(buf) {
+// The spreadsheet reader (~900 KB) is only needed for "Load data file" with an .xlsx and for the last-resort cities.xlsx
+// fallback, so it is fetched the first time it is actually used instead of on every page load.
+let _xlsxPromise = null;
+function ensureXLSX() {
+  if (window.XLSX) return Promise.resolve();
+  if (!_xlsxPromise) _xlsxPromise = new Promise((resolve, reject) => {
+    const sc = document.createElement('script');
+    sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    sc.onload = () => resolve();
+    sc.onerror = () => { _xlsxPromise = null; reject(new Error('Could not load the spreadsheet reader')); };
+    document.head.appendChild(sc);
+  });
+  return _xlsxPromise;
+}
+async function loadCitiesFromBuffer(buf) {
+  try { await ensureXLSX(); } catch (e) { setMsg('Could not load the spreadsheet reader (are you offline?).', 'err'); return; }
+  return loadCitiesFromBufferNow(buf);
+}
+function loadCitiesFromBufferNow(buf) {
   try {
     const wb = XLSX.read(buf, {type:'array'});
     const ws = wb.Sheets[wb.SheetNames[0]];
@@ -4793,6 +4833,14 @@ function exitCircleMode(skipDots) {
 }
 
 // retry = a new circle for the SAME round number (used after giving up with Reveal); otherwise the round number goes up.
+// Great-circle distance in km between two lon/lat points. Same value as d3.geoDistance(a, b) * 6371, but without allocating
+// coordinate arrays — circleNewRound measures thousands of these per round.
+const _D2R = Math.PI / 180;
+function circleKm(lon1, lat1, lon2, lat2) {
+  const p1 = lat1 * _D2R, p2 = lat2 * _D2R, sdl = Math.sin((lon2 - lon1) * _D2R / 2), sdp = Math.sin((p2 - p1) / 2);
+  const a = sdp * sdp + Math.cos(p1) * Math.cos(p2) * sdl * sdl;
+  return 2 * Math.asin(Math.min(1, Math.sqrt(a))) * 6371;
+}
 function circleNewRound(retry) {
   // The circle just left stays on the map in grey, together with the cities found in it.
   if (circle) circleOld.push({ center: circle.center, r: circle.r, cities: circle.found.map(f => f.city) });
@@ -4816,14 +4864,14 @@ function circleNewRound(retry) {
     // cities are simply left out of the new circle (see `inside` below), so they never count twice.
     let tooClose = false, room = Infinity;
     for (const pc of prior) {
-      const d = d3.geoDistance([pc.lon, pc.lat], [lon, lat]) * 6371;
+      const d = circleKm(pc.lon, pc.lat, lon, lat);
       if (d <= cfg.minR + 1) tooClose = true;
       room = Math.min(room, d);
     }
     if (tooClose && (best || t < 120)) continue;
     // Adaptive size: a radius that reaches roughly the Nth-nearest big city (N random in
     // targetBigCities), kept within minR..maxR. Many big cities nearby = small circle, few = big circle.
-    const bigD = Float64Array.from(bigs, c => d3.geoDistance([c.lon, c.lat], [lon, lat]) * 6371).sort();
+    const bigD = Float64Array.from(bigs, c => circleKm(c.lon, c.lat, lon, lat)).sort();
     const n = Math.min(bigD.length, tMin + Math.floor(Math.random() * (tMax - tMin + 1)));
     let r = bigD.length ? Math.min(cfg.maxR, Math.max(cfg.minR, bigD[n - 1] * 1.05)) : cfg.maxR;
     if (!tooClose && r > room - 1) r = Math.max(cfg.minR, room - 1); // pull the edge back so it stops short of the nearest already-guessed city
@@ -4832,7 +4880,7 @@ function circleNewRound(retry) {
       const rDeg = r / 111, cosL = Math.max(0.2, Math.cos((Math.abs(lat) + rDeg) * Math.PI / 180));
       if (Math.abs(lon) + rDeg / cosL > 179 || Math.abs(lat) + rDeg > 84) { if (best || t < 120) continue; }
     }
-    const inside = eligible.filter(c => Math.abs(c.lat - lat) < r / 111 + 0.5 && d3.geoDistance([c.lon, c.lat], [lon, lat]) * 6371 <= r && !priorKeys.has(circleKey(c)));
+    const inside = eligible.filter(c => Math.abs(c.lat - lat) < r / 111 + 0.5 && circleKm(c.lon, c.lat, lon, lat) <= r && !priorKeys.has(circleKey(c)));
     if (!best || inside.length > best.inside.length) best = { center: [lon, lat], r, inside };
     if (inside.length >= cfg.minCities) { best = { center: [lon, lat], r, inside }; break; }
   }
@@ -5011,7 +5059,7 @@ function renderCircleFoundGrid(grid) {
     ? `<button data-act="results" title="Show your final score">Results</button><button class="primary" data-act="newgame" title="Start a new ${totalRounds}-circle game">New game ↻</button>`
     : (circle.revealed
       ? `<button class="primary" data-act="next" title="${last ? 'Finish the game and see your final score' : 'Go to the next circle'}">${last ? 'Finish 🏁' : 'Next circle ▶'}</button>`
-      : `<button class="primary" data-act="endround" title="End this round and see the cities you missed">End round ⏹</button>`);
+      : `<button class="primary" data-act="endround" title="End this round and see the cities you missed">End round <span class="cp-stop" aria-hidden="true"></span></button>`);
   grid.appendChild(actions);
   _justAddedId = null;
   circleUpdateTimer();
@@ -5106,8 +5154,8 @@ let circleLastSavedId = null;
 function openCircleBoard() {
   const boardRegion = circleRegion || 'usa';
   const list = circleLoadScores().filter(g => (g.region || 'usa') === boardRegion && (g.timed === false) === !circleTimed); // games saved before the timer option were timed // entries saved before maps were tracked count as USA
-  const bh = document.querySelector('#circleBoardModal .cm-head h2');
-  if (bh) bh.textContent = '🏆 Circle challenge · ' + ((REGIONS[boardRegion] && REGIONS[boardRegion].label) || boardRegion) + (circleMode ? (circleTimed ? ' · Hard mode' : ' · No timer') : '') + ' · Scoreboard';
+  const bh = document.getElementById('circleBoardTitleText');
+  if (bh) bh.textContent = 'Circle challenge · ' + ((REGIONS[boardRegion] && REGIONS[boardRegion].label) || boardRegion) + (circleMode ? (circleTimed ? ' · Hard mode' : ' · No timer') : '') + ' · Scoreboard';
   const body = document.getElementById('circleBoardBody');
   const fmtDate = t => { try { return new Date(t).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return ''; } };
   if (!list.length) body.innerHTML = '<div class="cb-empty">No saved games yet. Finish a game and save your score to see it here!</div>';
@@ -6833,7 +6881,7 @@ function buildMapList() {
       btn.onclick = () => {
         if (QUIZ_CFG[o.value] || CIRCLE_CFG[o.value]) { closeMapModal(); openModePickModal(o.value); return; }
         closeMapModal();
-        if (o.value !== currentRegion) setRegion(o.value);
+        if (o.value !== currentRegion) guardLeaveZones(() => setRegion(o.value));
       };
       grid.appendChild(btn);
     });
@@ -6898,24 +6946,46 @@ document.querySelectorAll('.modepick-opt').forEach(btn => {
     closeModePickModal();
     if (!rk) return;
     if (btn.dataset.quiz === '2') { openCircleTimerModal(rk); return; }   // Circle challenge: ask timed / untimed first
-    if (circleMode) exitCircleMode(currentRegion !== rk);
-    if (currentRegion === rk) {
-      const changed = (quizMode && quizRegion === rk) !== quiz;
-      if (QUIZ_CFG[rk] || quizMode) setQuizMode(quiz, rk);
-      tintRegionSelect(rk);
-      // Japan draws the same prefecture shapes in both modes, so toggling is
-      // just a class/state change. The USA map draws counties in Normal mode
-      // but states in the quiz, so that one has to be rebuilt.
-      if (changed && QUIZ_CFG[rk] && QUIZ_CFG[rk].geometryDiffers) {
-        drawMap(rk).then(() => { renderFoundGrid(); renderBestCountries(); renderOtherStats(); updateSummary(); });
-      }
-      persistSession();
-    } else setRegion(rk, quiz);
+    guardLeaveZones(() => {   // leaving a Zones session in progress needs confirming
+      if (circleMode) exitCircleMode(currentRegion !== rk);
+      if (currentRegion === rk) {
+        const changed = (quizMode && quizRegion === rk) !== quiz;
+        if (QUIZ_CFG[rk] || quizMode) setQuizMode(quiz, rk);
+        tintRegionSelect(rk);
+        // Japan draws the same prefecture shapes in both modes, so toggling is
+        // just a class/state change. The USA map draws counties in Normal mode
+        // but states in the quiz, so that one has to be rebuilt.
+        if (changed && QUIZ_CFG[rk] && QUIZ_CFG[rk].geometryDiffers) {
+          drawMap(rk).then(() => { renderFoundGrid(); renderBestCountries(); renderOtherStats(); updateSummary(); });
+        }
+        persistSession();
+      } else setRegion(rk, quiz);
+    });
   };
 });
 document.getElementById('modePickClose').onclick = closeModePickModal;
 
 // Menu windows close only with their ✕ button (no click-outside / Escape).
+// ─── ZONES: CONFIRM BEFORE LEAVING ───────────────────────────────────────────
+// Every way out of Zones (another mode, another map, restarting) goes through
+// guardLeaveZones(). If a session is in progress whose score hasn't been saved,
+// the player is asked first; closing the window (✕) returns them to the game.
+let leaveZonesAction = null, leaveZonesCancel = null;
+function guardLeaveZones(action, onCancel) {
+  if (!circleMode || (circleDone && circleSaved)) { action(); return; }   // not in Zones, or the score is already saved
+  leaveZonesAction = action; leaveZonesCancel = onCancel || null;
+  document.getElementById('circleLeaveModal').classList.add('open');
+  document.getElementById('circleLeaveClose').focus();   // focus the safe option, so Enter can't leave by accident
+}
+function closeLeaveZonesModal(confirmed) {
+  document.getElementById('circleLeaveModal').classList.remove('open');
+  const run = confirmed ? leaveZonesAction : leaveZonesCancel;
+  leaveZonesAction = leaveZonesCancel = null;
+  if (run) run();
+}
+document.getElementById('circleLeaveBtn').onclick = () => closeLeaveZonesModal(true);
+document.getElementById('circleLeaveClose').onclick = () => closeLeaveZonesModal(false);
+
 // ─── CIRCLE CHALLENGE: TIMER CHOICE WINDOW ───────────────────────────────────
 let circleTimerRegion = null;
 function openCircleTimerModal(rk) {
@@ -6929,8 +6999,10 @@ document.querySelectorAll('#circleTimerList .ctm-opt').forEach(btn => {
     const rk = circleTimerRegion, timed = btn.dataset.timed === '1';
     closeCircleTimerModal();
     if (!rk) return;
-    if (currentRegion === rk) { if (circleMode) exitCircleMode(); startCircleMode(rk, timed); }
-    else { circlePending = rk; circlePendingTimed = timed; setRegion(rk, false); }
+    guardLeaveZones(() => {   // starting over (or on another map) also ends the current session
+      if (currentRegion === rk) { if (circleMode) exitCircleMode(); startCircleMode(rk, timed); }
+      else { circlePending = rk; circlePendingTimed = timed; setRegion(rk, false); }
+    });
   };
 });
 document.getElementById('circleTimerClose').onclick = closeCircleTimerModal;
@@ -6957,7 +7029,10 @@ function setRegion(rk, quizWanted) {
   persistSession();
 }
 
-document.getElementById('regionSelect').onchange = e => setRegion(e.target.value);
+document.getElementById('regionSelect').onchange = e => {
+  const sel = e.target, rk = sel.value;
+  guardLeaveZones(() => setRegion(rk), () => { sel.value = currentRegion; });   // cancelled → put the dropdown back
+};
 
 // ─── SETTINGS CONTROLS ───────────────────────────────────────────────────────
 document.getElementById('clearBtn').onclick = () => {
@@ -7518,11 +7593,29 @@ window.addEventListener('beforeunload', ()=>persistSession());
 
 // ─── SESSION SYSTEM ──────────────────────────────────────────────────────────
 const SESS_KEY = 'wcq_sessions';      // localStorage key for all sessions
-const SESS_CUR = 'wcq_current_sess';  // localStorage key for current session id
+const SESS_CUR = 'wcq_current_sess';
+// Saving the session used to re-parse and re-write EVERY saved session in localStorage on each guess. Now the snapshot is
+// taken immediately (so it always reflects the moment of the call) but the heavy parse/stringify/write is batched into one
+// write shortly after, and it is also flushed before anything reads the sessions and when the page is hidden or closed.
+let _pendingPersist = null, _persistTimer = 0;
+function flushPersist() {
+  clearTimeout(_persistTimer); _persistTimer = 0;
+  const p = _pendingPersist; if (!p) return;
+  _pendingPersist = null;
+  let sessions; try { sessions = JSON.parse(localStorage.getItem(SESS_KEY)) || {}; } catch (e) { sessions = {}; }
+  const sess = sessions[p.id];
+  if (!sess || sess.status === 'saved') return; // frozen / deleted meanwhile
+  sess.snapshot = p.snapshot; sess.updatedAt = p.at;
+  saveAllSessions(sessions);
+}
+window.addEventListener('pagehide', flushPersist);
+window.addEventListener('beforeunload', flushPersist);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushPersist(); });  // localStorage key for current session id
 
 function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 
 function loadAllSessions() {
+  if (_pendingPersist) flushPersist(); // never hand out a stale copy
   try { return JSON.parse(localStorage.getItem(SESS_KEY)) || {}; } catch(e) { return {}; }
 }
 function saveAllSessions(sessions) {
@@ -7609,13 +7702,10 @@ async function restoreState(snap) {
 
 // Persist current session to localStorage
 function persistSession() {
-  const sessions = loadAllSessions();
   const id = localStorage.getItem(SESS_CUR);
-  if (!id || !sessions[id]) return;
-  if (sessions[id].status === 'saved') return; // frozen
-  sessions[id].snapshot = captureState();
-  sessions[id].updatedAt = Date.now();
-  saveAllSessions(sessions);
+  if (!id) return;
+  _pendingPersist = { id, snapshot: captureState(), at: Date.now() };   // snapshot now, write a moment later (see flushPersist)
+  if (!_persistTimer) _persistTimer = setTimeout(flushPersist, 400);
 }
 
 // Switch to a session by id; persist current first
@@ -8263,7 +8353,7 @@ async function autoLoadCities() {
       const xlsxRes = await fetch('cities.xlsx');
       if (xlsxRes.ok) {
         const buf = await xlsxRes.arrayBuffer();
-        loadCitiesFromBuffer(buf);
+        await loadCitiesFromBuffer(buf);
         if (remoteVersion) { idbSet('version', cacheKeyFor(remoteVersion, countryFiles)); idbSet('cityDB', cityDB); }
         return;
       }
@@ -8296,7 +8386,7 @@ async function autoLoadCities() {
         finaliseCityDB(swappedCount, 'txt');
       } else {
         const buf = await res.arrayBuffer();
-        loadCitiesFromBuffer(buf); // last resort — no overlay merge here, see note above
+        await loadCitiesFromBuffer(buf); // last resort — no overlay merge here, see note above
       }
       if (remoteVersion) { idbSet('version', cacheKeyFor(remoteVersion, countryFiles)); idbSet('cityDB', cityDB); }
       return;
@@ -9043,6 +9133,126 @@ body.skin-sky.night-mode #countryFilterPanel .cf-opt{padding:7px 10px;border-rad
 body.skin-sky.night-mode #countryFilterPanel .cf-opt:hover{background:#0f2241}
 body.skin-sky.night-mode #countryFilterPanel .cf-opt.active{background:#11254a;color:#6d9ced}
 body.skin-sky.night-mode #countryFilterPanel .cf-sep{color:#99adcc;border-top-color:#13284f}
+
+/* ═══ ZONES (circle challenge) — frosted Glossy Blue right panel ═══ */
+.cp-stop{display:inline-block;width:.78em;height:.78em;border-radius:2px;background:currentColor;margin-left:6px;vertical-align:-1px}
+/* trophy → round frosted button */
+body.skin-sky.circle-mode #circleBoardBtn{width:38px;height:38px;font-size:19px;border:1px solid rgba(255,255,255,.9);background:linear-gradient(180deg,#fff,#e6f2fd);box-shadow:0 4px 12px rgba(80,140,210,.25),inset 0 1px 0 #fff}
+body.skin-sky.circle-mode #circleBoardBtn:hover{background:linear-gradient(180deg,#fff,#d6e8fc);border-color:#fff}
+/* stats card */
+body.skin-sky.circle-mode:not(.night-mode) #foundGrid .cp-head{top:0;margin:2px 0 0;padding:14px 16px 13px;border:1px solid rgba(255,255,255,.85);border-radius:24px;background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(236,246,255,.9));box-shadow:0 6px 18px rgba(80,140,210,.18),inset 0 1px 0 #fff}
+body.skin-sky.circle-mode:not(.night-mode) #foundGrid .cp-head.won{background:linear-gradient(180deg,rgba(240,252,244,.95),rgba(220,244,229,.92))}
+body.skin-sky.circle-mode:not(.night-mode) #foundGrid .cp-round{font-size:13.5px;font-weight:700;color:#3d63a8;margin-bottom:4px}
+body.skin-sky.circle-mode:not(.night-mode) #foundGrid .cp-score{font-size:32px;line-height:1.1;font-weight:800;color:#0f2f6e;letter-spacing:-.01em}
+body.skin-sky.circle-mode:not(.night-mode) #foundGrid .cp-max{font-size:19px;font-weight:600;color:#7c9bd0;letter-spacing:0}
+body.skin-sky.circle-mode:not(.night-mode) #foundGrid .cp-sub{font-size:14px;font-weight:500;color:#6f90c6;margin-top:4px}
+body.skin-sky.circle-mode:not(.night-mode) #foundGrid .cp-meta{color:#6f90c6}
+/* empty state: frosted pill with a map pin */
+body.skin-sky.circle-mode:not(.night-mode) #foundGrid .cp-empty{display:flex;align-items:center;gap:10px;margin:2px 0;padding:14px 16px;border-radius:999px;background:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.6);font-size:13px;line-height:1.3;font-style:italic;color:#6f90c6}
+body.skin-sky.circle-mode #foundGrid .cp-empty::before{content:'';flex:0 0 auto;width:18px;height:22px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 22'%3E%3Cpath fill='%237ba3d9' d='M9 0C4.6 0 1 3.5 1 7.9 1 13.6 9 22 9 22s8-8.4 8-14.1C17 3.5 13.4 0 9 0zm0 11a3.1 3.1 0 110-6.2A3.1 3.1 0 019 11z'/%3E%3C/svg%3E") center/contain no-repeat}
+/* bottom action area: frosted tray holding a big pill button */
+body.skin-sky.circle-mode:not(.night-mode) #foundGrid .cp-actions{bottom:0;margin-top:auto;gap:8px;padding:10px;border:1px solid rgba(255,255,255,.85);border-radius:28px;background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(228,241,254,.94));box-shadow:0 6px 18px rgba(80,140,210,.2),inset 0 1px 0 #fff}
+body.skin-sky.circle-mode:not(.night-mode) #foundGrid .cp-actions button{height:46px;padding:0 10px;border-radius:999px;border:1px solid rgba(255,255,255,.9);background:linear-gradient(180deg,#fff,#e3effc);color:#2a6fe0;font-size:15.5px;font-weight:700;box-shadow:0 3px 8px rgba(80,140,210,.2),inset 0 1px 0 #fff;display:flex;align-items:center;justify-content:center;transition:transform .12s,box-shadow .12s}
+body.skin-sky.circle-mode:not(.night-mode) #foundGrid .cp-actions button.primary{border-color:#3b82f0;background:linear-gradient(180deg,#6fb0ff,#3b82f0);color:#fff;box-shadow:0 6px 14px rgba(59,130,240,.42),inset 0 1px 0 rgba(255,255,255,.5)}
+body.skin-sky.circle-mode:not(.night-mode) #foundGrid .cp-actions button:hover{transform:translateY(-1px)}
+body.skin-sky.circle-mode:not(.night-mode) #foundGrid .cp-actions button:active{transform:translateY(0)}
+
+/* night variant */
+body.skin-sky.circle-mode.night-mode #foundGrid .cp-head{top:0;margin:2px 0 0;padding:14px 16px 13px;border:1px solid rgba(255,255,255,.14);border-radius:24px;background:linear-gradient(180deg,rgba(24,48,92,.92),rgba(16,36,72,.9));box-shadow:0 6px 18px rgba(0,8,30,.4),inset 0 1px 0 rgba(255,255,255,.12)}
+body.skin-sky.circle-mode.night-mode #foundGrid .cp-head.won{background:linear-gradient(180deg,rgba(24,70,48,.92),rgba(18,52,38,.9))}
+body.skin-sky.circle-mode.night-mode #foundGrid .cp-round{font-size:13.5px;font-weight:700;color:#9fbbea;margin-bottom:4px}
+body.skin-sky.circle-mode.night-mode #foundGrid .cp-score{font-size:32px;line-height:1.1;font-weight:800;color:#fff;letter-spacing:-.01em}
+body.skin-sky.circle-mode.night-mode #foundGrid .cp-max{font-size:19px;font-weight:600;color:#7f9fd6;letter-spacing:0}
+body.skin-sky.circle-mode.night-mode #foundGrid .cp-sub,body.skin-sky.circle-mode.night-mode #foundGrid .cp-meta{font-size:14px;font-weight:500;color:#8fabdc}
+body.skin-sky.circle-mode.night-mode #foundGrid .cp-empty{display:flex;align-items:center;gap:10px;margin:2px 0;padding:14px 16px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-size:13px;line-height:1.3;font-style:italic;color:#8fabdc}
+body.skin-sky.circle-mode.night-mode #foundGrid .cp-actions{bottom:0;margin-top:auto;gap:8px;padding:10px;border:1px solid rgba(255,255,255,.12);border-radius:28px;background:linear-gradient(180deg,rgba(20,42,82,.95),rgba(14,32,64,.95));box-shadow:0 6px 18px rgba(0,8,30,.4),inset 0 1px 0 rgba(255,255,255,.1)}
+body.skin-sky.circle-mode.night-mode #foundGrid .cp-actions button{height:46px;padding:0 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:linear-gradient(180deg,#16284a,#112042);color:#9fc0ff;font-size:15.5px;font-weight:700;box-shadow:0 3px 8px rgba(0,8,30,.35),inset 0 1px 0 rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;transition:transform .12s}
+body.skin-sky.circle-mode.night-mode #foundGrid .cp-actions button.primary{border-color:#3b82f0;background:linear-gradient(180deg,#5aa0ff,#2f6fe0);color:#fff;box-shadow:0 6px 14px rgba(47,111,224,.45),inset 0 1px 0 rgba(255,255,255,.35)}
+body.skin-sky.circle-mode.night-mode #foundGrid .cp-actions button:hover{transform:translateY(-1px)}
+
+/* ZONES: nothing sits beside the info message (the normal-game summary pill is hidden), so it can use the whole map width */
+body.circle-mode #statusRow{display:none !important}
+body.circle-mode #msg,
+body.skin-sky.circle-mode:not(.night-mode) #msg,
+body.skin-sky.circle-mode.night-mode #msg{max-width:calc(100% - 16px);width:max-content}
+
+/* ═══ "Leave Zones?" window — same Glossy Blue look as the other game windows (Zones timer window, map picker…) ═══ */
+#circleLeaveTitle{display:flex;align-items:center;gap:9px}
+.cl-ico svg{display:block;width:30px;height:30px;filter:drop-shadow(0 2px 3px rgba(30,80,160,.3))}
+body.skin-sky:not(.night-mode) #circleLeaveModal{background:rgba(110,168,232,.38);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
+body.skin-sky:not(.night-mode) #circleLeaveModal .cm-box{width:440px;border-radius:28px;border:1px solid rgba(255,255,255,.85);background:linear-gradient(180deg,rgba(248,252,255,.97),rgba(222,238,253,.96));box-shadow:0 20px 50px rgba(40,100,190,.33),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #circleLeaveModal .cm-head{margin:12px 12px 4px;padding:6px 8px 6px 16px;border:none;border-radius:999px;background:linear-gradient(180deg,#fff,#eaf4fe);box-shadow:0 4px 12px rgba(70,140,220,.18),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #circleLeaveModal .cm-head h2{font-size:17px;line-height:1.15;font-weight:800;color:#0f3f9c;letter-spacing:-.01em}
+body.skin-sky:not(.night-mode) #circleLeaveModal .cm-x{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:34px;height:34px;padding:0;border-radius:50%;font-size:18px;font-weight:700;color:#2a6fe0;background:linear-gradient(180deg,#fff,#e6f1fd);box-shadow:0 2px 8px rgba(70,140,220,.26),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #circleLeaveModal .cm-x:hover{background:linear-gradient(180deg,#fff,#d6e8fc)}
+body.skin-sky:not(.night-mode) #circleLeaveModal .cm-body{padding:10px 22px 20px;gap:10px}
+body.skin-sky:not(.night-mode) #circleLeaveModal .cm-leave-warn{font-size:13.5px;line-height:1.45;font-weight:600;color:#5a7ab5}
+body.skin-sky:not(.night-mode) #circleLeaveModal .cm-leave-warn b{color:#b3261e;font-weight:800}
+body.skin-sky:not(.night-mode) #circleLeaveModal .cm-leave-q{font-size:16px;font-weight:800;color:#0f3f9c}
+body.skin-sky:not(.night-mode) #circleLeaveModal .cm-actions{margin-top:6px}
+body.skin-sky:not(.night-mode) #circleLeaveModal .cm-btn.danger{height:46px;border:1.5px solid transparent;border-radius:999px;background:linear-gradient(180deg,#ff8f84,#e5483f);color:#fff;font-size:15.5px;font-weight:800;box-shadow:0 6px 14px rgba(220,90,80,.4),inset 0 1px 0 rgba(255,255,255,.5);transition:transform .12s,box-shadow .12s}
+body.skin-sky:not(.night-mode) #circleLeaveModal .cm-btn.danger:hover:not(:disabled){background:linear-gradient(180deg,#ff9d93,#ee564d);box-shadow:0 8px 16px rgba(220,90,80,.5),inset 0 1px 0 rgba(255,255,255,.5);transform:translateY(-1px)}
+
+body.skin-sky.night-mode #circleLeaveModal{background:rgba(2,8,22,0.62);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
+body.skin-sky.night-mode #circleLeaveModal .cm-box{width:440px;border-radius:28px;border:1px solid rgba(255,255,255,0.14);background:linear-gradient(180deg,rgba(12,27,50,0.97),rgba(16,36,70,0.96));box-shadow:0 20px 50px rgba(0,8,30,0.59),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #circleLeaveModal .cm-head{margin:12px 12px 4px;padding:6px 8px 6px 16px;border:none;border-radius:999px;background:linear-gradient(180deg,#101a28,#0e1f3d);box-shadow:0 4px 12px rgba(0,8,30,0.32),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #circleLeaveModal .cm-head h2{font-size:17px;line-height:1.15;font-weight:800;color:#91b0ec;letter-spacing:-.01em}
+body.skin-sky.night-mode #circleLeaveModal .cm-x{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:34px;height:34px;padding:0;border-radius:50%;font-size:18px;font-weight:700;color:#719fea;background:linear-gradient(180deg,#101a28,#0f2040);box-shadow:0 2px 8px rgba(0,8,30,0.47),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #circleLeaveModal .cm-x:hover{background:linear-gradient(180deg,#101a28,#12264c)}
+body.skin-sky.night-mode #circleLeaveModal .cm-body{padding:10px 22px 20px;gap:10px}
+body.skin-sky.night-mode #circleLeaveModal .cm-leave-warn{font-size:13.5px;line-height:1.45;font-weight:600;color:#7f9bc9}
+body.skin-sky.night-mode #circleLeaveModal .cm-leave-warn b{color:#ff9a8f;font-weight:800}
+body.skin-sky.night-mode #circleLeaveModal .cm-leave-q{font-size:16px;font-weight:800;color:#91b0ec}
+body.skin-sky.night-mode #circleLeaveModal .cm-actions{margin-top:6px}
+body.skin-sky.night-mode #circleLeaveModal .cm-btn.danger{height:46px;border:1.5px solid transparent;border-radius:999px;background:linear-gradient(180deg,#f0645a,#c0332b);color:#fff;font-size:15.5px;font-weight:800;box-shadow:0 6px 14px rgba(0,8,30,0.5),inset 0 1px 0 rgba(255,255,255,0.3);transition:transform .12s}
+body.skin-sky.night-mode #circleLeaveModal .cm-btn.danger:hover:not(:disabled){background:linear-gradient(180deg,#f67268,#cf3b33);transform:translateY(-1px)}
+
+/* ═══ SCOREBOARD — glossy trophy + Glossy Blue window, same look as the other game windows ═══ */
+#circleBoardBtn svg{display:block;width:19px;height:19px}
+#circleBoardTitle{display:flex;align-items:center;gap:9px}
+.cb-ico svg{display:block;width:30px;height:30px;filter:drop-shadow(0 2px 3px rgba(150,90,10,.35))}
+body.skin-sky.circle-mode #circleBoardBtn svg{width:25px;height:25px;filter:drop-shadow(0 2px 2px rgba(150,90,10,.3))}
+body.skin-sky.night-mode.circle-mode #circleBoardBtn{border-color:rgba(255,255,255,.14);background:linear-gradient(180deg,#101a28,#0f2040);box-shadow:0 4px 12px rgba(0,8,30,.47),inset 0 1px 0 rgba(255,255,255,.28)}
+body.skin-sky.night-mode.circle-mode #circleBoardBtn:hover{background:linear-gradient(180deg,#101a28,#12264c)}
+
+body.skin-sky:not(.night-mode) #circleBoardModal{background:rgba(110,168,232,.38);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
+body.skin-sky:not(.night-mode) #circleBoardModal .cm-box{width:580px;border-radius:28px;border:1px solid rgba(255,255,255,.85);background:linear-gradient(180deg,rgba(248,252,255,.97),rgba(222,238,253,.96));box-shadow:0 20px 50px rgba(40,100,190,.33),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #circleBoardModal .cm-head{margin:12px 12px 4px;padding:6px 8px 6px 16px;border:none;border-radius:999px;background:linear-gradient(180deg,#fff,#eaf4fe);box-shadow:0 4px 12px rgba(70,140,220,.18),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #circleBoardModal .cm-head h2{font-size:17px;line-height:1.15;font-weight:800;color:#0f3f9c;letter-spacing:-.01em}
+body.skin-sky:not(.night-mode) #circleBoardModal .cm-x{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:34px;height:34px;padding:0;border-radius:50%;font-size:18px;font-weight:700;color:#2a6fe0;background:linear-gradient(180deg,#fff,#e6f1fd);box-shadow:0 2px 8px rgba(70,140,220,.26),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #circleBoardModal .cm-x:hover{background:linear-gradient(180deg,#fff,#d6e8fc)}
+body.skin-sky:not(.night-mode) #circleBoardBody{padding:6px 18px 18px !important}
+body.skin-sky:not(.night-mode) .cb-table{border-collapse:separate;border-spacing:0 7px}
+body.skin-sky:not(.night-mode) .cb-table th{background:#e9f3fe;border-bottom:none;color:#5a7ab5;font-size:11px;font-weight:800;letter-spacing:.06em;padding:6px 10px}
+body.skin-sky:not(.night-mode) .cb-table td{padding:10px;border-bottom:none;background:linear-gradient(180deg,#f8fbff,#e5f1fd);color:#15356b;font-weight:700}
+body.skin-sky:not(.night-mode) .cb-table tbody td:first-child{border-radius:15px 0 0 15px;padding-left:14px}
+body.skin-sky:not(.night-mode) .cb-table tbody td:last-child{border-radius:0 15px 15px 0;padding-right:12px}
+body.skin-sky:not(.night-mode) .cb-table td:not(.num):not(.cb-rounds){box-shadow:inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) .cb-table .cb-total{color:#0f3f9c;font-weight:800;font-size:14px}
+body.skin-sky:not(.night-mode) .cb-table .cb-rounds{color:#7c9bd0;font-weight:600}
+body.skin-sky:not(.night-mode) .cb-table tr.me td{background:linear-gradient(180deg,#f0fbf4,#d3f1de)}
+body.skin-sky:not(.night-mode) .cb-table .cb-del{width:24px;height:24px;padding:0;border-radius:50%;color:#8aa1c4;background:transparent}
+body.skin-sky:not(.night-mode) .cb-table .cb-del:hover{color:#fff;background:#e0455f}
+body.skin-sky:not(.night-mode) .cb-empty{color:#5a7ab5;font-weight:600}
+
+body.skin-sky.night-mode #circleBoardModal{background:rgba(2,8,22,0.62);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
+body.skin-sky.night-mode #circleBoardModal .cm-box{width:580px;border-radius:28px;border:1px solid rgba(255,255,255,0.14);background:linear-gradient(180deg,rgba(12,27,50,0.97),rgba(16,36,70,0.96));box-shadow:0 20px 50px rgba(0,8,30,0.59),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #circleBoardModal .cm-head{margin:12px 12px 4px;padding:6px 8px 6px 16px;border:none;border-radius:999px;background:linear-gradient(180deg,#101a28,#0e1f3d);box-shadow:0 4px 12px rgba(0,8,30,0.32),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #circleBoardModal .cm-head h2{font-size:17px;line-height:1.15;font-weight:800;color:#91b0ec;letter-spacing:-.01em}
+body.skin-sky.night-mode #circleBoardModal .cm-x{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:34px;height:34px;padding:0;border-radius:50%;font-size:18px;font-weight:700;color:#719fea;background:linear-gradient(180deg,#101a28,#0f2040);box-shadow:0 2px 8px rgba(0,8,30,0.47),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #circleBoardModal .cm-x:hover{background:linear-gradient(180deg,#101a28,#12264c)}
+body.skin-sky.night-mode #circleBoardBody{padding:6px 18px 18px !important}
+body.skin-sky.night-mode .cb-table{border-collapse:separate;border-spacing:0 7px}
+body.skin-sky.night-mode .cb-table th{background:#0f2141;border-bottom:none;color:#7f9bc9;font-size:11px;font-weight:800;letter-spacing:.06em;padding:6px 10px}
+body.skin-sky.night-mode .cb-table td{padding:10px;border-bottom:none;background:linear-gradient(180deg,#0c1832,#0f2141);color:#bcd0f5;font-weight:700}
+body.skin-sky.night-mode .cb-table tbody td:first-child{border-radius:15px 0 0 15px;padding-left:14px}
+body.skin-sky.night-mode .cb-table tbody td:last-child{border-radius:0 15px 15px 0;padding-right:12px}
+body.skin-sky.night-mode .cb-table .cb-total{color:#91b0ec;font-weight:800;font-size:14px}
+body.skin-sky.night-mode .cb-table .cb-rounds{color:#7f9bc9;font-weight:600}
+body.skin-sky.night-mode .cb-table tr.me td{background:linear-gradient(180deg,#123424,#17402d)}
+body.skin-sky.night-mode .cb-table .cb-del{width:24px;height:24px;padding:0;border-radius:50%;color:#7f9bc9;background:transparent}
+body.skin-sky.night-mode .cb-table .cb-del:hover{color:#fff;background:#c0392b}
+body.skin-sky.night-mode .cb-empty{color:#7f9bc9;font-weight:600}
 </style>
 <div id="cadm"><div class="w">
 <div class="bar"><b>City data editor</b>
