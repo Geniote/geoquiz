@@ -1623,13 +1623,13 @@ body.skin-sky:not(.night-mode) #mapPickIcon svg{display:block;width:100%;height:
 <!-- CIRCLE CHALLENGE: RESULTS + SCOREBOARD MODALS -->
 <div id="circleEndModal">
   <div class="cm-box">
-    <div class="cm-head"><h2>🎯 Circle challenge · Final score</h2><button class="cm-x" id="circleEndClose" aria-label="Close">✕</button></div>
+    <div class="cm-head"><h2 id="circleEndTitle"></h2><button class="cm-x" id="circleEndClose" aria-label="Close">✕</button></div>
     <div class="cm-body" id="circleEndBody"></div>
   </div>
 </div>
 <div id="circleBoardModal">
   <div class="cm-box">
-    <div class="cm-head"><h2 id="circleBoardTitle"><span class="cb-ico"><svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="trT" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe680"/><stop offset=".55" stop-color="#f6b92f"/><stop offset="1" stop-color="#d98a12"/></linearGradient></defs><path d="M9 6.5H5.2v2.4a4.4 4.4 0 0 0 4.2 4.4M23 6.5h3.8v2.4a4.4 4.4 0 0 1-4.2 4.4" fill="none" stroke="#e3a21c" stroke-width="2.2" stroke-linecap="round"/><path d="M9 4.5h14v7.2a7 7 0 0 1-14 0z" fill="url(#trT)" stroke="#b86e0a" stroke-width="1"/><path d="M14 18.2h4V22h-4z" fill="url(#trT)" stroke="#b86e0a" stroke-width=".8"/><rect x="10" y="22" width="12" height="5" rx="1.7" fill="url(#trT)" stroke="#b86e0a" stroke-width="1"/><path d="M12.2 7c-.1 3 .5 5 2.2 6.3" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="1.7" stroke-linecap="round"/></svg></span><span id="circleBoardTitleText">Circle challenge · Scoreboard</span></h2><button class="cm-x" id="circleBoardClose" aria-label="Close">✕</button></div>
+    <div class="cm-head"><h2 id="circleBoardTitle"></h2><button class="cm-x" id="circleBoardClose" aria-label="Close">✕</button></div>
     <div class="cm-body" id="circleBoardBody" style="padding-top:8px"></div>
   </div>
 </div>
@@ -5147,17 +5147,43 @@ function circleSaveGame(name) {
   return { entry, rank: sameMap.findIndex(x => x.id === entry.id) + 1, of: sameMap.length };
 }
 
+// ---- Zones window titles (final score + scoreboard): "Zones · <map flag> Spain · <difficulty icon> Easy · <tail>" ----
+let _ztSeq = 0;
+function zonesIconSVG() {
+  const u = 'zt' + (++_ztSeq);
+  return `<svg viewBox="0 0 32 32" aria-hidden="true"><defs><radialGradient id="${u}" cx="35%" cy="28%" r="85%"><stop offset="0" stop-color="#8cc6ff"/><stop offset=".55" stop-color="#2f86d6"/><stop offset="1" stop-color="#14498f"/></radialGradient></defs><circle cx="16" cy="16" r="14.5" fill="url(#${u})" stroke="rgba(10,50,110,.35)" stroke-width="1"/><ellipse cx="12.5" cy="8.6" rx="7" ry="3.6" fill="#fff" opacity=".28"/><circle cx="16" cy="16" r="8" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="16" cy="16" r="4.2" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="16" cy="16" r="1.5" fill="#fff"/></svg>`;
+}
+function difficultyIconSVG(hard) {
+  const u = 'zd' + (++_ztSeq);
+  return hard
+    ? `<svg viewBox="0 0 32 32" aria-hidden="true"><defs><radialGradient id="${u}" cx="35%" cy="28%" r="85%"><stop offset="0" stop-color="#ffa59b"/><stop offset=".55" stop-color="#e5483f"/><stop offset="1" stop-color="#a8231d"/></radialGradient></defs><circle cx="16" cy="16" r="14.5" fill="url(#${u})" stroke="rgba(10,50,110,.35)" stroke-width="1"/><ellipse cx="12.5" cy="8.6" rx="7" ry="3.6" fill="#fff" opacity=".28"/><circle cx="16" cy="17.6" r="6.6" fill="none" stroke="#fff" stroke-width="2.1"/><path d="M16 17.6V14.2" stroke="#fff" stroke-width="2.1" stroke-linecap="round"/><rect x="14" y="7.4" width="4" height="2.2" rx="1.1" fill="#fff"/><path d="M21.4 11.2l1.6-1.6" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>`
+    : `<svg viewBox="0 0 32 32" aria-hidden="true"><defs><radialGradient id="${u}" cx="35%" cy="28%" r="85%"><stop offset="0" stop-color="#a6ecb3"/><stop offset=".55" stop-color="#4fbf6a"/><stop offset="1" stop-color="#2a8f4a"/></radialGradient></defs><circle cx="16" cy="16" r="14.5" fill="url(#${u})" stroke="rgba(10,50,110,.35)" stroke-width="1"/><ellipse cx="12.5" cy="8.6" rx="7" ry="3.6" fill="#fff" opacity=".28"/><path d="M9.2 16c0-2.1 1.5-3.6 3.4-3.6 3.9 0 3.7 7.2 7.6 7.2 1.9 0 3.4-1.5 3.4-3.6s-1.5-3.6-3.4-3.6c-3.9 0-3.7 7.2-7.6 7.2-1.9 0-3.4-1.5-3.4-3.6z" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+function trophySVG() {
+  const u = 'zr' + (++_ztSeq);
+  return `<svg class="ce-tr" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="${u}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe680"/><stop offset=".55" stop-color="#f6b92f"/><stop offset="1" stop-color="#d98a12"/></linearGradient></defs><path d="M9 6.5H5.2v2.4a4.4 4.4 0 0 0 4.2 4.4M23 6.5h3.8v2.4a4.4 4.4 0 0 1-4.2 4.4" fill="none" stroke="#e3a21c" stroke-width="2.2" stroke-linecap="round"/><path d="M9 4.5h14v7.2a7 7 0 0 1-14 0z" fill="url(#${u})" stroke="#b86e0a" stroke-width="1"/><path d="M14 18.2h4V22h-4z" fill="url(#${u})" stroke="#b86e0a" stroke-width=".8"/><rect x="10" y="22" width="12" height="5" rx="1.7" fill="url(#${u})" stroke="#b86e0a" stroke-width="1"/><path d="M12.2 7c-.1 3 .5 5 2.2 6.3" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="1.7" stroke-linecap="round"/></svg>`;
+}
+function circleWindowTitleHTML(tail, withTrophy) {
+  const rk = circleRegion || 'usa';
+  const lbl = (REGIONS[rk] && REGIONS[rk].label) || rk;
+  const sep = '<span class="zt-sep">·</span>';
+  let h = `<span class="zt-ico">${zonesIconSVG()}</span><span class="zt-chip">Zones</span>${sep}<span class="zt-chip"><span class="zt-sm">${regionIconSVG(rk)}</span>${_chEsc(lbl)}</span>`;
+  if (circleMode) h += `${sep}<span class="zt-chip"><span class="zt-sm">${difficultyIconSVG(!!circleTimed)}</span>${circleTimed ? 'Hard' : 'Easy'}</span>`;
+  h += `${sep}<span class="zt-chip">${withTrophy ? '<span class="zt-sm">' + trophySVG() + '</span>' : ''}${tail}</span>`;
+  return h;
+}
 function openCircleEnd() {
   const total = circleScores.length;
   let savedName = ''; try { savedName = localStorage.getItem(CIRCLE_NAME_KEY) || ''; } catch (e) {}
-  const rows = circleScores.map((r, i) => `<div><span>Round ${i + 1} ${r.won ? '🏆' : ''} <small>${r.found} ${r.found === 1 ? 'city' : 'cities'}</small></span><span class="cm-pts">${r.score.toLocaleString('en-US')}</span></div>`).join('');
+  const rows = circleScores.map((r, i) => `<div><span class="ce-rn">Round ${i + 1} ${r.won ? trophySVG() : ''} <small>${r.found} ${r.found === 1 ? 'city' : 'cities'}</small></span><span class="cm-pts">${r.score.toLocaleString('en-US')}</span></div>`).join('');
+  document.getElementById('circleEndTitle').innerHTML = circleWindowTitleHTML('Final score', false);
   const body = document.getElementById('circleEndBody');
   body.innerHTML = `
     <div class="cm-total"><div class="cm-big">${circleTotal.toLocaleString('en-US')}</div><div class="cm-lbl">total points over ${total} ${total === 1 ? 'circle' : 'circles'}</div></div>
     <div class="cm-rounds">${rows}</div>
     <div class="cm-save"><input id="circleNameInput" type="text" maxlength="24" placeholder="Your name" value="${_chEsc(savedName)}"${circleSaved ? ' disabled' : ''}/><button class="cm-btn primary" id="circleSaveBtn"${circleSaved ? ' disabled' : ''}>${circleSaved ? 'Saved ✓' : 'Save score'}</button></div>
     <div class="cm-note" id="circleEndNote"></div>
-    <div class="cm-actions"><button class="cm-btn" id="circleEndBoard">🏆 Scoreboard</button><button class="cm-btn primary" id="circleEndNew">New game ↻</button></div>`;
+    <div class="cm-actions"><button class="cm-btn" id="circleEndBoard">${trophySVG()} Scoreboard</button><button class="cm-btn primary" id="circleEndNew">New game ↻</button></div>`;
   const note = document.getElementById('circleEndNote'), saveBtn = document.getElementById('circleSaveBtn'), nameIn = document.getElementById('circleNameInput');
   const doSave = () => {
     if (circleSaved) return;
@@ -5180,8 +5206,8 @@ let circleLastSavedId = null;
 function openCircleBoard() {
   const boardRegion = circleRegion || 'usa';
   const list = circleLoadScores().filter(g => (g.region || 'usa') === boardRegion && (g.timed === false) === !circleTimed); // games saved before the timer option were timed // entries saved before maps were tracked count as USA
-  const bh = document.getElementById('circleBoardTitleText');
-  if (bh) bh.textContent = 'Circle challenge · ' + ((REGIONS[boardRegion] && REGIONS[boardRegion].label) || boardRegion) + (circleMode ? (circleTimed ? ' · Hard mode' : ' · No timer') : '') + ' · Scoreboard';
+  const bh = document.getElementById('circleBoardTitle');
+  if (bh) bh.innerHTML = circleWindowTitleHTML('Scoreboard', true);
   const body = document.getElementById('circleBoardBody');
   const fmtDate = t => { try { return new Date(t).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return ''; } };
   if (!list.length) body.innerHTML = '<div class="cb-empty">No saved games yet. Finish a game and save your score to see it here!</div>';
@@ -9308,9 +9334,87 @@ body.skin-sky.night-mode #circleLeaveModal .cm-actions{margin-top:6px}
 body.skin-sky.night-mode #circleLeaveModal .cm-btn.danger{height:46px;border:1.5px solid transparent;border-radius:999px;background:linear-gradient(180deg,#f0645a,#c0332b);color:#fff;font-size:15.5px;font-weight:800;box-shadow:0 6px 14px rgba(0,8,30,0.5),inset 0 1px 0 rgba(255,255,255,0.3);transition:transform .12s}
 body.skin-sky.night-mode #circleLeaveModal .cm-btn.danger:hover:not(:disabled){background:linear-gradient(180deg,#f67268,#cf3b33);transform:translateY(-1px)}
 
+/* Zones window titles: Zones icon + name · map flag + name · difficulty icon + name · tail */
+#circleEndTitle,#circleBoardTitle{display:flex;align-items:center;flex-wrap:wrap;gap:3px 8px;min-width:0}
+.zt-ico{display:inline-flex;flex:0 0 auto;margin-right:1px}
+.zt-ico svg{display:block;width:30px;height:30px;filter:drop-shadow(0 2px 3px rgba(30,80,160,.3))}
+.zt-chip{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.zt-sm{display:inline-flex;flex:0 0 auto}
+.zt-sm svg{display:block;width:25px;height:25px;filter:drop-shadow(0 1px 2px rgba(30,80,160,.28))}
+.zt-sm .ce-tr{width:23px;height:23px;vertical-align:baseline}
+.zt-sep{opacity:.55;font-weight:800}
+
+/* ═══ CIRCLE CHALLENGE · FINAL SCORE — Glossy Blue window (same family as the scoreboard / leave windows) ═══ */
+.ce-ico svg{display:block;width:30px;height:30px;filter:drop-shadow(0 2px 3px rgba(30,80,160,.3))}
+.ce-tr{display:inline-block;vertical-align:-5px;width:21px;height:21px;filter:drop-shadow(0 1px 2px rgba(150,90,10,.35))}
+#circleEndModal .cm-btn .ce-tr{vertical-align:-5px;margin-right:2px}
+#circleEndModal .cm-box{width:480px}
+#circleEndModal .cm-body{padding:10px 22px 22px;gap:12px}
+#circleEndModal .cm-total .cm-big{font-size:46px;font-weight:800;letter-spacing:-.02em}
+#circleEndModal .cm-total .cm-lbl{font-size:13px;font-weight:700}
+#circleEndModal .cm-rounds{border:none;border-radius:0;overflow:visible;gap:7px}
+#circleEndModal .cm-rounds div{align-items:center;padding:11px 18px;font-size:14.5px;border-bottom:none;border-radius:999px}
+#circleEndModal .cm-rounds .ce-rn{font-weight:700}
+#circleEndModal .cm-rounds small{font-size:12.5px;font-weight:600;margin-left:3px}
+#circleEndModal .cm-rounds .cm-pts{font-size:16px;font-weight:800}
+#circleEndModal .cm-save{gap:10px;align-items:center;padding:0 5px}
+#circleEndModal .cm-save input{height:46px;padding:0 20px;border:none;border-radius:999px;font-size:15px;font-weight:700;outline:none;transition:box-shadow .15s,background .15s}
+#circleEndModal .cm-save .cm-btn{height:46px;padding:0 22px;border:1.5px solid transparent;border-radius:999px;font-size:15px;font-weight:800;white-space:nowrap;transition:transform .12s,box-shadow .12s}
+#circleEndModal .cm-note{font-size:13px;font-weight:800;min-height:18px}
+#circleEndModal .cm-actions{gap:10px}
+#circleEndModal .cm-actions .cm-btn{height:48px;padding:0 16px;border:1.5px solid transparent;border-radius:999px;font-size:15.5px;font-weight:800;transition:transform .12s,box-shadow .12s}
+#circleEndModal .cm-btn:hover:not(:disabled){transform:translateY(-1px)}
+
+/* day */
+body.skin-sky:not(.night-mode) #circleEndModal{background:rgba(110,168,232,.38);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
+body.skin-sky:not(.night-mode) #circleEndModal .cm-box{border-radius:28px;border:1px solid rgba(255,255,255,.85);background:linear-gradient(180deg,rgba(248,252,255,.97),rgba(222,238,253,.96));box-shadow:0 20px 50px rgba(40,100,190,.33),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #circleEndModal .cm-head{margin:12px 12px 4px;padding:6px 8px 6px 16px;border:none;border-radius:999px;background:linear-gradient(180deg,#fff,#eaf4fe);box-shadow:0 4px 12px rgba(70,140,220,.18),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #circleEndModal .cm-head h2{font-size:17px;line-height:1.15;font-weight:800;color:#0f3f9c;letter-spacing:-.01em}
+body.skin-sky:not(.night-mode) #circleEndModal .cm-x{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:34px;height:34px;padding:0;border-radius:50%;font-size:18px;font-weight:700;color:#2a6fe0;background:linear-gradient(180deg,#fff,#e6f1fd);box-shadow:0 2px 8px rgba(70,140,220,.26),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #circleEndModal .cm-x:hover{background:linear-gradient(180deg,#fff,#d6e8fc)}
+body.skin-sky:not(.night-mode) #circleEndModal .cm-total .cm-big{color:#0f3f9c;text-shadow:0 2px 0 #fff,0 6px 14px rgba(70,140,220,.28)}
+body.skin-sky:not(.night-mode) #circleEndModal .cm-total .cm-lbl{color:#5a7ab5}
+body.skin-sky:not(.night-mode) #circleEndModal .cm-rounds div{background:linear-gradient(180deg,#f8fbff,#e5f1fd);color:#15356b;box-shadow:0 3px 9px rgba(70,140,220,.14),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #circleEndModal .cm-rounds small{color:#7c9bd0}
+body.skin-sky:not(.night-mode) #circleEndModal .cm-rounds .cm-pts{color:#0f3f9c}
+body.skin-sky:not(.night-mode) #circleEndModal .cm-save input{background:linear-gradient(180deg,#f7fbff,#e6f2fe);color:#15356b;box-shadow:0 0 0 2px rgba(255,255,255,.92),0 0 0 4px rgba(140,188,238,.5),0 4px 10px rgba(70,140,220,.18),inset 0 2px 5px rgba(120,170,225,.22)}
+body.skin-sky:not(.night-mode) #circleEndModal .cm-save input:focus{background:#fff;box-shadow:0 0 0 2px #fff,0 0 0 4px rgba(42,111,224,.65),0 6px 14px rgba(70,140,220,.25)}
+body.skin-sky:not(.night-mode) #circleEndModal .cm-save input:disabled{opacity:.8;-webkit-text-fill-color:#15356b}
+body.skin-sky:not(.night-mode) #circleEndModal .cm-save .cm-btn.primary{background:linear-gradient(180deg,#1fcb83,#08a65f);color:#fff;box-shadow:0 6px 14px rgba(8,166,95,.35),inset 0 1px 0 rgba(255,255,255,.5)}
+body.skin-sky:not(.night-mode) #circleEndModal .cm-save .cm-btn.primary:disabled{opacity:.6;box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
+body.skin-sky:not(.night-mode) #circleEndModal .cm-note{color:#5a7ab5}
+body.skin-sky:not(.night-mode) #circleEndModal .cm-note.ok{color:#1e8a4c}
+body.skin-sky:not(.night-mode) #circleEndModal .cm-actions .cm-btn{background:linear-gradient(180deg,#fff,#e3effd);color:#0f3f9c;box-shadow:0 5px 12px rgba(70,140,220,.22),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #circleEndModal .cm-actions .cm-btn:hover:not(:disabled){background:linear-gradient(180deg,#fff,#d6e8fc)}
+body.skin-sky:not(.night-mode) #circleEndModal .cm-actions .cm-btn.primary{background:linear-gradient(180deg,#4aa6ff,#2a6fe8);color:#fff;box-shadow:0 6px 14px rgba(42,111,232,.4),inset 0 1px 0 rgba(255,255,255,.5)}
+body.skin-sky:not(.night-mode) #circleEndModal .cm-actions .cm-btn.primary:hover:not(:disabled){background:linear-gradient(180deg,#5cb2ff,#3a7cf0)}
+
+/* night */
+body.skin-sky.night-mode #circleEndModal{background:rgba(2,8,22,0.62);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
+body.skin-sky.night-mode #circleEndModal .cm-box{border-radius:28px;border:1px solid rgba(255,255,255,0.14);background:linear-gradient(180deg,rgba(12,27,50,0.97),rgba(16,36,70,0.96));box-shadow:0 20px 50px rgba(0,8,30,0.59),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #circleEndModal .cm-head{margin:12px 12px 4px;padding:6px 8px 6px 16px;border:none;border-radius:999px;background:linear-gradient(180deg,#101a28,#0e1f3d);box-shadow:0 4px 12px rgba(0,8,30,0.32),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #circleEndModal .cm-head h2{font-size:17px;line-height:1.15;font-weight:800;color:#91b0ec;letter-spacing:-.01em}
+body.skin-sky.night-mode #circleEndModal .cm-x{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:34px;height:34px;padding:0;border-radius:50%;font-size:18px;font-weight:700;color:#719fea;background:linear-gradient(180deg,#101a28,#0f2040);box-shadow:0 2px 8px rgba(0,8,30,0.47),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #circleEndModal .cm-x:hover{background:linear-gradient(180deg,#101a28,#12264c)}
+body.skin-sky.night-mode #circleEndModal .cm-total .cm-big{color:#bcd0f5;text-shadow:0 4px 16px rgba(42,111,224,.45)}
+body.skin-sky.night-mode #circleEndModal .cm-total .cm-lbl{color:#7f9bc9}
+body.skin-sky.night-mode #circleEndModal .cm-rounds div{background:linear-gradient(180deg,#0c1832,#0f2141);color:#bcd0f5;box-shadow:0 3px 9px rgba(0,8,30,.35),inset 0 1px 0 rgba(255,255,255,.08)}
+body.skin-sky.night-mode #circleEndModal .cm-rounds small{color:#7f9bc9}
+body.skin-sky.night-mode #circleEndModal .cm-rounds .cm-pts{color:#91b0ec}
+body.skin-sky.night-mode #circleEndModal .cm-save input{background:linear-gradient(180deg,#0c1a33,#0f203f);color:#bcd0f5;box-shadow:0 0 0 2px rgba(255,255,255,0.17),0 0 0 4px rgba(32,69,136,0.55),0 4px 10px rgba(0,8,30,0.36),inset 0 2px 5px rgba(0,10,35,0.26)}
+body.skin-sky.night-mode #circleEndModal .cm-save input:focus{background:#101a28;box-shadow:0 0 0 2px rgba(255,255,255,0.18),0 0 0 4px rgba(42,111,224,0.65),0 6px 14px rgba(0,8,30,0.45)}
+body.skin-sky.night-mode #circleEndModal .cm-save input:disabled{opacity:.8;-webkit-text-fill-color:#bcd0f5}
+body.skin-sky.night-mode #circleEndModal .cm-save .cm-btn.primary{background:linear-gradient(180deg,#1fcb83,#08a65f);color:#fff;box-shadow:0 6px 14px rgba(0,8,30,.5),inset 0 1px 0 rgba(255,255,255,.3)}
+body.skin-sky.night-mode #circleEndModal .cm-save .cm-btn.primary:disabled{opacity:.6;box-shadow:inset 0 1px 0 rgba(255,255,255,.2)}
+body.skin-sky.night-mode #circleEndModal .cm-note{color:#7f9bc9}
+body.skin-sky.night-mode #circleEndModal .cm-note.ok{color:#5fe0a0}
+body.skin-sky.night-mode #circleEndModal .cm-actions .cm-btn{background:linear-gradient(180deg,#101a28,#0f2040);color:#91b0ec;box-shadow:0 5px 12px rgba(0,8,30,.47),inset 0 1px 0 rgba(255,255,255,.28)}
+body.skin-sky.night-mode #circleEndModal .cm-actions .cm-btn:hover:not(:disabled){background:linear-gradient(180deg,#101a28,#12264c)}
+body.skin-sky.night-mode #circleEndModal .cm-actions .cm-btn.primary{background:linear-gradient(180deg,#3d8ff0,#1f58c4);color:#fff;box-shadow:0 6px 14px rgba(0,8,30,.5),inset 0 1px 0 rgba(255,255,255,.3)}
+body.skin-sky.night-mode #circleEndModal .cm-actions .cm-btn.primary:hover:not(:disabled){background:linear-gradient(180deg,#4d9cf7,#2a68d8)}
+
 /* ═══ SCOREBOARD — glossy trophy + Glossy Blue window, same look as the other game windows ═══ */
 #circleBoardBtn svg{display:block;width:19px;height:19px}
-#circleBoardTitle{display:flex;align-items:center;gap:9px}
 .cb-ico svg{display:block;width:30px;height:30px;filter:drop-shadow(0 2px 3px rgba(150,90,10,.35))}
 body.skin-sky.circle-mode #circleBoardBtn svg{width:25px;height:25px;filter:drop-shadow(0 2px 2px rgba(150,90,10,.3))}
 body.skin-sky.night-mode.circle-mode #circleBoardBtn{border-color:rgba(255,255,255,.14);background:linear-gradient(180deg,#101a28,#0f2040);box-shadow:0 4px 12px rgba(0,8,30,.47),inset 0 1px 0 rgba(255,255,255,.28)}
