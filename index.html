@@ -5417,7 +5417,10 @@ document.getElementById('mapWrap').addEventListener('mouseleave', () => {
 
 // ─── DOTS ─────────────────────────────────────────────────────────────────────
 function dotStroke() {
-  if (S.skin === 'sky' && !S.nightMode) return '#fff'; // flat blue dots with a white outline
+  if (S.skin === 'sky' && !S.nightMode) {   // flat blue dots with a darker-blue outline (the dot colour, darkened)
+    const h = S.dotColor || '#4f9cf0', c = [1,3,5].map(i => parseInt(h.slice(i,i+2),16));
+    return '#' + c.map(v => Math.round(v * 0.74).toString(16).padStart(2,'0')).join('');
+  }
   return S.nightMode ? 'none' : 'rgba(0,0,0,1)';
 }
 const DOT_STROKE_WIDTH_BY_MODE = { normal: 0.2, small: 0.2, smaller: 0.2, tiny: 0.05 };
@@ -6836,6 +6839,18 @@ function regionGlobeSVG(key) {
 }
 const regionFlags = { usa:'🇺🇸', japan:'🇯🇵', poland:'🇵🇱', russia:'🇷🇺', spain:'🇪🇸' };
 
+// Small glossy game-mode icons for the map button (same artwork as the mode picker; own gradient ids, since the picker's copies sit in a hidden window)
+function modeIconMini(kind) {
+  const cfg = {
+    N: ['#a6ecb3', '#4fbf6a', '#2a8f4a', '<path d="M16 7.6c-3.4 0-6 2.6-6 5.9 0 4.3 6 10.7 6 10.7s6-6.4 6-10.7c0-3.3-2.6-5.9-6-5.9z" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><circle cx="16" cy="13.4" r="2.3" fill="#fff"/>'],
+    P: ['#ffd98a', '#f5a623', '#c77a0a', '<path d="M15 8L23 10.5L24.5 19L16 16.3Z" fill="#fff" fill-opacity=".4"/><path d="M8 11L15 8L23 10.5L24.5 19L17 24L9 21Z" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="M16 16.3L15 8M16 16.3L24.5 19M16 16.3L9 21" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>'],
+    Z: ['#8cc6ff', '#2f86d6', '#14498f', '<circle cx="16" cy="16" r="8" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="16" cy="16" r="4.2" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="16" cy="16" r="1.5" fill="#fff"/>']
+  }[kind];
+  if (!cfg) return '';
+  const id = 'mb' + kind;
+  return '<svg class="mpl-ico" viewBox="0 0 32 32" aria-hidden="true"><defs><radialGradient id="' + id + '" cx="35%" cy="28%" r="85%"><stop offset="0" stop-color="' + cfg[0] + '"/><stop offset=".55" stop-color="' + cfg[1] + '"/><stop offset="1" stop-color="' + cfg[2] + '"/></radialGradient></defs><circle cx="16" cy="16" r="14.5" fill="url(#' + id + ')" stroke="rgba(10,50,110,.35)" stroke-width="1"/><ellipse cx="12.5" cy="8.6" rx="7" ry="3.6" fill="#fff" opacity=".28"/>' + cfg[3] + '</svg>';
+}
+
 function tintRegionSelect(rk) {
   const sel = document.getElementById('regionSelect');
   if (!sel) return;
@@ -6846,12 +6861,16 @@ function tintRegionSelect(rk) {
   const pickIcon = document.getElementById('mapPickIcon');
   if (pickIcon) { try { pickIcon.innerHTML = regionIconSVG(rk); } catch (e) { /* icons not defined yet */ } } // same icon as in the map selector (Glossy Blue shows it)
   const opt = sel.querySelector('option[value="' + rk + '"]');
-  if (lbl) {   // "<map> — <current game mode>" (maps with only one way to play just show their name)
+  if (lbl) {   // "<map> — <icon> <current game mode>" (maps with only one way to play just show their name)
     const mapName = (opt && opt.textContent) || (REGIONS[rk] && REGIONS[rk].label) || rk;
-    lbl.textContent = quizMode && quizRegion === rk && QUIZ_CFG[rk] ? QUIZ_CFG[rk].label
-      : circleMode && circleRegion === rk ? mapName + ' — Zones'
-      : (QUIZ_CFG[rk] || CIRCLE_CFG[rk]) ? mapName + ' — Normal'
-      : mapName;
+    let name = mapName, mode = null, kind = null;
+    if (quizMode && quizRegion === rk && QUIZ_CFG[rk]) {
+      const parts = String(QUIZ_CFG[rk].label || '').split(' — ');
+      kind = 'P'; name = parts.length > 1 ? parts[0] : mapName; mode = parts.length > 1 ? parts.slice(1).join(' — ') : (QUIZ_CFG[rk].quizTitle || 'Quiz');
+    } else if (circleMode && circleRegion === rk) { kind = 'Z'; mode = 'Zones'; }
+    else if (QUIZ_CFG[rk] || CIRCLE_CFG[rk]) { kind = 'N'; mode = 'Normal'; }
+    const esc = t => String(t).replace(/[&<>"]/g, c => '&#' + c.charCodeAt(0) + ';');
+    lbl.innerHTML = mode ? esc(name) + ' — <span class="mpl-mode">' + modeIconMini(kind) + esc(mode) + '</span>' : esc(name);
   }
   if (dot) {
     if (regionFlags[rk]) {
@@ -9384,6 +9403,11 @@ body.skin-sky.night-mode .win-back:hover{background:linear-gradient(180deg,#101a
   body.skin-sky:not(.night-mode) #panelHeader,body.skin-sky.night-mode #panelHeader{padding-right:26px}
   body.skin-sky:not(.night-mode) #foundGrid,body.skin-sky.night-mode #foundGrid{padding-right:22px}
 }
+/* map button: small game-mode icon in front of the mode name */
+#mapPickLabel .mpl-mode{display:inline-flex;align-items:center;gap:.3em;vertical-align:middle}
+#mapPickLabel .mpl-ico{display:block;width:1.15em;height:1.15em;flex:0 0 auto;filter:drop-shadow(0 1px 2px rgba(30,80,160,.3))}
+/* map button: flag / earth icon the same size as the game-mode icon next to the label (1.15em of the 15px label) */
+body.skin-sky:not(.night-mode) #mapPickIcon,body.skin-sky.night-mode #mapPickIcon{width:17px;height:17px}
 </style>
 <div id="cadm"><div class="w">
 <div class="bar"><b>City data editor</b>
