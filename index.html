@@ -1211,6 +1211,21 @@ body.skin-sky:not(.night-mode) #scPanel .cf-sep{color:#8aa1c4;border-top-color:#
 body.skin-sky:not(.night-mode) #otherStatsList{display:flex;flex-direction:column;gap:8px;margin-top:4px !important}
 body.skin-sky:not(.night-mode) .stat-row{align-self:center;width:fit-content;max-width:100%;justify-content:center;align-items:center;gap:12px;height:36px;padding:0 22px;border-radius:999px;background:var(--sky-pill);box-shadow:var(--sky-shadow)}
 body.skin-sky:not(.night-mode) .stat-row.stat-complete{background:linear-gradient(180deg,#fffbe3,#ffeeab)}
+/* Stats pills open the "missing places" window for that stat */
+.stat-row{cursor:pointer;transition:transform .12s,box-shadow .12s,background .12s}
+.stat-row:hover{background:rgba(43,76,126,.06)}
+.stat-row:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+body.skin-sky .stat-row:hover{transform:translateY(-1px)}
+body.skin-sky:not(.night-mode) .stat-row:hover{background:linear-gradient(180deg,#fff,#eef6ff);box-shadow:0 6px 16px rgba(70,140,220,.3),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) .stat-row.stat-complete:hover{background:linear-gradient(180deg,#fffdf0,#fff0b8)}
+body.skin-sky.night-mode .stat-row:hover{filter:brightness(1.15)}
+body.skin-sky .stat-row:active{transform:translateY(0)}
+/* Progress bar behind the numbers of each stats pill: a soft blue fill from the left edge, as wide as the percentage */
+body.skin-sky .stat-row{position:relative;overflow:hidden;isolation:isolate}
+body.skin-sky .stat-row::before{content:'';position:absolute;z-index:-1;left:0;top:0;bottom:0;width:calc(var(--p,0) * 1%);border-radius:0 999px 999px 0}
+body.skin-sky .stat-row.stat-complete::before{display:none}
+body.skin-sky:not(.night-mode) .stat-row::before{background:linear-gradient(180deg,rgba(140,198,255,.20),rgba(100,160,245,.17));box-shadow:inset 0 1px 0 rgba(255,255,255,.45)}
+body.skin-sky.night-mode .stat-row::before{background:linear-gradient(180deg,rgba(94,166,255,.16),rgba(42,111,224,.14));box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
 body.skin-sky:not(.night-mode) .stat-label{flex:0 1 auto;margin:0;gap:8px;height:auto;padding:0;border-radius:0;background:none;box-shadow:none;font-size:15px;font-weight:800;color:#2a5fc0}
 body.skin-sky:not(.night-mode) .stat-val,body.skin-sky:not(.night-mode) .stat-pct{display:flex;align-items:center;height:auto;padding:0;border-radius:0;background:none;box-shadow:none;color:#2a5fc0}
 body.skin-sky:not(.night-mode) .stat-val{font-size:18px;font-weight:900}
@@ -1535,9 +1550,6 @@ body.skin-sky:not(.night-mode) #mapPickIcon svg{display:block;width:100%;height:
     </div>
     <div id="otherStatsList" style="width:100%;margin-top:6px"></div>
 
-    <div id="missedBtnWrap" style="display:none;width:100%;max-width:520px;margin-top:6px">
-      <button id="missedBtn"><span class="mb-ico">🔍</span> What did I miss?</button>
-    </div>
     <div id="siteFooter">GeoQuiz by Eisman 2026</div>
   </div>
   </div><!-- end bottomPanels -->
@@ -6486,11 +6498,11 @@ function renderOtherStats() {
   const rows = [];
 
   // Population thresholds
-  for (const [thresh, label] of [[1000000,'over 1,000,000'],[500000,'over 500,000'],[100000,'over 100,000']]) {
+  for (const [thresh, label] of [[1000000,'1M+ cities'],[500000,'500k+ cities'],[100000,'100k+ cities']]) {
     const total = dbCount(c => (c.pop||0) >= thresh);
     const got   = foundCount(c => (c.pop||0) >= thresh);
     const pct   = total ? ((got/total)*100).toFixed(1) : '0.0';
-    rows.push({ label: `cities ${label}`, got, total, pct });
+    rows.push({ key: 'pop' + thresh, label, got, total, pct });
   }
 
   if (scoped) {
@@ -6500,13 +6512,13 @@ function renderOtherStats() {
     const totalStates = Object.keys(US_STATES).filter(k => k.length === 2 && !['PR','GU','VI','DC'].includes(k)).length; // 50
     const gotStates = new Set(regionFound.map(c => c.admin1).filter(Boolean)).size;
     const pctStates = ((gotStates/totalStates)*100).toFixed(1);
-    rows.push({ label: 'states', got: gotStates, total: totalStates, pct: pctStates });
+    rows.push({ key: 'states', label: 'states', got: gotStates, total: totalStates, pct: pctStates });
 
     // State capitals
     const totalCapitals = US_STATE_CAPITALS.size;
     const gotCapitals = new Set(regionFound.filter(c => { const st=US_STATE_CAPITALS.get(c.name.toLowerCase()); return st!==undefined && (c.admin1||'').toUpperCase()===st; }).map(c => US_STATE_CAPITALS.get(c.name.toLowerCase()))).size;
     const pctCapitals = ((gotCapitals/totalCapitals)*100).toFixed(1);
-    rows.push({ label: 'state capitals', got: gotCapitals, total: totalCapitals, pct: pctCapitals });
+    rows.push({ key: 'capitals', label: 'state capitals', got: gotCapitals, total: totalCapitals, pct: pctCapitals });
   } else if (isJapan) {
     // Prefecture capitals — a city counts if its name matches one of the 47
     // prefectural seats (see isJPPrefCapital for why this no longer also
@@ -6518,14 +6530,14 @@ function renderOtherStats() {
         .map(c => JP_PREF_CAPITAL_BY_NAME.get(jpCapitalKey(c)))
     ).size;
     const pctCapitals = ((gotCapitals/totalCapitals)*100).toFixed(1);
-    rows.push({ label: 'prefecture capitals', got: gotCapitals, total: totalCapitals, pct: pctCapitals });
+    rows.push({ key: 'capitals', label: 'prefecture capitals', got: gotCapitals, total: totalCapitals, pct: pctCapitals });
   } else {
     // Countries
     const applicableUN = regionDef.countries ? regionDef.countries.filter(c => UN_COUNTRIES.has(c)) : [...UN_COUNTRIES];
     const totalCountries = applicableUN.length;
     const gotCountries = new Set(regionFound.map(c => c.country).filter(c => UN_COUNTRIES.has(c))).size;
     const pctCountries = totalCountries ? ((gotCountries/totalCountries)*100).toFixed(1) : '0.0';
-    rows.push({ label: 'countries', got: gotCountries, total: totalCountries, pct: pctCountries });
+    rows.push({ key: 'countries', label: 'countries', got: gotCountries, total: totalCountries, pct: pctCountries });
 
     // Russia: "capitals" means the capitals of the federal subjects, not just Moscow.
     if (currentRegion === 'spain' || currentRegion === 'poland') {
@@ -6533,27 +6545,30 @@ function renderOtherStats() {
       const table = isES ? ES_REGION_CAPITAL_NAMES : PL_REGION_CAPITAL_NAMES;
       const totalRegCaps = Object.keys(table).length;
       const gotRegCaps = regionCapitalsFound(isES ? 'ES' : 'PL', table, regionFound);
-      rows.push({ label: isES ? 'provincial capitals' : 'voivodeship capitals', got: gotRegCaps, total: totalRegCaps, pct: ((gotRegCaps / totalRegCaps) * 100).toFixed(1) });
+      rows.push({ key: 'capitals', label: isES ? 'provincial capitals' : 'voivodeship capitals', got: gotRegCaps, total: totalRegCaps, pct: ((gotRegCaps / totalRegCaps) * 100).toFixed(1) });
     } else if (currentRegion === 'russia') {
       const totalRegCaps = Object.keys(RU_REGION_CAPITALS).length;
       const gotRegCaps = new Set(regionFound.map(ruRegionCapitalOf).filter(Boolean)).size;
-      rows.push({ label: 'regional capitals', got: gotRegCaps, total: totalRegCaps, pct: ((gotRegCaps / totalRegCaps) * 100).toFixed(1) });
+      rows.push({ key: 'capitals', label: 'regional capitals', got: gotRegCaps, total: totalRegCaps, pct: ((gotRegCaps / totalRegCaps) * 100).toFixed(1) });
     } else {
     // Capitals — one per country max (some countries have multiple PPLC entries)
     const capitalCountries = new Set(cityDB.filter(c => c.isCapital && UN_COUNTRIES.has(c.country) && cityInRegion(c, regionDef)).map(c => c.country));
     const totalCapitals = Math.min(capitalCountries.size, totalCountries);
     const gotCapitals   = new Set(regionFound.filter(c => c.isCapital && UN_COUNTRIES.has(c.country)).map(c => c.country)).size;
     const pctCapitals   = totalCapitals ? ((gotCapitals/totalCapitals)*100).toFixed(1) : '0.0';
-    rows.push({ label: 'capitals', got: gotCapitals, total: totalCapitals, pct: pctCapitals });
+    rows.push({ key: 'capitals', label: 'capitals', got: gotCapitals, total: totalCapitals, pct: pctCapitals });
     }
   }
 
   el.innerHTML = '';
-  rows.forEach(({ label, got, total, pct }) => {
+  rows.forEach(({ key, label, got, total, pct }) => {
     if (total === 0) return; // hide rows with no data
     const complete = total > 0 && got >= total;
     const row = document.createElement('div');
     row.className = 'stat-row' + (complete ? ' stat-complete' : '');
+    row.dataset.key = key || ''; row.dataset.label = label;
+    row.setAttribute('role', 'button'); row.tabIndex = 0; row.title = 'Click to see what you missed';
+    row.style.setProperty('--p', Math.max(0, Math.min(100, parseFloat(pct) || 0)));   // progress bar fill (Glossy Blue skin)
     row.innerHTML =
       `<span class="stat-label">${label}${complete ? '<span class="stat-check" title="Complete!">✓</span>' : ''}</span>` +
       `<span class="stat-val">${got} / ${total}</span>` +
@@ -6723,7 +6738,6 @@ function updateSummary() {
     const cityWord = found.length === 1 ? 'city' : 'cities';
     bar.innerHTML = `You named <strong>${found.length} ${cityWord}</strong>, with a total population of <span class="pop-total">${fmtPop(totalPop)}</span>`;
   }
-  updateMissedBtn();
 }
 
 function renumberFoundItems() {
@@ -8516,11 +8530,7 @@ async function autoLoadCities() {
 }
 
 // ─── WHAT DID I MISS ─────────────────────────────────────────────────────────
-function updateMissedBtn() {
-  document.getElementById('missedBtnWrap').style.display = found.length > 0 ? 'block' : 'none';
-}
-
-function buildMissedModal() {
+function buildMissedModal(onlyKey, onlyLabel) {
   const isUSA   = currentRegion === 'usa';
   const isJapan = currentRegion === 'japan';
   const regionDef = REGIONS[currentRegion];
@@ -8528,7 +8538,7 @@ function buildMissedModal() {
   // Same country scope as the stats panel ('' = whole map).
   const scopeCountry = statsCountry;
   const headEl = document.getElementById('missedTitleText');
-  if (headEl) headEl.textContent = 'What did I miss?' + (scopeCountry ? ' — ' + statsLabel() : '');
+  if (headEl) headEl.textContent = 'What did I miss?' + (scopeCountry ? ' — ' + statsLabel() : '');   // keyed mode overrides this below
 
   // Filter DB to current region (and to the picked country, if any)
   function inRegion(c) {
@@ -8546,6 +8556,7 @@ function buildMissedModal() {
       .sort((a,b) => b.pop - a.pop);
     if (missedAtThresh.length) {
       sections.push({
+        key: 'pop' + thresh,
         title: `Missing cities over ${label} (${missedAtThresh.length})`,
         chips: missedAtThresh.map(c => ({ label: `${displayName(c)} (${fmtPop(c.pop)})`, cls: 'big' })),
       });
@@ -8601,14 +8612,54 @@ function buildMissedModal() {
   }
   if (missedCapitals.length) {
     sections.push({
+      key: 'capitals',
       title: `Missing capitals (${missedCapitals.length})`,
       chips: missedCapitals,
     });
   }
 
+  // States (US map) and countries (every other map except Japan) — the other two stats that can be clicked
+  if (!scopeCountry && isUSA) {
+    const gotAdm = new Set(found.map(c => c.admin1).filter(Boolean));
+    const missedStates = Object.keys(US_STATES)
+      .filter(k => k.length === 2 && !['PR','GU','VI','DC'].includes(k) && !gotAdm.has(k))
+      .map(k => ({ label: US_STATES[k].replace(/\b\w/g, l => l.toUpperCase()), cls: 'country' }))
+      .sort((a,b) => a.label.localeCompare(b.label));
+    if (missedStates.length) sections.push({ key: 'states', title: `Missing states (${missedStates.length})`, chips: missedStates });
+  }
+  if (!scopeCountry && !isUSA && !isJapan) {
+    const applicableUN2 = regionDef.countries ? regionDef.countries.filter(c => UN_COUNTRIES.has(c)) : [...UN_COUNTRIES];
+    const gotC = new Set(found.map(c => c.country));
+    const missedCountries = applicableUN2.filter(c => !gotC.has(c))
+      .map(c => ({ label: fmtCountry(c), cls: 'country' }))
+      .sort((a,b) => a.label.localeCompare(b.label));
+    if (missedCountries.length) sections.push({ key: 'countries', title: `Missing countries (${missedCountries.length})`, chips: missedCountries });
+  }
+
   const body = document.getElementById('missedBody');
   body.innerHTML = '';
   body.classList.remove('drilled'); document.getElementById('missedBack').classList.remove('show');   // always start on the list of categories
+  if (onlyKey) {
+    // Opened from a stats pill: show just that stat's missing places, straight away.
+    const sec = sections.find(x => x.key === onlyKey);
+    const name = onlyLabel || 'places';
+    if (!sec) {
+      if (headEl) headEl.textContent = 'Missing ' + name + (scopeCountry ? ' — ' + statsLabel() : '');
+      body.innerHTML = '<p style="color:var(--success);font-weight:600;text-align:center;padding:20px">🎉 Nothing missed here!</p>';
+      return;
+    }
+    if (headEl) headEl.textContent = 'Missing ' + name + ' (' + sec.chips.length + ')' + (scopeCountry ? ' — ' + statsLabel() : '');
+    const grid = document.createElement('div');
+    grid.className = 'missed-grid';
+    sec.chips.forEach(({ label, cls }) => {
+      const chip = document.createElement('span');
+      chip.className = 'missed-chip ' + cls;
+      chip.textContent = label;
+      grid.appendChild(chip);
+    });
+    body.appendChild(grid);
+    return;
+  }
   if (!sections.length) {
     body.innerHTML = '<p style="color:var(--success);font-weight:600;text-align:center;padding:20px">🎉 Nothing missed in these categories!</p>';
     return;
@@ -8636,11 +8687,21 @@ function buildMissedModal() {
   });
 }
 
-document.getElementById('missedBtn').addEventListener('click', () => {
-  buildMissedModal();
-  const modal = document.getElementById('missedModal');
-  modal.style.display = 'flex';
-});
+// Clicking (or Enter / Space on) a stats pill opens the missing places for exactly that stat.
+(function () {
+  const list = document.getElementById('otherStatsList');
+  function openFor(row) {
+    if (!row || !row.dataset.key) return;
+    buildMissedModal(row.dataset.key, row.dataset.label);
+    document.getElementById('missedModal').style.display = 'flex';
+  }
+  list.addEventListener('click', e => openFor(e.target.closest('.stat-row')));
+  list.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const row = e.target.closest('.stat-row'); if (!row) return;
+    e.preventDefault(); openFor(row);
+  });
+})();
 document.getElementById('missedClose').addEventListener('click', () => {
   document.getElementById('missedModal').style.display = 'none';
 });
