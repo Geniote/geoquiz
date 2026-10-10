@@ -541,7 +541,7 @@ body.night-mode #circleBoardBtn{background:rgba(20,24,32,.85)}
 .cm-btn.danger{background:#d64550;border-color:#d64550;color:#fff}
 .cm-btn.danger:hover:not(:disabled){background:#bb2f3b;border-color:#bb2f3b}
 .cm-box{background:var(--surface);color:var(--text);border-radius:12px;width:440px;max-width:94vw;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.28);overflow:hidden}
-#circleBoardModal .cm-box{width:560px}
+#circleBoardModal .cm-box{width:640px}
 .cm-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);flex-shrink:0}
 .cm-head h2{font-size:15px;font-weight:700;color:var(--accent2)}
 .cm-x{border:none;background:transparent;font-size:18px;cursor:pointer;color:var(--text2);line-height:1;padding:2px 6px;border-radius:4px}
@@ -572,6 +572,7 @@ body.night-mode #circleBoardBtn{background:rgba(20,24,32,.85)}
 .cb-table .cb-total{font-weight:800}
 .cb-table .cb-rounds{color:var(--text3);font-size:11.5px;white-space:nowrap}
 .cb-table tr.me td{background:rgba(46,125,50,.12)}
+.cb-table tr.top td{background:rgba(245,190,50,.28)}
 .cb-table .cb-del{border:none;background:none;color:var(--text3);cursor:pointer;font-size:12px;padding:2px 5px;border-radius:4px}
 .cb-table .cb-del:hover{color:var(--danger);background:var(--bg)}
 .cb-empty{padding:22px 10px;text-align:center;color:var(--text3);font-size:13px;font-style:italic}
@@ -1908,7 +1909,7 @@ let currentRegion = 'world';
 const W_BASE = 1000, H_BASE = 500;
 
 const S = {
-  dotColor:'#e7bc23', dotAlpha:0.75, uniformSize:false, uniformR:0, dotSizeMode:'normal', // Glossy Blue is the default skin (palette = SKIN_PRESETS.sky)
+  dotColor:'#ff9f1c', dotAlpha:0.75, uniformSize:false, uniformR:0, dotSizeMode:'normal', // Glossy Blue is the default skin (palette = SKIN_PRESETS.sky)
   landColor:'#e9f4fe', seaColor:'#bddcfa', borderColor:'#94bfea',
   countryMode:'any', specificCountry:'', specificAdmin1:'',
   nightMode:false, _preNight:null, // _preNight: colours saved when night mode is switched on, restored when switched off
@@ -1939,7 +1940,7 @@ const DOT_DEFAULTS = { dotColor:'#cb6543', dotAlpha:0.75, uniformSize:false, uni
 const MAP_DEFAULTS = { landColor:'#e8e4da', seaColor:'#c8dff0', borderColor:'#aaaaaa' };
 // Skins: a palette applied together with a body class that restyles the interface (CSS section "SKINS").
 const SKIN_PRESETS = {
-  sky: { landColor:'#e9f4fe', seaColor:'#bddcfa', borderColor:'#94bfea', dotColor:'#e7bc23', dotAlpha:0.75 }
+  sky: { landColor:'#e9f4fe', seaColor:'#bddcfa', borderColor:'#94bfea', dotColor:'#ff9f1c', dotAlpha:0.75 }
 };
 function mapDef() { const k = SKIN_PRESETS[S.skin]; return k ? { landColor:k.landColor, seaColor:k.seaColor, borderColor:k.borderColor } : MAP_DEFAULTS; }
 function dotDef() { const k = SKIN_PRESETS[S.skin]; return k ? Object.assign({}, DOT_DEFAULTS, { dotColor:k.dotColor, dotAlpha:k.dotAlpha }) : DOT_DEFAULTS; }
@@ -5221,11 +5222,11 @@ function openCircleBoard() {
   const bh = document.getElementById('circleBoardTitle');
   if (bh) bh.innerHTML = circleWindowTitleHTML('Scoreboard', true);
   const body = document.getElementById('circleBoardBody');
-  const fmtDate = t => { try { return new Date(t).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return ''; } };
+  const fmtDate = t => { try { const d = new Date(t); return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) + ' · ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } };
   if (!list.length) body.innerHTML = '<div class="cb-empty">No saved games yet. Finish a game and save your score to see it here!</div>';
   else {
     body.innerHTML = `<table class="cb-table"><thead><tr><th>#</th><th>Player</th><th class="num">Score</th><th>Rounds</th><th>Date</th><th></th></tr></thead><tbody>${
-      list.map((g, i) => `<tr class="${g.id === circleLastSavedId ? 'me' : ''}"><td>${i + 1}${i === 0 ? ' 🥇' : i === 1 ? ' 🥈' : i === 2 ? ' 🥉' : ''}</td><td>${_chEsc(g.name)}</td><td class="num cb-total">${g.total.toLocaleString('en-US')}</td><td class="cb-rounds">${(g.rounds || []).map(r => r.toLocaleString('en-US')).join(' · ')}</td><td class="cb-rounds">${fmtDate(g.date)}</td><td><button class="cb-del" data-id="${_chEsc(g.id)}" title="Delete this entry" aria-label="Delete this entry">✕</button></td></tr>`).join('')
+      list.map((g, i) => `<tr class="${(g.id === circleLastSavedId ? 'me' : '') + (i === 0 ? ' top' : '')}"><td>${i + 1}${i === 1 ? ' 🥈' : i === 2 ? ' 🥉' : ''}</td><td>${_chEsc(g.name)}</td><td class="num cb-total">${g.total.toLocaleString('en-US')}</td><td class="cb-rounds">${(g.rounds || []).map(r => r.toLocaleString('en-US')).join(' · ')}</td><td class="cb-rounds">${fmtDate(g.date)}</td><td><button class="cb-del" data-id="${_chEsc(g.id)}" title="Delete this entry" aria-label="Delete this entry">✕</button></td></tr>`).join('')
     }</tbody></table>`;
   }
   document.getElementById('circleBoardModal').classList.add('open');
@@ -5467,7 +5468,7 @@ document.getElementById('mapWrap').addEventListener('mouseleave', () => {
 // ─── DOTS ─────────────────────────────────────────────────────────────────────
 function dotStroke() {
   if (S.skin === 'sky' && !S.nightMode) {   // flat yellow dots with a darker-yellow outline (the dot colour, darkened)
-    const h = S.dotColor || '#e7bc23', c = [1,3,5].map(i => parseInt(h.slice(i,i+2),16));
+    const h = S.dotColor || '#ff9f1c', c = [1,3,5].map(i => parseInt(h.slice(i,i+2),16));
     return '#' + c.map(v => Math.round(v * 0.55).toString(16).padStart(2,'0')).join('');
   }
   return S.nightMode ? 'none' : 'rgba(0,0,0,1)';
@@ -9482,7 +9483,7 @@ body.skin-sky.night-mode.circle-mode #circleBoardBtn{border-color:rgba(255,255,2
 body.skin-sky.night-mode.circle-mode #circleBoardBtn:hover{background:linear-gradient(180deg,#101a28,#12264c)}
 
 body.skin-sky:not(.night-mode) #circleBoardModal{background:rgba(110,168,232,.38);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
-body.skin-sky:not(.night-mode) #circleBoardModal .cm-box{width:580px;border-radius:28px;border:1px solid rgba(255,255,255,.85);background:linear-gradient(180deg,rgba(248,252,255,.97),rgba(222,238,253,.96));box-shadow:0 20px 50px rgba(40,100,190,.33),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #circleBoardModal .cm-box{width:640px;border-radius:28px;border:1px solid rgba(255,255,255,.85);background:linear-gradient(180deg,rgba(248,252,255,.97),rgba(222,238,253,.96));box-shadow:0 20px 50px rgba(40,100,190,.33),inset 0 1px 0 #fff}
 body.skin-sky:not(.night-mode) #circleBoardModal .cm-head{margin:12px 12px 4px;padding:6px 8px 6px 16px;border:none;border-radius:999px;background:linear-gradient(180deg,#fff,#eaf4fe);box-shadow:0 4px 12px rgba(70,140,220,.18),inset 0 1px 0 #fff}
 body.skin-sky:not(.night-mode) #circleBoardModal .cm-head h2{font-size:17px;line-height:1.15;font-weight:800;color:#0f3f9c;letter-spacing:-.01em}
 body.skin-sky:not(.night-mode) #circleBoardModal .cm-x{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:34px;height:34px;padding:0;border-radius:50%;font-size:18px;font-weight:700;color:#2a6fe0;background:linear-gradient(180deg,#fff,#e6f1fd);box-shadow:0 2px 8px rgba(70,140,220,.26),inset 0 1px 0 #fff}
@@ -9497,12 +9498,15 @@ body.skin-sky:not(.night-mode) .cb-table td:not(.num):not(.cb-rounds){box-shadow
 body.skin-sky:not(.night-mode) .cb-table .cb-total{color:#0f3f9c;font-weight:800;font-size:14px}
 body.skin-sky:not(.night-mode) .cb-table .cb-rounds{color:#7c9bd0;font-weight:600}
 body.skin-sky:not(.night-mode) .cb-table tr.me td{background:linear-gradient(180deg,#f0fbf4,#d3f1de)}
+body.skin-sky:not(.night-mode) .cb-table tr.top td{background:linear-gradient(180deg,#fff3c2,#fbdc7a)}
+body.skin-sky:not(.night-mode) .cb-table tr.top .cb-rounds{color:#9a7010}
+body.skin-sky:not(.night-mode) .cb-table tr.top .cb-del{color:#a8802a}
 body.skin-sky:not(.night-mode) .cb-table .cb-del{width:24px;height:24px;padding:0;border-radius:50%;color:#8aa1c4;background:transparent}
 body.skin-sky:not(.night-mode) .cb-table .cb-del:hover{color:#fff;background:#e0455f}
 body.skin-sky:not(.night-mode) .cb-empty{color:#5a7ab5;font-weight:600}
 
 body.skin-sky.night-mode #circleBoardModal{background:rgba(2,8,22,0.62);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
-body.skin-sky.night-mode #circleBoardModal .cm-box{width:580px;border-radius:28px;border:1px solid rgba(255,255,255,0.14);background:linear-gradient(180deg,rgba(12,27,50,0.97),rgba(16,36,70,0.96));box-shadow:0 20px 50px rgba(0,8,30,0.59),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #circleBoardModal .cm-box{width:640px;border-radius:28px;border:1px solid rgba(255,255,255,0.14);background:linear-gradient(180deg,rgba(12,27,50,0.97),rgba(16,36,70,0.96));box-shadow:0 20px 50px rgba(0,8,30,0.59),inset 0 1px 0 rgba(255,255,255,0.28)}
 body.skin-sky.night-mode #circleBoardModal .cm-head{margin:12px 12px 4px;padding:6px 8px 6px 16px;border:none;border-radius:999px;background:linear-gradient(180deg,#101a28,#0e1f3d);box-shadow:0 4px 12px rgba(0,8,30,0.32),inset 0 1px 0 rgba(255,255,255,0.28)}
 body.skin-sky.night-mode #circleBoardModal .cm-head h2{font-size:17px;line-height:1.15;font-weight:800;color:#91b0ec;letter-spacing:-.01em}
 body.skin-sky.night-mode #circleBoardModal .cm-x{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:34px;height:34px;padding:0;border-radius:50%;font-size:18px;font-weight:700;color:#719fea;background:linear-gradient(180deg,#101a28,#0f2040);box-shadow:0 2px 8px rgba(0,8,30,0.47),inset 0 1px 0 rgba(255,255,255,0.28)}
@@ -9516,6 +9520,9 @@ body.skin-sky.night-mode .cb-table tbody td:last-child{border-radius:0 15px 15px
 body.skin-sky.night-mode .cb-table .cb-total{color:#91b0ec;font-weight:800;font-size:14px}
 body.skin-sky.night-mode .cb-table .cb-rounds{color:#7f9bc9;font-weight:600}
 body.skin-sky.night-mode .cb-table tr.me td{background:linear-gradient(180deg,#123424,#17402d)}
+body.skin-sky.night-mode .cb-table tr.top td{background:linear-gradient(180deg,#4a3a12,#3a2d0c)}
+body.skin-sky.night-mode .cb-table tr.top .cb-total{color:#ffd978}
+body.skin-sky.night-mode .cb-table tr.top .cb-rounds{color:#d9b660}
 body.skin-sky.night-mode .cb-table .cb-del{width:24px;height:24px;padding:0;border-radius:50%;color:#7f9bc9;background:transparent}
 body.skin-sky.night-mode .cb-table .cb-del:hover{color:#fff;background:#c0392b}
 body.skin-sky.night-mode .cb-empty{color:#7f9bc9;font-weight:600}
