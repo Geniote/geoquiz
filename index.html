@@ -367,6 +367,8 @@ body.map-zooming #map-g path{shape-rendering:optimizeSpeed}
   }
   body.list-collapsed #panel{visibility:hidden;transition:right var(--list-t),visibility 0s .38s}
   #sessionBar,#statusRow{margin-right:var(--list-w);transition:margin-right var(--list-t)}
+  /* The summary pill stays centred on the whole screen, not just on the strip left of the city list: the row is narrowed by the list's width, so shift the pill back by half of it (same easing as the list). */
+  #summaryBar{transform:translateX(calc(var(--list-w) / 2));transition:transform var(--list-t);max-width:calc(100vw - 2 * var(--list-w) - 24px)}
   #bottomPanels{width:auto;margin-right:var(--list-w);transition:margin-right var(--list-t)}
   /* Even spacing in the session bar: the free space left over when the bar is
      wide is split equally between a slot around the map button and a slot
@@ -386,7 +388,7 @@ body.map-zooming #map-g path{shape-rendering:optimizeSpeed}
   body.night-mode #listCollapseBtn:hover{background:#1a1f29;color:var(--accent2)}
 }
 @media (prefers-reduced-motion:reduce){
-  #panel,body.list-collapsed #panel,#sessionBar,#statusRow,#bottomPanels,.zbtn-wrap,#listCollapseBtn,#listCollapseBtn svg{transition-duration:0s !important;transition-delay:0s !important}
+  #panel,body.list-collapsed #panel,#sessionBar,#statusRow,#summaryBar,#bottomPanels,.zbtn-wrap,#listCollapseBtn,#listCollapseBtn svg{transition-duration:0s !important;transition-delay:0s !important}
 }
 
 /* TOP SHAPES PANEL — fills the space between the settings and found-cities columns */
@@ -7609,18 +7611,17 @@ document.getElementById('skinClose').onclick = closeSkinModal;
   window.addEventListener('resize', sync);
 })();
 // Glossy Blue: the info message (#msg) sits on the same row as the summary pill ("You named N cities…"), pinned to the
-// left edge and vertically centred on the pill. The message keeps its natural size; when the pill (centred in the row, which
-// the city panel narrows) would run into it, the pill is nudged right to keep a gap. Only if the pill has already reached the
-// right end of the row does the message shrink (wrapping onto more lines) instead of being covered.
+// left edge and vertically centred on the pill. The pill never moves: it stays centred on the whole screen whatever the
+// message length or whether the city panel is open. When the message would run into the pill it shrinks (wrapping onto
+// more lines) to fit in the space to the pill's left.
 (function () {
   const msg = document.getElementById('msg'), bar = document.getElementById('summaryBar'), row = document.getElementById('statusRow');
   if (!msg || !bar || !row) return;
   const GAP = 16;
   let raf = 0, burst = 0;
-  function reset() { msg.style.maxWidth = ''; msg.style.top = ''; bar.style.transform = ''; }
+  function reset() { msg.style.maxWidth = ''; msg.style.top = ''; }
   function place() {
     raf = 0;
-    bar.style.transform = '';
     const sky = document.body.classList.contains('skin-sky');
     const r0 = bar.getBoundingClientRect();
     const barOn = sky && row.style.display !== 'none' && bar.style.display !== 'none' && r0.width > 0;
@@ -7628,17 +7629,14 @@ document.getElementById('skinClose').onclick = closeSkinModal;
     const pr = (msg.offsetParent || document.body).getBoundingClientRect();
     const left = parseFloat(getComputedStyle(msg).left) || 6;
     const msgOn = msg.textContent.trim() !== '' && getComputedStyle(msg).display !== 'none';
-    let shift = 0;
     msg.style.maxWidth = 'none';
     if (msgOn) {
       const mw = msg.getBoundingClientRect().width;                    // natural width
-      const need = pr.left + left + mw + GAP - r0.left;                // how far the pill must move right
-      const inner = row.getBoundingClientRect().right - (parseFloat(getComputedStyle(row).paddingRight) || 0);
-      const room = Math.max(0, inner - r0.right);                      // how far it can move before the row's right end
-      shift = Math.max(0, Math.min(need, room));
-      if (need > room) msg.style.maxWidth = Math.max(80, r0.left + shift - pr.left - left - GAP) + 'px';
+      const par = row.parentElement, parR = par.getBoundingClientRect();
+      const pillLeft = parR.left + par.clientWidth / 2 - bar.offsetWidth / 2;   // pill's final left edge (screen-centred), independent of the slide transition
+      const avail = pillLeft - (pr.left + left) - GAP;                 // space to the pill's left
+      msg.style.maxWidth = mw > avail ? Math.max(80, avail) + 'px' : '';
     } else msg.style.maxWidth = '';
-    if (shift > 0) bar.style.transform = 'translateX(' + Math.round(shift) + 'px)';
     msg.style.top = (r0.top - pr.top + (r0.height - msg.offsetHeight) / 2) + 'px';
   }
   const queue = () => { if (!raf) raf = requestAnimationFrame(place); };
