@@ -4786,9 +4786,9 @@ const CIRCLE_CFG = {
   world: {
     title: 'Circle challenge',
     desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many, so Siberian and Saharan circles are huge). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Tokyo. You play 3 circles, either relaxed (no timer) or in Hard mode (60 seconds per circle, and 5 typed cities that are not inside the circle end the round). A real city typed outside the circle subtracts points (half of what a correct one would give). Your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
-    minR: 200, maxR: 2200,            // km: tiny circles in India or China, huge ones over Siberia, the Sahara or the Amazon
+    minR: 320, maxR: 3300,            // km: small circles in India or China, huge ones over Siberia, the Sahara or the Amazon
     bigCityPop: 150000,              // a world-wide city list is huge, so only larger cities decide the circle size
-    targetBigCities: [8, 14],
+    targetBigCities: [12, 20],       // bigger than the other maps: the radius reaches about this many big cities
     nudgeKm: 150,
     revealCount: 10,
     popFloor: 1000,
