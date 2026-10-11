@@ -4705,7 +4705,7 @@ function lookupCity(raw) {
 const CIRCLE_CFG = {
   usa: {
     title: 'Circle challenge',
-    desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like New York. You play 3 circles, either relaxed (no timer) or in Hard mode (60 seconds per circle, and 5 typed cities that are not inside the circle end the round). A real city typed outside the circle subtracts points (a quarter of what a correct one would give). Your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
+    desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like New York. You play 3 circles, either relaxed (no timer) or in Hard mode (60 seconds per circle, and 5 typed cities that are not inside the circle end the round). A real city typed outside the circle subtracts points (the farther outside the circle it is, the more it costs, from 10 up to 250 points). Your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
     minR: 130, maxR: 450,             // km: the circle adapts its radius between these limits (small where there are many big cities, big where there are few)
     bigCityPop: 50000,               // a "big city" for sizing the circle: population at or above this
     targetBigCities: [8, 14],        // the radius is set so that about this many big cities fall inside the circle (random in this range)
@@ -4718,7 +4718,7 @@ const CIRCLE_CFG = {
   },
   japan: {
     title: 'Circle challenge',
-    desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Tokyo. You play 3 circles, either relaxed (no timer) or in Hard mode (60 seconds per circle, and 5 typed cities that are not inside the circle end the round). A real city typed outside the circle subtracts points (a quarter of what a correct one would give). Your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
+    desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Tokyo. You play 3 circles, either relaxed (no timer) or in Hard mode (60 seconds per circle, and 5 typed cities that are not inside the circle end the round). A real city typed outside the circle subtracts points (the farther outside the circle it is, the more it costs, from 10 up to 250 points). Your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
     minR: 65, maxR: 350,             // km: Japan is dense, so circles are much smaller than in the US
     bigCityPop: 50000,
     targetBigCities: [8, 14],
@@ -4731,7 +4731,7 @@ const CIRCLE_CFG = {
   },
   russia: {
     title: 'Circle challenge',
-    desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many, so Siberian circles are huge). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Moscow. You play 3 circles, either relaxed (no timer) or in Hard mode (60 seconds per circle, and 5 typed cities that are not inside the circle end the round). A real city typed outside the circle subtracts points (a quarter of what a correct one would give). Your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
+    desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many, so Siberian circles are huge). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Moscow. You play 3 circles, either relaxed (no timer) or in Hard mode (60 seconds per circle, and 5 typed cities that are not inside the circle end the round). A real city typed outside the circle subtracts points (the farther outside the circle it is, the more it costs, from 10 up to 250 points). Your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
     minR: 160, maxR: 1500,            // km: European Russia is dense, Siberia and the Far East are very sparse
     bigCityPop: 50000,
     targetBigCities: [6, 12],
@@ -4745,7 +4745,7 @@ const CIRCLE_CFG = {
   },
   poland: {
     title: 'Circle challenge',
-    desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Warsaw. You play 3 circles, either relaxed (no timer) or in Hard mode (60 seconds per circle, and 5 typed cities that are not inside the circle end the round). A real city typed outside the circle subtracts points (a quarter of what a correct one would give). Your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
+    desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Warsaw. You play 3 circles, either relaxed (no timer) or in Hard mode (60 seconds per circle, and 5 typed cities that are not inside the circle end the round). A real city typed outside the circle subtracts points (the farther outside the circle it is, the more it costs, from 10 up to 250 points). Your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
     minR: 60, maxR: 180,             // km: Poland is small, so circles stay modest
     bigCityPop: 20000,               // Poland has fewer large cities, so smaller ones set the circle size too
     targetBigCities: [6, 10],
@@ -4758,7 +4758,7 @@ const CIRCLE_CFG = {
   },
   spain: {
     title: 'Circle challenge',
-    desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Madrid. You play 3 circles, either relaxed (no timer) or in Hard mode (60 seconds per circle, and 5 typed cities that are not inside the circle end the round). A real city typed outside the circle subtracts points (a quarter of what a correct one would give). Your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
+    desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Madrid. You play 3 circles, either relaxed (no timer) or in Hard mode (60 seconds per circle, and 5 typed cities that are not inside the circle end the round). A real city typed outside the circle subtracts points (the farther outside the circle it is, the more it costs, from 10 up to 250 points). Your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
     minR: 90, maxR: 350,             // km: smaller around Madrid and the coasts, bigger in the empty interior and the islands
     bigCityPop: 50000,
     targetBigCities: [8, 14],
@@ -4771,7 +4771,7 @@ const CIRCLE_CFG = {
   },
   europe: {
     title: 'Circle challenge',
-    desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Moscow. You play 3 circles, either relaxed (no timer) or in Hard mode (60 seconds per circle, and 5 typed cities that are not inside the circle end the round). A real city typed outside the circle subtracts points (a quarter of what a correct one would give). Your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
+    desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Moscow. You play 3 circles, either relaxed (no timer) or in Hard mode (60 seconds per circle, and 5 typed cities that are not inside the circle end the round). A real city typed outside the circle subtracts points (the farther outside the circle it is, the more it costs, from 10 up to 250 points). Your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
     minR: 100, maxR: 650,             // km: dense in Central/Western Europe, big in Scandinavia, Iceland and Eastern Europe
     bigCityPop: 50000,
     targetBigCities: [8, 14],
@@ -4785,7 +4785,7 @@ const CIRCLE_CFG = {
   },
   world: {
     title: 'Circle challenge',
-    desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many, so Siberian and Saharan circles are huge). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Tokyo. You play 3 circles, either relaxed (no timer) or in Hard mode (60 seconds per circle, and 5 typed cities that are not inside the circle end the round). A real city typed outside the circle subtracts points (a quarter of what a correct one would give). Your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
+    desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many, so Siberian and Saharan circles are huge). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Tokyo. You play 3 circles, either relaxed (no timer) or in Hard mode (60 seconds per circle, and 5 typed cities that are not inside the circle end the round). A real city typed outside the circle subtracts points (the farther outside the circle it is, the more it costs, from 10 up to 250 points). Your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
     minR: 450, maxR: 4500,            // km: small circles in India or China, huge ones over Siberia, the Sahara or the Amazon
     bigCityPop: 150000,              // a world-wide city list is huge, so only larger cities decide the circle size
     targetBigCities: [16, 26],       // much bigger than the other maps: the radius reaches about this many big cities
@@ -5020,19 +5020,21 @@ function circleGuess() {
   if (!results.length) { setMsg(`"${raw}" not found.`, 'err'); return; }
   const inside = results.filter(c => circle.cities.has(circleKey(c))).sort((a, b) => (b.pop || 0) - (a.pop || 0));
   if (!inside.length) {
-    // A real city outside the circle costs points, worked out like a correct guess (log-scaled by population, so the
-    // biggest name that matches would be worth 1000, so up to -250 here) but negative and quartered. The round score and the game total can drop below 0.
+    // A real city outside the circle costs points by how far outside it is, not by how big the city is: just past the edge costs
+    // the minimum (10), and the penalty grows in a straight line up to 250 for a city a whole radius (or more) beyond the edge.
+    // The round score and the game total can drop below 0.
     const wrongCity = results.reduce((a, c) => (Number(c.pop) || 0) > (Number(a.pop) || 0) ? c : a, results[0]);
     // Typing the same wrong city again in this round costs nothing (no points, no strike): only the first time counts.
     const wKey = circleKey(wrongCity);
     if (circle.wrongSeen.has(wKey)) { setMsg(`${_chName(wrongCity)} is not inside the circle (already tried, no extra penalty).`, 'err'); return; }
     circle.wrongSeen.add(wKey);
-    const pen = Math.round(circlePts(wrongCity) / 4);   // a quarter of what the same city would have earned, so mistakes are only a light penalty
+    const missKm = Math.max(0, circleKm(wrongCity.lon, wrongCity.lat, circle.center[0], circle.center[1]) - circle.r);   // km beyond the circle's edge
+    const pen = Math.round(10 + 240 * Math.min(1, missKm / circle.r));
     circle.lost += pen; circle.mistakes++;
     circle.roundScore -= pen; circleTotal -= pen;
     _scoreDelta = -pen;
     if (circle.won && circle.roundScore < circle.goal) { circle.won = false; circlePassed--; }   // the goal is judged on the net score
-    const penTxt = `${_chName(wrongCity)} is not inside the circle: −${pen} pts`;
+    const penTxt = `${_chName(wrongCity)} is not inside the circle (${(Math.round(missKm / 10) * 10).toLocaleString('en-US')} km off): −${pen} pts`;
     if (!circleTimed) { setMsg(penTxt, 'err'); circleRenderHud(); return; }   // no timer: no wrong-city limit
     circle.wrong++;
     if (circle.wrong >= CIRCLE_MAX_WRONG) {   // too many strangers: the round ends and keeps the points scored so far
