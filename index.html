@@ -4786,9 +4786,9 @@ const CIRCLE_CFG = {
   world: {
     title: 'Circle challenge',
     desc: 'A random circle appears on the map (bigger where there are few big cities, smaller where there are many, so Siberian and Saharan circles are huge). Type cities inside it: the biggest city in the circle is worth 1000 points and smaller ones less, on a scale that rewards small towns fairly even next to a giant like Tokyo. You play 3 circles, either relaxed (no timer) or in Hard mode (60 seconds per circle, and 5 typed cities that are not inside the circle end the round). A real city typed outside the circle subtracts points (half of what a correct one would give). Your points add up to a final score you can save to the scoreboard. Reach the points the 5 biggest cities are worth to earn a 🏆 on a round.',
-    minR: 320, maxR: 3300,            // km: small circles in India or China, huge ones over Siberia, the Sahara or the Amazon
+    minR: 450, maxR: 4500,            // km: small circles in India or China, huge ones over Siberia, the Sahara or the Amazon
     bigCityPop: 150000,              // a world-wide city list is huge, so only larger cities decide the circle size
-    targetBigCities: [12, 20],       // bigger than the other maps: the radius reaches about this many big cities
+    targetBigCities: [16, 26],       // much bigger than the other maps: the radius reaches about this many big cities
     nudgeKm: 150,
     revealCount: 10,
     popFloor: 1000,
@@ -4916,6 +4916,7 @@ function circleNewRound(retry) {
     const n = Math.min(bigD.length, tMin + Math.floor(Math.random() * (tMax - tMin + 1)));
     let r = bigD.length ? Math.min(cfg.maxR, Math.max(cfg.minR, bigD[n - 1] * 1.05)) : cfg.maxR;
     if (!tooClose && r > room - 1) r = Math.max(cfg.minR, room - 1); // pull the edge back so it stops short of the nearest already-guessed city
+    if (cfg.noWrap) r = Math.min(r, (84 - Math.abs(lat)) * 111, (179 - Math.abs(lon)) * 111 * Math.max(0.2, Math.cos(Math.abs(lat) * Math.PI / 180)) * 0.8); // big circles shrink to fit near the poles and the date line instead of those spots being skipped
     r = Math.min(cfg.maxR, Math.max(cfg.minR, r)); // hard limits: a circle is never smaller than minR or bigger than maxR
     if (cfg.noWrap) { // keep the circle clear of the antimeridian and the poles (a wrapped circle can't be framed or drawn cleanly)
       const rDeg = r / 111, cosL = Math.max(0.2, Math.cos((Math.abs(lat) + rDeg) * Math.PI / 180));
