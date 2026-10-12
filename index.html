@@ -2516,7 +2516,7 @@ const MAP_DEFAULTS = { landColor:'#e8e4da', seaColor:'#c8dff0', borderColor:'#aa
 // Skins: a palette applied together with a body class that restyles the interface (CSS section "SKINS").
 const SKIN_PRESETS = {
   sky: { landColor:'#e9f4fe', seaColor:'#bddcfa', borderColor:'#94bfea', dotColor:'#ff7575', dotAlpha:0.75 },
-  nasa: { landColor:'#3b81b8', seaColor:'#001f37', borderColor:'#06223f', dotColor:'#ff8a1a', dotAlpha:0.95 }
+  nasa: { landColor:'#b6b997', seaColor:'#1b2119', borderColor:'#5b624e', dotColor:'#e2a24a', dotAlpha:0.95 }
 };
 function mapDef() { const k = SKIN_PRESETS[S.skin]; return k ? { landColor:k.landColor, seaColor:k.seaColor, borderColor:k.borderColor } : MAP_DEFAULTS; }
 function dotDef() { const k = SKIN_PRESETS[S.skin]; return k ? Object.assign({}, DOT_DEFAULTS, { dotColor:k.dotColor, dotAlpha:k.dotAlpha }) : DOT_DEFAULTS; }
@@ -6220,9 +6220,59 @@ function removeCity(city) {
 let sortByPop = false;
 
 let _justAddedId = null; // dotId of the most recently added city — used to animate only its new row in
+function makeFoundCityCard(city, guessNum, animate) {
+  const id = dotId(city);
+  const isUSMode = currentRegion === 'usa';
+  const isJPMode = currentRegion === 'japan';
+  const capState = US_STATE_CAPITALS.get(city.name.toLowerCase());
+  const isStateCapital = isUSMode && capState !== undefined && (city.admin1 || '').toUpperCase() === capState;
+  const isPrefCapital = isJPMode && isJPPrefCapital(city);
+  const regCapLabel = regionalCapitalLabel(city);
+  const isCapitalItem = (city.isCapital && !isUSMode && !isJPMode && UN_COUNTRIES.has(city.country)) || isStateCapital || isPrefCapital || !!regCapLabel;
+  const div = document.createElement('div');
+  div.className = 'fi' + (isCapitalItem ? ' fi-is-capital' : '') + (animate ? ' fi-enter' : '');
+  div.id = 'card-' + id;
+  div.dataset.cityId = id;
+  div.style.cursor = 'pointer';
+  div.title = 'Click to locate on map';
+  const capitalStar = isCapitalItem
+    ? `<span class="fi-capital" title="${isStateCapital ? 'State capital' : (isPrefCapital ? 'Prefecture capital' : (regCapLabel || 'Capital'))}">★</span>` : '';
+  div.innerHTML = `<span class="fi-num">${guessNum}<span class="fi-dot">.</span></span><div class="fi-info"><span class="fi-name"><span class="fi-name-scroll">${displayName(city)}${city.pop ? ` <span class="fi-pop">(${fmtPop(city.pop)})</span>` : ''}${capitalStar}</span></span><span class="fi-meta">${fmtLocation(city)}</span></div><button class="rm" title="Remove">✕</button>`;
+  div.querySelector('.rm').onclick = e => { e.stopPropagation(); removeCity(city); };
+  div.onclick = () => highlightCity(city);
+  return div;
+}
+function setFoundNameScroll(card) {
+  const label = card.querySelector('.fi-name'), text = card.querySelector('.fi-name-scroll');
+  if (!label || !text) return;
+  const overflow = Math.max(0, text.scrollWidth - label.clientWidth);
+  text.style.setProperty('--fi-overflow', overflow + 'px');
+  text.style.setProperty('--fi-scroll-duration', Math.max(1.4, overflow / 55) + 's');
+}
+function setFoundNameScrollBatch(cards) {
+  const sizes = cards.map(card => {
+    const label = card.querySelector('.fi-name'), text = card.querySelector('.fi-name-scroll');
+    return label && text ? { text, overflow: Math.max(0, text.scrollWidth - label.clientWidth) } : null;
+  });
+  sizes.forEach(size => {
+    if (!size) return;
+    size.text.style.setProperty('--fi-overflow', size.overflow + 'px');
+    size.text.style.setProperty('--fi-scroll-duration', Math.max(1.4, size.overflow / 55) + 's');
+  });
+}
 function addFoundItem(city) {
-  _justAddedId = dotId(city);
-  renderFoundGrid();
+  const grid = document.getElementById('foundGrid');
+  const specialMode = (circleMode && circle) || (quizMode && quizCfg());
+  // Normal unsorted play only needs one new row. Rebuilding hundreds of cards
+  // on each guess made entering a long session progressively slower.
+  if (grid && !specialMode && !sortByPop && found.length > 1 && !grid.querySelector('.fi-empty-overlay')) {
+    const card = makeFoundCityCard(city, found.length, true);
+    grid.prepend(card);
+    requestAnimationFrame(() => setFoundNameScroll(card));
+  } else {
+    _justAddedId = dotId(city);
+    renderFoundGrid();
+  }
   renderBestCountries();
   renderOtherStats();
   updateSummary();
@@ -6252,37 +6302,19 @@ function renderFoundGrid() {
     renderEmptyFoundGrid(grid);
     return;
   }
+  const guessNumbers = new Map(found.map((city, i) => [dotId(city), i + 1]));
   const list = sortByPop
     ? [...found].sort((a,b) => (b.pop||0) - (a.pop||0))
     : [...found].reverse();
-  list.forEach((city, i) => {
-    const id = dotId(city);
-    const div = document.createElement('div');
-    const isUSMode = currentRegion === 'usa';
-    const isJPMode = currentRegion === 'japan';
-    const _capState = US_STATE_CAPITALS.get(city.name.toLowerCase());
-    const isStateCapital = isUSMode && _capState !== undefined && (city.admin1 || '').toUpperCase() === _capState;
-    const isPrefCapital = isJPMode && isJPPrefCapital(city);
-    const regCapLabel = regionalCapitalLabel(city);
-    const isCapitalItem = (city.isCapital && !isUSMode && !isJPMode && UN_COUNTRIES.has(city.country)) || isStateCapital || isPrefCapital || !!regCapLabel;
-    div.className='fi' + (isCapitalItem ? ' fi-is-capital' : '') + (id === _justAddedId ? ' fi-enter' : ''); div.id='card-'+id;
-    div.style.cursor='pointer';
-    div.title='Click to locate on map';
-    const capitalStar = isCapitalItem
-      ? `<span class="fi-capital" title="${isStateCapital ? 'State capital' : (isPrefCapital ? 'Prefecture capital' : (regCapLabel || 'Capital'))}">★</span>` : '';
-    const guessNum = found.indexOf(city) + 1;
-    div.innerHTML=`<span class="fi-num">${guessNum}<span class="fi-dot">.</span></span><div class="fi-info"><span class="fi-name"><span class="fi-name-scroll">${displayName(city)}${city.pop?` <span class="fi-pop">(${fmtPop(city.pop)})</span>`:''}${capitalStar}</span></span><span class="fi-meta">${fmtLocation(city)}</span></div><button class="rm" title="Remove">✕</button>`;
-    grid.appendChild(div);
-    const nameLabel = div.querySelector('.fi-name');
-    const nameScroll = div.querySelector('.fi-name-scroll');
-    if (nameLabel && nameScroll) {
-      const overflow = Math.max(0, nameScroll.scrollWidth - nameLabel.clientWidth);
-      nameScroll.style.setProperty('--fi-overflow', overflow + 'px');
-      nameScroll.style.setProperty('--fi-scroll-duration', Math.max(1.4, overflow / 55) + 's');
-    }
-    div.querySelector('.rm').onclick = (e) => { e.stopPropagation(); removeCity(city); };
-    div.onclick = () => highlightCity(city);
+  const frag = document.createDocumentFragment(), cards = [];
+  list.forEach(city => {
+    const card = makeFoundCityCard(city, guessNumbers.get(dotId(city)), dotId(city) === _justAddedId);
+    cards.push(card); frag.appendChild(card);
   });
+  grid.appendChild(frag);
+  // Read all text widths after insertion, then apply styles together to avoid
+  // a forced layout for every row in a large saved session.
+  requestAnimationFrame(() => setFoundNameScrollBatch(cards));
   _justAddedId = null; // consumed — later re-renders (sort toggle, remove, etc.) shouldn't replay the animation
 
   // No city data is currently loaded (e.g. a saved session restored some
@@ -7181,6 +7213,7 @@ QUIZ_CFG.russia = {
   geometryDiffers: false,
 };
 
+let _otherStatsBaseCache = null;
 function renderOtherStats() {
   const el = document.getElementById('otherStatsList');
   if (!el) return;
@@ -7192,23 +7225,37 @@ function renderOtherStats() {
   // cities count and only the three population tiers are shown.
   const scoped = !!statsCountry;
 
-  // Filter cityDB to the current region (and to the picked country, if any)
-  const regionCities = cityDB.filter(c => cityInRegion(c, regionDef) && (!scoped || inStatsScope(c)));
+  // These totals depend on the loaded database and stats scope, not on each
+  // newly guessed city. Cache them so a large session doesn't rescan cityDB
+  // several times after every keystroke.
+  const statsBaseKey = currentRegion + '|' + (statsCountry || '') + '|' + (statsAdmin1 || '');
+  if (!_otherStatsBaseCache || _otherStatsBaseCache.cityDB !== cityDB ||
+      _otherStatsBaseCache.dbLength !== cityDB.length || _otherStatsBaseCache.key !== statsBaseKey) {
+    const regionCities = cityDB.filter(c => cityInRegion(c, regionDef) && (!scoped || inStatsScope(c)));
+    const popTotals = { 1000000: 0, 500000: 0, 100000: 0 };
+    const capitalCountries = new Set();
+    regionCities.forEach(c => {
+      const pop = c.pop || 0;
+      if (pop >= 1000000) popTotals[1000000]++;
+      if (pop >= 500000) popTotals[500000]++;
+      if (pop >= 100000) popTotals[100000]++;
+      if (c.isCapital && UN_COUNTRIES.has(c.country)) capitalCountries.add(c.country);
+    });
+    _otherStatsBaseCache = { cityDB, dbLength: cityDB.length, key: statsBaseKey, popTotals, capitalCountries };
+  }
+  const statsBase = _otherStatsBaseCache;
 
   // Current region's found cities
   const regionFound = scoped ? found.filter(inStatsScope) : found;
 
   // Helper: count found cities matching a predicate
   const foundCount = (pred) => regionFound.filter(pred).length;
-  // Helper: count DB cities matching a predicate (deduplicated by name+country+admin1)
-  const dbCount = (pred) => regionCities.filter(pred).length;
-
   // Build stat rows
   const rows = [];
 
   // Population thresholds
   for (const [thresh, label] of [[1000000,'1M+ cities'],[500000,'500k+ cities'],[100000,'100k+ cities']]) {
-    const total = dbCount(c => (c.pop||0) >= thresh);
+    const total = statsBase.popTotals[thresh] || 0;
     const got   = foundCount(c => (c.pop||0) >= thresh);
     const pct   = total ? ((got/total)*100).toFixed(1) : '0.0';
     rows.push({ key: 'pop' + thresh, label, got, total, pct });
@@ -7261,7 +7308,7 @@ function renderOtherStats() {
       rows.push({ key: 'capitals', label: 'regional capitals', got: gotRegCaps, total: totalRegCaps, pct: ((gotRegCaps / totalRegCaps) * 100).toFixed(1) });
     } else {
     // Capitals — one per country max (some countries have multiple PPLC entries)
-    const capitalCountries = new Set(cityDB.filter(c => c.isCapital && UN_COUNTRIES.has(c.country) && cityInRegion(c, regionDef)).map(c => c.country));
+    const capitalCountries = statsBase.capitalCountries;
     const totalCapitals = Math.min(capitalCountries.size, totalCountries);
     const gotCapitals   = new Set(regionFound.filter(c => c.isCapital && UN_COUNTRIES.has(c.country)).map(c => c.country)).size;
     const pctCapitals   = totalCapitals ? ((gotCapitals/totalCapitals)*100).toFixed(1) : '0.0';
@@ -7450,9 +7497,12 @@ function updateSummary() {
 }
 
 function renumberFoundItems() {
-  renderFoundGrid();
-  renderBestCountries();
-  renderOtherStats();
+  const grid = document.getElementById('foundGrid');
+  const numbers = new Map(found.map((city, i) => [dotId(city), i + 1]));
+  grid.querySelectorAll('.fi[data-city-id]').forEach(card => {
+    const n = numbers.get(card.dataset.cityId), label = card.querySelector('.fi-num');
+    if (n != null && label && label.firstChild) label.firstChild.nodeValue = String(n);
+  });
 }
 
 let _highlightTimer = null;
@@ -10497,6 +10547,271 @@ body.skin-sky.night-mode .missed-chip.country{color:#99accc}
 }
 /* While the "Load data file" message is showing, the city list can't be scrolled */
 #foundGrid:has(#emptyLoadFileBtn){overflow:hidden}
+
+/* APOLLO ERA CONSOLE: muted phosphor, warm instrument labels, and painted metal controls. */
+body.skin-nasa{
+  --bg:#171b15;--surface:#22271e;--border:#5a604d;--text:#e8dfc6;--text2:#b8ae91;--text3:#827b65;
+  --accent:#d98543;--accent2:#d7b46c;--success:#9eaa75;--danger:#c86c50;--warn:#dda14c;
+  --c-blue:#a58e5b;--c-blue2:#30382c;--c-panel:#111710;--c-row:#20271d;--c-or:#e2a24a;
+  font-family:'Share Tech Mono','Rajdhani',monospace;letter-spacing:.015em
+}
+body.skin-nasa #appRow{background:radial-gradient(ellipse at 48% 36%,#283126 0,#1b2119 62%,#111610 100%)}
+body.skin-nasa #appRow::before{
+  background:repeating-linear-gradient(180deg,rgba(221,205,153,.035) 0 1px,rgba(0,0,0,0) 1px 4px),
+    linear-gradient(180deg,rgba(0,0,0,0) 0,rgba(218,190,125,.045) 46%,rgba(235,211,159,.075) 50%,rgba(218,190,125,.045) 54%,rgba(0,0,0,0) 100%) 0 -100%/100% 35%;
+}
+body.skin-nasa #appRow::after{box-shadow:inset 0 0 46px 7px rgba(0,0,0,.42),inset 0 1px 0 rgba(238,224,185,.08)}
+body.skin-nasa #sessionBar,body.skin-nasa #statusRow{color:var(--text)}
+body.skin-nasa #sessionBar>#mapPickSlot,body.skin-nasa #mapPickBtn,body.skin-nasa #nasaModeBtn,
+body.skin-nasa #guessBtn,body.skin-nasa #clearBtn,body.skin-nasa #sessManagerBtn,
+body.skin-nasa #countryFilterBtn,body.skin-nasa #summaryBar,body.skin-nasa #mapWrap,
+body.skin-nasa #panel,body.skin-nasa .fi,body.skin-nasa .fi-empty,
+body.skin-nasa .zbtn-wrap,body.skin-nasa .zbtn,body.skin-nasa #zoomLbl,
+body.skin-nasa #mapColorsBtn,body.skin-nasa #dotAppearanceBtn,
+body.skin-nasa #mapPickSlot,body.skin-nasa #cityInputWrap,body.skin-nasa #scBtn,
+body.skin-nasa #mapBox,body.skin-nasa #mapBoxHead .mb-title,body.skin-nasa #mapClose,
+body.skin-nasa .map-opt,body.skin-nasa .map-opt-code,body.skin-nasa #mapClearAllBtn{
+  border-image:none!important;clip-path:none!important
+}
+body.skin-nasa #sessionBar>#mapPickSlot{border:1px solid #766b4e!important;border-radius:3px!important;background:linear-gradient(180deg,#30352b,#20251d);box-shadow:inset 0 1px rgba(241,229,194,.1),0 2px 4px rgba(0,0,0,.35)}
+body.skin-nasa #mapPickBtn,body.skin-nasa #nasaModeBtn{color:#e7dcc0}
+body.skin-nasa #mapPickLabel,body.skin-nasa #nasaModeBtn span{color:#e7dcc0!important;text-shadow:none!important;font-weight:700;letter-spacing:.09em}
+body.skin-nasa #mapPickBtn::before{filter:sepia(.55) saturate(.75)}
+body.skin-nasa #mapPickBtn:hover,body.skin-nasa #nasaModeBtn:hover{background:rgba(226,162,74,.11);box-shadow:none}
+body.skin-nasa #cityInputWrap,body.skin-nasa #cityInputWrap:focus-within{border:1px solid #9b7846!important;border-radius:3px!important;background:#171c16!important;box-shadow:inset 0 2px 5px rgba(0,0,0,.55),0 0 0 1px rgba(226,162,74,.12)!important}
+body.skin-nasa #cityInputWrap::after{display:none!important}
+body.skin-nasa #cityInput{background:transparent!important;color:#f0e6cb!important;font-weight:600;text-shadow:none!important}
+body.skin-nasa #cityInput::placeholder{color:#a99a76!important;opacity:.9}
+body.skin-nasa #countryFilterBtn{border-left:1px solid #625c46!important;border-radius:0!important;background:#252a20!important;color:#d9ceb0!important;box-shadow:none!important}
+body.skin-nasa #countryFilterBtn:hover,body.skin-nasa #countryFilterBtn.filtering{background:#33382a!important;color:#f1d293!important}
+body.skin-nasa #countryFilterBtn::before{filter:sepia(.8) saturate(.75)}
+body.skin-nasa #cfCaret{filter:sepia(1) saturate(.8)}
+body.skin-nasa #guessBtn,body.skin-nasa #clearBtn,body.skin-nasa #sessManagerBtn{
+  border:1px solid #766b4e!important;border-radius:3px!important;background:linear-gradient(180deg,#383c30,#252a21)!important;
+  color:#e5dbc0!important;box-shadow:inset 0 1px rgba(255,245,214,.12),0 2px 4px rgba(0,0,0,.32)!important
+}
+body.skin-nasa #guessBtn::after,body.skin-nasa #clearBtn::after,body.skin-nasa #sessManagerBtn::after{color:#e5dbc0!important;font-weight:700;letter-spacing:.04em;text-shadow:none!important}
+body.skin-nasa #guessBtn::before,body.skin-nasa #clearBtn::before,body.skin-nasa #sessManagerBtn::before{filter:sepia(.8) saturate(.72)}
+body.skin-nasa #guessBtn:hover,body.skin-nasa #clearBtn:hover,body.skin-nasa #sessManagerBtn:hover{background:linear-gradient(180deg,#494b3b,#30352a)!important;border-color:#b39156!important;box-shadow:inset 0 1px rgba(255,245,214,.16),0 2px 5px rgba(0,0,0,.4)!important}
+body.skin-nasa #clearBtn{color:#e5c28d!important}
+body.skin-nasa #summaryBar{border:1px solid #9a7847!important;border-radius:3px!important;background:rgba(25,29,22,.96)!important;color:#ddd3b8!important;box-shadow:inset 0 1px rgba(255,244,215,.06),0 2px 5px rgba(0,0,0,.3)!important;text-shadow:none!important}
+body.skin-nasa #summaryBar::before{filter:sepia(.85) saturate(.65)}
+body.skin-nasa #summaryBar strong,body.skin-nasa #summaryBar .pop-total{color:#e7ad59!important;text-shadow:none!important}
+body.skin-nasa #msg{color:#e8d9b5!important;text-shadow:none!important}
+body.skin-nasa #msg::before{color:#dda14c!important}
+body.skin-nasa #mapWrap{border:1px solid #766b4e!important;border-radius:3px!important;background-color:#1b2119!important;box-shadow:inset 0 0 24px rgba(0,0,0,.48)!important}
+#mapWrap.nasa-tex{
+  background-image:linear-gradient(rgba(177,174,129,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(177,174,129,.045) 1px,transparent 1px),repeating-linear-gradient(0deg,rgba(225,207,154,.018) 0 1px,transparent 1px 4px),radial-gradient(ellipse at 50% 42%,#283126,#1b2119 64%,#111711)!important;
+  background-size:42px 42px,42px 42px,100% 4px,auto!important
+}
+#mapWrap.nasa-tex::before{background:linear-gradient(90deg,rgba(226,162,74,.12),#c68d43 55%,#e2b86e)!important;box-shadow:0 0 4px rgba(203,151,74,.4)!important}
+#mapWrap.nasa-tex::after{box-shadow:inset 0 0 40px rgba(0,0,0,.34)!important}
+#mapWrap.nasa-tex #sphere{fill:transparent!important}
+#mapWrap.nasa-tex #countries-g path[fill="#3b81b8"],#mapWrap.nasa-tex #countries-g path:not([class])[fill="#3b81b8"]{fill:#b6b997!important;stroke:#5b624e!important}
+#mapWrap.nasa-tex #countries-g path[stroke="#06223f"],#mapWrap.nasa-tex #borders-path[stroke="#06223f"],
+#mapWrap.nasa-tex #state-borders[stroke="#06223f"],#mapWrap.nasa-tex #nation-border[stroke="#06223f"],
+#mapWrap.nasa-tex #pref-borders[stroke="#06223f"],#mapWrap.nasa-tex #nation-border-jp[stroke="#06223f"]{stroke:#62684f!important}
+#mapWrap.nasa-tex #countries-g{filter:drop-shadow(0 0 1px rgba(204,205,155,.24))!important}
+body.skin-nasa .city-dot circle.main-dot{fill:#e2a24a!important;filter:drop-shadow(0 0 2px rgba(226,162,74,.48))!important}
+body.skin-nasa .zbtn-wrap{border:1px solid #716849!important;border-radius:3px!important;background:rgba(24,29,22,.94)!important;box-shadow:0 2px 6px rgba(0,0,0,.36)!important}
+body.skin-nasa .zbtn{border:1px solid #766b4e!important;border-radius:2px!important;background:linear-gradient(180deg,#34392d,#24291f)!important;color:#e3d5b0!important;box-shadow:inset 0 1px rgba(255,245,214,.1)!important}
+body.skin-nasa .zbtn:hover{background:#454939!important;border-color:#b18d52!important;box-shadow:none!important}
+body.skin-nasa #zoomLbl{border:1px solid #8b7148!important;border-radius:2px!important;background:#1b2018!important;color:#e2a24a!important;text-shadow:none!important}
+body.skin-nasa #mapColorsBtn,body.skin-nasa #dotAppearanceBtn{border:1px solid #766b4e!important;border-radius:3px!important;background:#252a20!important;color:#e3d5b0!important;box-shadow:0 2px 5px rgba(0,0,0,.3)!important}
+body.skin-nasa #mapColorsBtn::before,body.skin-nasa #dotAppearanceBtn::before{filter:sepia(.75) saturate(.65)}
+body.skin-nasa #nasaCoords{color:#e2a24a!important;text-shadow:none!important;font-family:'Lucida Console','Consolas','Courier New',monospace;letter-spacing:.07em}
+body.skin-nasa #panel{border:1px solid #766b4e!important;border-radius:3px!important;background:linear-gradient(180deg,#20251d,#171c16)!important;box-shadow:inset 0 0 20px rgba(0,0,0,.3)!important}
+body.skin-nasa #panelHeader{border-bottom:1px solid #565943!important;background:#292e24!important}
+body.skin-nasa #panelTitle{color:#e2a24a!important;text-shadow:none!important;font-weight:800;letter-spacing:.13em}
+body.skin-nasa #panelTitle::before{filter:sepia(.8) saturate(.7)}
+body.skin-nasa #sortLabel{color:#d4ccb2!important;letter-spacing:.03em}
+body.skin-nasa #sortLabel::after{filter:sepia(1) saturate(.65)}
+body.skin-nasa .fi,body.skin-nasa .fi-empty{border:1px solid #484d3b!important;border-radius:2px!important;background:linear-gradient(180deg,#2a3025,#22271e)!important;color:#e8dfc6!important;box-shadow:inset 0 1px rgba(255,244,215,.045)!important}
+body.skin-nasa .fi:hover,body.skin-nasa .fi.highlighted{border-color:#a48650!important;background:linear-gradient(180deg,#383b2d,#2c3125)!important;box-shadow:inset 0 1px rgba(255,244,215,.08)!important}
+body.skin-nasa .fi-num{border:1px solid #9a7847!important;border-radius:2px!important;background:#1b2018!important;color:#e2a24a!important;box-shadow:none!important;text-shadow:none!important}
+body.skin-nasa .fi-name,body.skin-nasa .fi-name .fi-pop{color:#eee5ce!important;text-shadow:none!important}
+body.skin-nasa .fi-name .fi-pop{color:#d8b875!important}
+body.skin-nasa .fi-meta{color:#b1b392!important}
+body.skin-nasa .fi-meta::before{filter:sepia(.9) saturate(.65)}
+body.skin-nasa .rm{color:#c8bb9b!important}
+body.skin-nasa .rm:hover{color:#e2a24a!important;background:rgba(226,162,74,.12)!important}
+body.skin-nasa #listCollapseBtn{border:1px solid #766b4e!important;background:#282d23!important;color:#e2d5b5!important;box-shadow:none!important}
+body.skin-nasa #countryFilterPanel,body.skin-nasa #scPanel{border:1px solid #72684e!important;border-radius:3px!important;background:#20251d!important;color:#e8dfc6!important;box-shadow:0 8px 20px rgba(0,0,0,.55)!important}
+body.skin-nasa .cf-opt{color:#e2dac1!important;border-radius:2px!important}
+body.skin-nasa .cf-opt:hover,body.skin-nasa .cf-opt.active,body.skin-nasa .cf-opt.kb{background:#373a2c!important;color:#f0c879!important;box-shadow:inset 2px 0 #c9964b!important}
+body.skin-nasa .cf-sep{color:#c0ad7b!important;border-top-color:#565943!important}
+body.skin-nasa #bottomPanels{border-top:1px solid #766b4e!important;background:linear-gradient(180deg,#20251d,#171c16)!important}
+body.skin-nasa #bestVisualTitle{color:#e2a24a!important;text-shadow:none!important;letter-spacing:.13em}
+body.skin-nasa .shape-card{border:1px solid #555a45!important;border-radius:3px!important;background:#282d23!important;color:#e8dfc6!important;box-shadow:inset 0 1px rgba(255,244,215,.06)!important}
+body.skin-nasa .stat-row{border-radius:2px!important;color:#d9d0b7!important}
+body.skin-nasa .stat-row:hover,body.skin-nasa .stat-row.stat-complete{background:rgba(211,164,82,.14)!important}
+body.skin-nasa .stat-label,body.skin-nasa .stat-pct{color:#c3b99c!important}
+body.skin-nasa .stat-val{color:#e2a24a!important}
+body.skin-nasa .stat-check{border-radius:2px!important;background:#c99a4d!important;color:#1b2018!important;box-shadow:none!important}
+body.skin-nasa #statsCountryRow{border-top-color:#565943!important}
+body.skin-nasa #statsCountryWrap{border:1px solid #766b4e!important;border-radius:3px!important;background:#1b2018!important}
+body.skin-nasa #statsCountryWrap:focus-within{border-color:#c2964e!important;box-shadow:0 0 0 1px rgba(194,150,78,.22)!important}
+body.skin-nasa #statsCountryLbl{color:#9f967a!important}
+body.skin-nasa #scBtn{border-left:1px solid #565943!important;color:#ded3b4!important}
+body.skin-nasa #scBtn.filtering{color:#e2a24a!important}
+body.skin-nasa #siteFooter{color:#91886f!important}
+body.skin-nasa .map-opt{border:1px solid #625c46!important;border-radius:2px!important;background:#252a20!important;color:#ded3b4!important;box-shadow:none!important}
+body.skin-nasa .map-opt:hover,body.skin-nasa .map-opt.current{border-color:#b28e51!important;background:#383a2b!important;color:#f1d293!important;box-shadow:inset 0 1px rgba(255,244,215,.08)!important}
+body.skin-nasa .map-opt-code{border:1px solid #716849!important;background:#1b2018!important;color:#d8c99f!important}
+body.skin-nasa #mapBox,body.skin-nasa #mapClose{border-color:#72684e!important;border-radius:3px!important;background:#20251d!important;color:#e5dbc0!important}
+body.skin-nasa #mapBoxHead .mb-title{color:#e2a24a!important}
+body.skin-nasa #mapFoot{border-top:1px solid #565943!important}
+body.skin-nasa #mapFootInfo{color:#c6bd9f!important}
+body.skin-nasa #mapClearAllBtn{border:1px solid #9a7847!important;border-radius:2px!important;background:#30271b!important;color:#e2a24a!important;box-shadow:none!important}
+body.skin-nasa #mapClearAllBtn:hover:not(:disabled){background:#413322!important;border-color:#d0a45e!important;box-shadow:none!important}
+@media (prefers-reduced-motion:reduce){body.skin-nasa #appRow::before{animation:none}}
+
+/* Keep the CRT scanlines and rolling phosphor band on the map glass only. */
+body.skin-nasa #appRow::before{content:none!important;display:none!important;animation:none!important;background:none!important}
+body.skin-nasa #mapWrap::after{
+  content:'';position:absolute;inset:0;z-index:4;pointer-events:none;border-radius:inherit;
+  background:repeating-linear-gradient(180deg,rgba(221,205,153,.045) 0 1px,rgba(0,0,0,0) 1px 4px),
+    linear-gradient(180deg,rgba(0,0,0,0) 0,rgba(218,190,125,.045) 46%,rgba(235,211,159,.075) 50%,rgba(218,190,125,.045) 54%,rgba(0,0,0,0) 100%) 0 -100%/100% 35%;
+  background-repeat:repeat,no-repeat;box-shadow:inset 0 0 40px rgba(0,0,0,.34);
+  animation:nsRoll 7s linear infinite,nsCrtFlicker 4.1s steps(1) infinite
+}
+body.skin-nasa.map-panning #mapWrap::after,body.skin-nasa.nasa-many #mapWrap::after{animation:none}
+@media (prefers-reduced-motion:reduce){body.skin-nasa #mapWrap::after{animation:none}}
+
+/* Apollo-era finish for every NASApunk popup, menu, and dropdown. Keep the map-only CRT treatment off these surfaces. */
+body.skin-nasa #mapModal,body.skin-nasa #modePickModal,body.skin-nasa #circleTimerModal,
+body.skin-nasa #circleEndModal,body.skin-nasa #circleBoardModal,body.skin-nasa #circleLeaveModal,
+body.skin-nasa #clearMapsModal,body.skin-nasa #missedModal,body.skin-nasa #sessModal,body.skin-nasa #skinModal{
+  background:rgba(10,13,10,.78)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important
+}
+body.skin-nasa #mapBox,body.skin-nasa #modePickBox,body.skin-nasa #circleTimerBox,
+body.skin-nasa .cm-box,body.skin-nasa #missedBox,body.skin-nasa #sessBox,body.skin-nasa #skinBox{
+  border:1px solid #766b4e!important;border-radius:3px!important;background:linear-gradient(180deg,#292e24,#1b2018)!important;
+  color:#e8dfc6!important;box-shadow:0 18px 42px rgba(0,0,0,.62),inset 0 1px rgba(241,229,194,.08)!important
+}
+body.skin-nasa #mapBox::before{border:1px solid #625c46!important;border-radius:2px!important;box-shadow:inset 0 0 14px rgba(0,0,0,.18)!important}
+body.skin-nasa #mapBox::after{background:none!important}
+body.skin-nasa #mapBoxHead,body.skin-nasa #modePickHead,body.skin-nasa #circleTimerHead,
+body.skin-nasa #sessBoxHead,body.skin-nasa #skinHead,body.skin-nasa #missedHead,body.skin-nasa .cm-head{
+  border-bottom:1px solid #5b5c48!important;background:#30352a!important;color:#e8dfc6!important
+}
+body.skin-nasa #mapBoxHead h2,body.skin-nasa #modePickHead h2,body.skin-nasa #circleTimerHead h2,
+body.skin-nasa #sessBoxHead h2,body.skin-nasa #skinHead h2,body.skin-nasa #missedHead h2,body.skin-nasa .cm-head h2{
+  color:#e2a24a!important;text-shadow:none!important;letter-spacing:.06em
+}
+body.skin-nasa #mapBoxHead .mb-ico{border-color:#a2844f!important;box-shadow:inset 0 0 0 1px rgba(226,162,74,.12)!important;filter:sepia(.7) saturate(.7)}
+body.skin-nasa #mapBoxHead .mb-title{border:1px solid #766b4e!important;border-radius:2px!important;background:#24291f!important;color:#e2a24a!important;text-shadow:none!important}
+body.skin-nasa #mapBoxHead .mb-sys{color:#b9ae91!important}
+body.skin-nasa #mapBoxHead .mb-sys::after{filter:sepia(.8) saturate(.7)}
+body.skin-nasa #mapClose,body.skin-nasa #modePickClose,body.skin-nasa #circleTimerClose,
+body.skin-nasa #sessClose,body.skin-nasa #skinClose,body.skin-nasa #missedClose,body.skin-nasa .cm-x,body.skin-nasa .win-back{
+  border:1px solid #6d644b!important;border-radius:2px!important;background:#24291f!important;color:#d7cba9!important;box-shadow:none!important
+}
+body.skin-nasa #mapClose:hover,body.skin-nasa #modePickClose:hover,body.skin-nasa #circleTimerClose:hover,
+body.skin-nasa #sessClose:hover,body.skin-nasa #skinClose:hover,body.skin-nasa #missedClose:hover,body.skin-nasa .cm-x:hover,body.skin-nasa .win-back:hover{
+  background:#3a3c2d!important;border-color:#b18d52!important;color:#f0c879!important
+}
+body.skin-nasa #mapList,body.skin-nasa #modePickList,body.skin-nasa #circleTimerList,
+body.skin-nasa #sessList,body.skin-nasa #skinList,body.skin-nasa #missedBody,body.skin-nasa .cm-body{
+  color:#e4dcc4!important;scrollbar-color:#786c4c #20251d
+}
+body.skin-nasa .map-group-title{color:#e2a24a!important;text-shadow:none!important}
+body.skin-nasa .map-group+.map-group{border-top-color:#565943!important}
+body.skin-nasa .map-group-title::before{border-color:#c99b55!important}
+body.skin-nasa .map-opt,body.skin-nasa .modepick-opt,body.skin-nasa .ctm-opt,
+body.skin-nasa .skin-card,body.skin-nasa .sess-card{
+  border:1px solid #625d48!important;border-radius:2px!important;background:linear-gradient(180deg,#30352a,#252a21)!important;
+  color:#e4dcc4!important;box-shadow:inset 0 1px rgba(241,229,194,.055)!important
+}
+body.skin-nasa .map-opt:hover,body.skin-nasa .map-opt.current,body.skin-nasa .modepick-opt:hover,
+body.skin-nasa .modepick-opt.current,body.skin-nasa .ctm-opt:hover,body.skin-nasa .ctm-opt:focus-visible,
+body.skin-nasa .skin-card:hover,body.skin-nasa .skin-card.current,body.skin-nasa .sess-card:hover,body.skin-nasa .sess-card.current{
+  border-color:#b18d52!important;background:linear-gradient(180deg,#414233,#303327)!important;color:#f0dfb5!important;
+  box-shadow:inset 0 1px rgba(255,244,215,.1)!important;outline:none
+}
+body.skin-nasa .map-opt-code{border-color:#756a4d!important;border-radius:2px!important;background:#1b2018!important;color:#d8c99f!important}
+body.skin-nasa .map-opt-check,body.skin-nasa .modepick-check,body.skin-nasa .skin-check{color:#e2a24a!important;text-shadow:none!important}
+body.skin-nasa .modepick-title,body.skin-nasa .ctm-title,body.skin-nasa .sess-card-name,body.skin-nasa .skin-name{color:#eee5ce!important}
+body.skin-nasa .modepick-desc,body.skin-nasa .ctm-desc,body.skin-nasa .sess-card-meta,body.skin-nasa .skin-desc,
+body.skin-nasa .mapFootInfo,body.skin-nasa .cm-note,body.skin-nasa .cm-total .cm-lbl{color:#b8ae91!important}
+body.skin-nasa .map-opt-dot,body.skin-nasa .sess-dot{filter:sepia(.75) saturate(.75)}
+body.skin-nasa .sess-badge.active{background:#4a402b!important;color:#f0c879!important}
+body.skin-nasa .sess-badge.saved{background:#30382a!important;color:#bdc39a!important}
+body.skin-nasa .sess-card-actions{border-top-color:#565943!important}
+body.skin-nasa #sessBoxFoot{border-top:1px solid #5b5c48!important;background:#262b22!important}
+body.skin-nasa #newSessNameInput,body.skin-nasa .cm-save input,body.skin-nasa #scSearch,
+body.skin-nasa #cfSearch,body.skin-nasa #mapBox input[type=text],body.skin-nasa #dotAppearancePopover input[type=text]{
+  border:1px solid #766b4e!important;border-radius:2px!important;background:#171c16!important;color:#eee5ce!important;box-shadow:inset 0 2px 4px rgba(0,0,0,.35)!important
+}
+body.skin-nasa #newSessNameInput::placeholder{color:#9f967a!important}
+body.skin-nasa #newSessNameInput:focus,body.skin-nasa .cm-save input:focus{border-color:#c2964e!important;outline:none}
+body.skin-nasa #createSessBtn,body.skin-nasa .cm-btn,body.skin-nasa #toggleBestListBtn,
+body.skin-nasa #missedBtn,body.skin-nasa .scale-preset-btn,body.skin-nasa .reset-icon-btn,
+body.skin-nasa .mode-toggle,body.skin-nasa #circleBoardBtn{
+  border:1px solid #766b4e!important;border-radius:2px!important;background:linear-gradient(180deg,#393d30,#292e24)!important;
+  color:#e2d5b5!important;box-shadow:inset 0 1px rgba(241,229,194,.08)!important
+}
+body.skin-nasa #createSessBtn:hover,body.skin-nasa .cm-btn:hover:not(:disabled),body.skin-nasa #toggleBestListBtn:hover,
+body.skin-nasa #missedBtn:hover,body.skin-nasa .scale-preset-btn:hover,body.skin-nasa .reset-icon-btn:hover,
+body.skin-nasa .mode-toggle:hover,body.skin-nasa #circleBoardBtn:hover{
+  border-color:#b18d52!important;background:#414233!important;color:#f0c879!important;box-shadow:none!important
+}
+body.skin-nasa .cm-btn.primary,body.skin-nasa .scale-preset-btn.active,body.skin-nasa .mode-toggle:has(input:checked){
+  border-color:#b18d52!important;background:#76603b!important;color:#fff0cf!important;box-shadow:inset 0 1px rgba(255,244,215,.16)!important
+}
+body.skin-nasa .cm-btn.danger{border-color:#955540!important;background:#633d30!important;color:#f1d9bd!important}
+body.skin-nasa .cm-btn.danger:hover:not(:disabled){border-color:#c47a52!important;background:#794936!important;color:#fff0cf!important}
+body.skin-nasa .cm-rounds{border-color:#5d604a!important;border-radius:2px!important;background:#22271e!important}
+body.skin-nasa .cm-rounds div{border-bottom-color:#4c5040!important}
+body.skin-nasa .cm-rounds small,body.skin-nasa .cm-leave-warn{color:#b8ae91!important}
+body.skin-nasa .cm-leave-q{color:#eee5ce!important}
+body.skin-nasa .cm-total .cm-big,body.skin-nasa .cm-rounds .cm-pts{color:#e2a24a!important}
+body.skin-nasa .cm-actions{border-top-color:#5b5c48!important}
+body.skin-nasa #missedBody .missed-section-title{border-bottom-color:#5b5c48!important;color:#d5c89f!important}
+body.skin-nasa #missedBody .missed-section-title::before{color:#e2a24a!important}
+body.skin-nasa .missed-chip{border:1px solid #625d48!important;border-radius:2px!important;background:#30352a!important;color:#e4dcc4!important}
+body.skin-nasa .missed-chip.capital,body.skin-nasa .missed-chip.big{border-color:#a4824b!important;color:#efbd68!important}
+body.skin-nasa .missed-chip.country{border-color:#66634d!important;color:#c6bd9f!important}
+body.skin-nasa #mapFoot{border-top:1px solid #565943!important}
+body.skin-nasa #mapFoot::before{background:#c7964c!important;box-shadow:none!important}
+body.skin-nasa #mapFootInfo{color:#c6bd9f!important}
+body.skin-nasa #mapClearAllBtn{border-color:#9a7847!important;border-radius:2px!important;background:#30271b!important;color:#e2a24a!important;box-shadow:none!important}
+body.skin-nasa #mapClearAllBtn:hover:not(:disabled){background:#413322!important;border-color:#d0a45e!important;box-shadow:none!important}
+body.skin-nasa #mapColorsPopover,body.skin-nasa #dotAppearancePopover{
+  border:1px solid #766b4e!important;border-radius:3px!important;background:linear-gradient(180deg,#292e24,#1b2018)!important;
+  color:#e8dfc6!important;box-shadow:0 12px 28px rgba(0,0,0,.58),inset 0 1px rgba(241,229,194,.08)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important
+}
+body.skin-nasa #mapColorsPopover .pop-title-row,body.skin-nasa #dotAppearancePopover .pop-title-row{border-bottom:1px solid #5b5c48!important;background:transparent!important;box-shadow:none!important}
+body.skin-nasa #mapColorsPopover .pop-title,body.skin-nasa #dotAppearancePopover .pop-title{color:#e2a24a!important;text-shadow:none!important}
+body.skin-nasa #mapColorsPopover .lbl,body.skin-nasa #dotAppearancePopover .lbl{color:#d4ccb2!important}
+body.skin-nasa #mapColorsPopover input[type=color],body.skin-nasa #dotAppearancePopover input[type=color]{border:1px solid #8b7954!important;border-radius:2px!important;background:#292e24!important;box-shadow:none!important}
+body.skin-nasa #mapColorsPopover input[type=range],body.skin-nasa #dotAppearancePopover input[type=range]{accent-color:#c7964c!important}
+body.skin-nasa #dotAppearancePopover .val-badge{color:#e2a24a!important}
+body.skin-nasa #dotAppearancePopover .skin-ico,body.skin-nasa #dotAppearancePopover .mode-ico,
+body.skin-nasa #dotAppearancePopover .reset-icon-btn{filter:sepia(.7) saturate(.7)}
+body.skin-nasa select option,body.skin-nasa select optgroup{background:#20251d;color:#e8dfc6}
+body.skin-nasa .cf-opt{color:#e2dac1!important;border-radius:2px!important}
+body.skin-nasa .cf-opt:hover,body.skin-nasa .cf-opt.active,body.skin-nasa .cf-opt.kb{background:#373a2c!important;color:#f0c879!important;box-shadow:inset 2px 0 #c9964b!important}
+body.skin-nasa .cf-sep{color:#c0ad7b!important;border-top-color:#565943!important}
+body.skin-nasa :is(#mapList,#modePickList,#circleTimerList,#sessList,#skinList,#missedBody,#countryFilterPanel,#scPanel){scrollbar-color:#786c4c #20251d}/* Brighter amber globe mark in the NASApunk map selector. */
+body.skin-nasa #mapPickBtn::before{
+  border-color:#f2bd62!important;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffd27a' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cellipse cx='12' cy='12' rx='4.2' ry='10'/%3E%3Cpath d='M2 12h20M4 7h16M4 17h16'/%3E%3C/svg%3E"),radial-gradient(circle,rgba(255,190,90,.34),transparent 72%)!important;
+  box-shadow:0 0 10px rgba(255,190,90,.72),inset 0 0 5px rgba(255,210,122,.24)!important;
+  filter:brightness(1.16) drop-shadow(0 0 3px rgba(255,190,90,.48))
+}/* Remove the older angular cutouts from retro menu surfaces and controls. */
+body.skin-nasa #mapBox,body.skin-nasa #modePickBox,body.skin-nasa #circleTimerBox,body.skin-nasa .cm-box,
+body.skin-nasa #missedBox,body.skin-nasa #sessBox,body.skin-nasa #skinBox,
+body.skin-nasa #mapColorsPopover,body.skin-nasa #dotAppearancePopover,
+body.skin-nasa .map-opt,body.skin-nasa .modepick-opt,body.skin-nasa .ctm-opt,
+body.skin-nasa .skin-card,body.skin-nasa .sess-card,body.skin-nasa .cm-btn,
+body.skin-nasa #createSessBtn,body.skin-nasa #toggleBestListBtn,body.skin-nasa #missedBtn,
+body.skin-nasa .scale-preset-btn,body.skin-nasa .reset-icon-btn,body.skin-nasa .mode-toggle,
+body.skin-nasa #circleBoardBtn,body.skin-nasa #mapClearAllBtn,body.skin-nasa #mapClose,
+body.skin-nasa #modePickClose,body.skin-nasa #circleTimerClose,body.skin-nasa #sessClose,
+body.skin-nasa #skinClose,body.skin-nasa #missedClose,body.skin-nasa .cm-x,body.skin-nasa .win-back{
+  border-image:none!important;clip-path:none!important
+}
 </style>
 <div id="cadm"><div class="w">
 <div class="bar"><b>City data editor</b>
