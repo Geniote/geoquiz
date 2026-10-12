@@ -10812,6 +10812,13 @@ body.skin-nasa #modePickClose,body.skin-nasa #circleTimerClose,body.skin-nasa #s
 body.skin-nasa #skinClose,body.skin-nasa #missedClose,body.skin-nasa .cm-x,body.skin-nasa .win-back{
   border-image:none!important;clip-path:none!important
 }
+/* The Apollo palette adds a marker glow late in the stylesheet; keep the
+   high-dot-count and active-pan performance modes authoritative over it. */
+body.skin-nasa.nasa-many .city-dot circle.main-dot,
+body.skin-nasa.map-panning .city-dot circle.main-dot{filter:none!important}
+body.skin-nasa.nasa-many #mapWrap.nasa-tex #countries-g,
+body.skin-nasa.map-panning #mapWrap.nasa-tex #countries-g{filter:none!important}
+body.skin-nasa.map-panning #map-g path{shape-rendering:optimizeSpeed}
 </style>
 <div id="cadm"><div class="w">
 <div class="bar"><b>City data editor</b>
