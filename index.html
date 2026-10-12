@@ -506,6 +506,7 @@ body .circle-missed .main-dot{fill:#9aa0a6;fill-opacity:.8;stroke:#fff}
 /* Circle challenge: found cities are solid blue dots with no outline */
 body.circle-mode .circle-dot:not(.circle-missed) circle.main-dot{fill:#1976d2 !important;fill-opacity:var(--dot-alpha,.75) !important;stroke:none !important;stroke-width:0 !important}
 body.circle-mode .circle-dot.circle-old:not(.circle-missed) circle.main-dot{fill:#9aa0a6 !important;fill-opacity:.7 !important}
+body.circle-mode .circle-dot.circle-wrong:not(.circle-missed):not(.circle-old) circle.main-dot,body.circle-mode .circle-dot.circle-wrong.circle-old:not(.circle-missed) circle.main-dot{fill:#e53935 !important;fill-opacity:var(--dot-alpha,.75) !important;stroke:none !important;stroke-width:0 !important}
 .circle-old-overlay{fill:rgba(130,135,145,.08);stroke:#8a8f98;stroke-width:1.5;stroke-dasharray:7 5;vector-effect:non-scaling-stroke;pointer-events:none}
 #circle-overlay{fill:rgba(57,73,171,.12);stroke:#3949AB;stroke-width:2;stroke-dasharray:7 5;vector-effect:non-scaling-stroke;pointer-events:none}
 /* The info text moves to the right of the panel so the panel can sit in the top-left corner without covering it */
@@ -4996,6 +4997,7 @@ function circleRenderOverlay() {
   // Cities found in earlier rounds: grey dots (a city found again this round turns blue below).
   circleOld.forEach(o => o.cities.forEach(c => { put(c, false); g.selectAll('#' + dotId(c)).classed('circle-old', true); }));
   circle.found.forEach(f => put(f.city, false));
+  circle.log.forEach(e => { if (e.wrong) { put(e.city, false); g.selectAll('#' + dotId(e.city)).classed('circle-wrong', true).classed('circle-old', false); } });   // wrong guesses: red dots
   if (circle.revealed) circleMissedList().forEach(c => put(c, true));
   circleRenderHud();
 }
@@ -5038,6 +5040,9 @@ function circleGuess() {
     const pen = Math.round(10 + 240 * Math.min(1, missKm / circle.r));
     circle.lost += pen; circle.mistakes++;
     circle.log.unshift({ city: wrongCity, pts: -pen, wrong: true });   // shown in red in the panel, same info as a correct guess
+    svg.selectAll('#' + dotId(wrongCity)).remove();   // ...and as a red dot on the map
+    addDot(wrongCity);
+    svg.selectAll('#' + dotId(wrongCity)).classed('circle-dot', true).classed('circle-wrong', true);
     circle.roundScore -= pen; circleTotal -= pen;
     _scoreDelta = -pen;
     if (circle.won && circle.roundScore < circle.goal) { circle.won = false; circlePassed--; }   // the goal is judged on the net score
