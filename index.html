@@ -398,6 +398,8 @@ body.map-zooming #map-g path{shape-rendering:optimizeSpeed}
 #bestVisualTitle{font-size:14px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;text-align:center}
 #topShapesList{display:flex;flex-direction:row;flex-wrap:nowrap;gap:14px;justify-content:center;align-items:flex-start;width:100%}
 .shape-card{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1 1 0;min-width:0;max-width:240px;padding:16px 10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:14px;position:relative}
+.stats-country-link{cursor:pointer}
+.stats-country-link:focus-visible{outline:2px solid var(--accent2);outline-offset:3px}
 .shape-rank{position:absolute;top:6px;left:9px;font-size:13px;font-weight:800;color:var(--text3)}
 .shape-icon{width:100%;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .shape-icon svg{display:block;width:100%;height:100%}
@@ -474,6 +476,9 @@ body.map-zooming #map-g path{shape-rendering:optimizeSpeed}
 .fi-num{font-size:11px;font-weight:700;color:var(--text3);min-width:20px;text-align:right;flex-shrink:0}
 .fi-info{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1}
 .fi-name{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px}
+.fi-name{display:block;width:100%;text-overflow:clip}
+.fi-name-scroll{display:inline-flex;align-items:center;width:max-content;white-space:nowrap;transform:translateX(0);transition:transform .25s ease}
+.fi:hover .fi-name-scroll{transform:translateX(calc(-1 * var(--fi-overflow, 0px)));transition:transform var(--fi-scroll-duration, 2s) linear}
 .fi-pop{font-weight:400;color:var(--text2);font-size:11px}
 .fi-capital{font-size:11px;color:var(--text);margin-left:4px;cursor:default;flex-shrink:0}
 .fi-meta{font-size:11px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -6266,10 +6271,17 @@ function renderFoundGrid() {
     const capitalStar = isCapitalItem
       ? `<span class="fi-capital" title="${isStateCapital ? 'State capital' : (isPrefCapital ? 'Prefecture capital' : (regCapLabel || 'Capital'))}">★</span>` : '';
     const guessNum = found.indexOf(city) + 1;
-    div.innerHTML=`<span class="fi-num">${guessNum}<span class="fi-dot">.</span></span><div class="fi-info"><span class="fi-name">${displayName(city)}${city.pop?` <span class="fi-pop">(${fmtPop(city.pop)})</span>`:''}${capitalStar}</span><span class="fi-meta">${fmtLocation(city)}</span></div><button class="rm" title="Remove">✕</button>`;
+    div.innerHTML=`<span class="fi-num">${guessNum}<span class="fi-dot">.</span></span><div class="fi-info"><span class="fi-name"><span class="fi-name-scroll">${displayName(city)}${city.pop?` <span class="fi-pop">(${fmtPop(city.pop)})</span>`:''}${capitalStar}</span></span><span class="fi-meta">${fmtLocation(city)}</span></div><button class="rm" title="Remove">✕</button>`;
+    grid.appendChild(div);
+    const nameLabel = div.querySelector('.fi-name');
+    const nameScroll = div.querySelector('.fi-name-scroll');
+    if (nameLabel && nameScroll) {
+      const overflow = Math.max(0, nameScroll.scrollWidth - nameLabel.clientWidth);
+      nameScroll.style.setProperty('--fi-overflow', overflow + 'px');
+      nameScroll.style.setProperty('--fi-scroll-duration', Math.max(1.4, overflow / 55) + 's');
+    }
     div.querySelector('.rm').onclick = (e) => { e.stopPropagation(); removeCity(city); };
     div.onclick = () => highlightCity(city);
-    grid.appendChild(div);
   });
   _justAddedId = null; // consumed — later re-renders (sort toggle, remove, etc.) shouldn't replay the animation
 
@@ -6626,6 +6638,15 @@ function renderBestCountries() {
     const row = document.createElement('div');
     row.className = 'best-row';
     row.innerHTML = `<span class="best-rank">${i+6}.</span><span class="best-name">${item.name} — ${item.count}</span>`;
+    if (mode === 'country') {
+      row.classList.add('stats-country-link');
+      row.tabIndex = 0;
+      row.setAttribute('role', 'button');
+      row.title = 'Show stats for ' + item.name;
+      const selectStats = () => scApplyValue('c:' + item.code);
+      row.addEventListener('click', selectStats);
+      row.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectStats(); } });
+    }
     listEl.appendChild(row);
   });
 
@@ -6740,6 +6761,15 @@ async function renderTopShapes(top5, mode) {
     }
     const card = document.createElement('div');
     card.className = 'shape-card';
+    if (mode === 'country') {
+      card.classList.add('stats-country-link');
+      card.tabIndex = 0;
+      card.setAttribute('role', 'button');
+      card.title = 'Show stats for ' + item.name;
+      const selectStats = () => scApplyValue('c:' + item.code);
+      card.addEventListener('click', selectStats);
+      card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectStats(); } });
+    }
     card.innerHTML = `
       <span class="shape-rank">${i + 1}</span>
       <div class="shape-icon">${iconHtml}</div>
@@ -7938,6 +7968,10 @@ function regionOptions(rd) {
     return { unit: ADM_UNIT[cc] || 'region', items: [...set].map(x => ({ val: 'a:' + x, label: lbl(x) })).sort((x, y) => x.label.localeCompare(y.label)) };
   }
   cityDB.forEach(c => { if (cityInRegion(c, rd)) set.add(c.country); });
+  // Include countries without city records too, so clicking any mapped country
+  // can select it in the stats picker. Strict region lists keep choices scoped.
+  if (rd && rd.countries) rd.countries.forEach(cc => set.add(cc));
+  else Object.keys(ISO_NUMERIC).forEach(cc => set.add(cc));
   return { unit: 'country', items: [...set].map(x => ({ val: 'c:' + x, label: fmtCountry(x) })).sort((x, y) => x.label.localeCompare(y.label)) };
 }
 function fillOptionList(list, items) {
