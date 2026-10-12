@@ -582,6 +582,7 @@ body.skin-sky.night-mode #foundGrid .fi.fi-wrong .fi-num{background:rgba(240,92,
 .cb-table .cb-rounds{color:var(--text3);font-size:11.5px;white-space:nowrap}
 .cb-table tr.me td{background:rgba(46,125,50,.12)}
 .cb-table tr.top td{background:rgba(245,190,50,.28)}
+.cb-table tr.second td{background:rgba(176,184,196,.38)}
 .cb-table .cb-del{border:none;background:none;color:var(--text3);cursor:pointer;font-size:12px;padding:2px 5px;border-radius:4px}
 .cb-table .cb-del:hover{color:var(--danger);background:var(--bg)}
 .cb-empty{padding:22px 10px;text-align:center;color:var(--text3);font-size:13px;font-style:italic}
@@ -5273,7 +5274,7 @@ function openCircleBoard() {
   if (!list.length) body.innerHTML = '<div class="cb-empty">No saved games yet. Finish a game and save your score to see it here!</div>';
   else {
     body.innerHTML = `<table class="cb-table"><thead><tr><th>#</th><th>Player</th><th class="num">Score</th><th>Rounds</th><th>Date</th><th></th></tr></thead><tbody>${
-      list.map((g, i) => `<tr class="${(g.id === circleLastSavedId ? 'me' : '') + (i === 0 ? ' top' : '')}"><td>${i + 1}${i === 1 ? ' 🥈' : i === 2 ? ' 🥉' : ''}</td><td>${_chEsc(g.name)}</td><td class="num cb-total">${g.total.toLocaleString('en-US')}</td><td class="cb-rounds">${(g.rounds || []).map(r => r.toLocaleString('en-US')).join(' · ')}</td><td class="cb-rounds">${fmtDate(g.date)}</td><td><button class="cb-del" data-id="${_chEsc(g.id)}" title="Delete this entry" aria-label="Delete this entry">✕</button></td></tr>`).join('')
+      list.map((g, i) => `<tr class="${(g.id === circleLastSavedId ? 'me' : '') + (i === 0 ? ' top' : i === 1 ? ' second' : '')}"><td>${i + 1}</td><td>${_chEsc(g.name)}</td><td class="num cb-total">${g.total.toLocaleString('en-US')}</td><td class="cb-rounds">${(g.rounds || []).map(r => r.toLocaleString('en-US')).join(' · ')}</td><td class="cb-rounds">${fmtDate(g.date)}</td><td><button class="cb-del" data-id="${_chEsc(g.id)}" title="Delete this entry" aria-label="Delete this entry">✕</button></td></tr>`).join('')
     }</tbody></table>`;
   }
   document.getElementById('circleBoardModal').classList.add('open');
@@ -9575,6 +9576,9 @@ body.skin-sky:not(.night-mode) .cb-table tr.me td{background:linear-gradient(180
 body.skin-sky:not(.night-mode) .cb-table tr.top td{background:linear-gradient(180deg,#fff3c2,#fbdc7a)}
 body.skin-sky:not(.night-mode) .cb-table tr.top .cb-rounds{color:#9a7010}
 body.skin-sky:not(.night-mode) .cb-table tr.top .cb-del{color:#a8802a}
+body.skin-sky:not(.night-mode) .cb-table tr.second td{background:linear-gradient(180deg,#f4f7fb,#cdd5e0)}
+body.skin-sky:not(.night-mode) .cb-table tr.second .cb-rounds{color:#5f6b7c}
+body.skin-sky:not(.night-mode) .cb-table tr.second .cb-del{color:#6f7a8a}
 body.skin-sky:not(.night-mode) .cb-table .cb-del{width:24px;height:24px;padding:0;border-radius:50%;color:#8aa1c4;background:transparent}
 body.skin-sky:not(.night-mode) .cb-table .cb-del:hover{color:#fff;background:#e0455f}
 body.skin-sky:not(.night-mode) .cb-empty{color:#5a7ab5;font-weight:600}
@@ -9597,6 +9601,9 @@ body.skin-sky.night-mode .cb-table tr.me td{background:linear-gradient(180deg,#1
 body.skin-sky.night-mode .cb-table tr.top td{background:linear-gradient(180deg,#4a3a12,#3a2d0c)}
 body.skin-sky.night-mode .cb-table tr.top .cb-total{color:#ffd978}
 body.skin-sky.night-mode .cb-table tr.top .cb-rounds{color:#d9b660}
+body.skin-sky.night-mode .cb-table tr.second td{background:linear-gradient(180deg,#3a4452,#2b333f)}
+body.skin-sky.night-mode .cb-table tr.second .cb-total{color:#dfe6f0}
+body.skin-sky.night-mode .cb-table tr.second .cb-rounds{color:#aab4c4}
 body.skin-sky.night-mode .cb-table .cb-del{width:24px;height:24px;padding:0;border-radius:50%;color:#7f9bc9;background:transparent}
 body.skin-sky.night-mode .cb-table .cb-del:hover{color:#fff;background:#c0392b}
 body.skin-sky.night-mode .cb-empty{color:#7f9bc9;font-weight:600}
