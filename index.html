@@ -2013,6 +2013,7 @@ body.skin-nasa #mapWrap,body.skin-nasa #panel{top:calc(var(--bar-h,20px) + 12px)
       <button class="zbtn" id="resetViewBtn" title="Reset view"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M16.5 10a6.5 6.5 0 1 1-2.1-4.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16.8 3.5v4.2h-4.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     </div>
     <button type="button" id="dotAppearanceBtn" title="Appearance"><svg width="15" height="15" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><defs><clipPath id="ballClipBtn"><circle cx="10" cy="10" r="9"/></clipPath><radialGradient id="ballGlossBtn" cx="35%" cy="30%" r="70%"><stop offset="0%" stop-color="#fff" stop-opacity="0.6"/><stop offset="45%" stop-color="#fff" stop-opacity="0.1"/><stop offset="100%" stop-color="#000" stop-opacity="0.2"/></radialGradient></defs><g clip-path="url(#ballClipBtn)"><rect x="0" y="0" width="20" height="20" fill="#f4c531"/><path d="M10 10 L20 10 A10 10 0 0 1 10 20 Z" fill="#3fb84f"/><path d="M10 10 L10 20 A10 10 0 0 1 0 10 Z" fill="#3b82f6"/><path d="M10 10 L0 10 A10 10 0 0 1 10 0 Z" fill="#e63946"/></g><circle cx="10" cy="10" r="9" fill="url(#ballGlossBtn)"/></svg> <span class="btn-label">Appearance</span></button>
+    <button type="button" id="saveSetMapBtn" title="Save current cities as a practice set" aria-label="Save current cities as a practice set"><svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3h13l4 4v14H4z"/><path d="M8 3v6h9V3M8 21v-8h9v8"/><path d="M10 16h5"/></svg></button>
     <button type="button" id="mapColorsBtn" title="Map settings">🗺 <span class="btn-label">Map settings</span></button>
     <button type="button" id="panelToggleBtn" title="Hide/show the city list">▾ Hide list</button>
     <div id="mapColorsPopover">
@@ -2125,6 +2126,9 @@ body.skin-nasa #mapWrap,body.skin-nasa #panel{top:calc(var(--bar-h,20px) + 12px)
     <div id="panelHeader">
       <span id="panelTitle">Cities</span>
       <label id="sortLabel"><input type="checkbox" id="sortByPop"> Sort by population</label>
+      <button type="button" id="setRevealBtn" class="cm-btn" title="Reveal one remaining city" style="display:none">Reveal one</button>
+      <button type="button" id="setRevealAllBtn" class="cm-btn" title="Reveal every remaining city" style="display:none">Reveal all</button>
+      <button type="button" id="setHideAllBtn" class="cm-btn" title="Hide every revealed city again" style="display:none">Hide all</button>
       <button type="button" id="circleBoardBtn" title="Scoreboard — best saved games" aria-label="Scoreboard"><svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="trB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe680"/><stop offset=".55" stop-color="#f6b92f"/><stop offset="1" stop-color="#d98a12"/></linearGradient></defs><path d="M9 6.5H5.2v2.4a4.4 4.4 0 0 0 4.2 4.4M23 6.5h3.8v2.4a4.4 4.4 0 0 1-4.2 4.4" fill="none" stroke="#e3a21c" stroke-width="2.2" stroke-linecap="round"/><path d="M9 4.5h14v7.2a7 7 0 0 1-14 0z" fill="url(#trB)" stroke="#b86e0a" stroke-width="1"/><path d="M14 18.2h4V22h-4z" fill="url(#trB)" stroke="#b86e0a" stroke-width=".8"/><rect x="10" y="22" width="12" height="5" rx="1.7" fill="url(#trB)" stroke="#b86e0a" stroke-width="1"/><path d="M12.2 7c-.1 3 .5 5 2.2 6.3" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="1.7" stroke-linecap="round"/></svg></button>
     </div>
     <div id="foundGrid"></div>
@@ -2174,7 +2178,24 @@ body.skin-nasa #mapWrap,body.skin-nasa #panel{top:calc(var(--bar-h,20px) + 12px)
         <span class="modepick-row"><span class="modepick-lead"><span class="ctm-ico"><svg viewBox="0 0 32 32" aria-hidden="true"><defs><radialGradient id="mpZ" cx="35%" cy="28%" r="85%"><stop offset="0" stop-color="#8cc6ff"/><stop offset=".55" stop-color="#2f86d6"/><stop offset="1" stop-color="#14498f"/></radialGradient></defs><circle cx="16" cy="16" r="14.5" fill="url(#mpZ)" stroke="rgba(10,50,110,.35)" stroke-width="1"/><ellipse cx="12.5" cy="8.6" rx="7" ry="3.6" fill="#fff" opacity=".28"/><circle cx="16" cy="16" r="8" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="16" cy="16" r="4.2" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="16" cy="16" r="1.5" fill="#fff"/></svg></span><span class="modepick-title" id="modePickCircleTitle"></span></span><span class="modepick-check"></span></span>
         <span class="modepick-desc" id="modePickCircleDesc"></span>
       </button>
+      <button type="button" class="modepick-opt" id="modePickSetsBtn" data-set-mode="1">
+        <span class="modepick-row"><span class="modepick-lead"><span class="ctm-ico" aria-hidden="true">▤</span><span class="modepick-title">Saved city sets</span></span><span class="modepick-check"></span></span>
+        <span class="modepick-desc">Practice a saved collection of cities on any map.</span>
+      </button>
     </div>
+  </div>
+</div>
+
+<!-- SAVED CITY SETS — locally saved practice lists, available from every map's mode menu. -->
+<div id="citySetsModal">
+  <div id="citySetsBox" class="cm-box" role="dialog" aria-modal="true" aria-labelledby="citySetsTitle">
+    <div class="cm-head">
+      <button type="button" class="win-back" id="citySetsBack" aria-label="Back">←</button>
+      <h2 id="citySetsTitle">Saved city sets</h2>
+      <button type="button" class="cm-x" id="citySetsClose" aria-label="Close">✕</button>
+    </div>
+    <div class="cm-body" id="citySetsBody"></div>
+    <div class="cm-actions" id="citySetsActions"><button type="button" class="cm-btn primary" id="saveCurrentSetBtn">Save current typed cities</button></div>
   </div>
 </div>
 
@@ -2233,6 +2254,19 @@ body.skin-nasa #mapWrap,body.skin-nasa #panel{top:calc(var(--bar-h,20px) + 12px)
       <div class="cm-leave-warn" id="clearMapsWarn"></div>
       <div class="cm-leave-q">Are you sure you want to clear them?</div>
       <div class="cm-actions"><button class="cm-btn danger" id="clearMapsConfirm">Clear all</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- SAVE CITY SET — name the set before saving it (replaces the browser prompt) -->
+<div id="saveSetModal">
+  <div class="cm-box" role="dialog" aria-modal="true" aria-labelledby="saveSetTitle">
+    <div class="cm-head"><h2 id="saveSetTitle">Save city set</h2><button type="button" class="cm-x" id="saveSetClose" aria-label="Close without saving">✕</button></div>
+    <div class="cm-body">
+      <div class="cm-leave-warn" id="saveSetInfo"></div>
+      <label class="cm-leave-q" for="saveSetName">Name this city set</label>
+      <input type="text" id="saveSetName" maxlength="60" autocomplete="off" spellcheck="false">
+      <div class="cm-actions"><button type="button" class="cm-btn" id="saveSetCancel">Cancel</button><button type="button" class="cm-btn primary" id="saveSetConfirm">Save set</button></div>
     </div>
   </div>
 </div>
@@ -2946,6 +2980,12 @@ function clipLineByLon(coords, lonThreshold, keepEast) {
 // map and the city-typing bar come back exactly as they were before the quiz
 // started (see setQuizMode).
 let quizMode = false;
+const CITY_SET_STORAGE_KEY = 'wcq_city_sets_v1';
+let activeCitySetId = null;
+let activeCitySetKeys = new Set();
+let revealedCitySetKeys = new Set();
+let _citySetDBIndex = null;
+let _citySetProgressPersist = {};
 let circleMode = false, circleRegion = null, circlePending = null, circleTotal = 0, circleRound = 0, circlePassed = 0, circle = null, circleOld = [], circlePrevDotSize = null, circleScores = [], circleDone = false, circleSaved = false; // Circle challenge (see CIRCLE_CHALLENGE)
 let quizRegion = null;             // 'japan' | 'usa' | 'spain' | 'poland' | 'russia' while quizMode is on, else null (selects the entry in QUIZ_CFG)
 const quizSolved = new Set();      // region keys answered correctly so far (numbers for Japan, state abbreviations for the US)
@@ -2964,6 +3004,228 @@ function shuffleArray(arr) {
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
+}
+
+function citySetKey(city) {
+  if (city && city.geonamesId != null && String(city.geonamesId) !== '') return 'id:' + city.geonamesId;
+  const name = city && (city.nameF || fold(city.name || ''));
+  return 'place:' + [city && city.country || '', city && city.admin1 || '', name || '',
+    Math.round((Number(city && city.lat) || 0) * 100), Math.round((Number(city && city.lon) || 0) * 100)].join('|');
+}
+function citySetSnapshot(city) {
+  return { key:citySetKey(city), geonamesId:city.geonamesId || null, nameF:city.nameF || '', name:city.name, ascii_name:city.ascii_name || city.name,
+    country:city.country || '', admin1:city.admin1 || '', pop:Number(city.pop) || 0, lat:Number(city.lat) || 0, lon:Number(city.lon) || 0,
+    isCapital:!!city.isCapital };
+}
+function loadCitySets() {
+  try { const sets = JSON.parse(localStorage.getItem(CITY_SET_STORAGE_KEY) || '[]'); return Array.isArray(sets) ? sets : []; }
+  catch (e) { return []; }
+}
+function saveCitySets(sets) {
+  try { localStorage.setItem(CITY_SET_STORAGE_KEY, JSON.stringify(sets)); return true; }
+  catch (e) { setMsg('Could not save city set. Browser storage may be full.', 'err'); return false; }
+}
+function getCitySet(id) { return loadCitySets().find(set => set.id === id) || null; }
+function citySetDBMap() {
+  if (!_citySetDBIndex || _citySetDBIndex.rows !== cityDB || _citySetDBIndex.length !== cityDB.length) {
+    _citySetDBIndex = { rows:cityDB, length:cityDB.length, map:new Map(cityDB.map(city => [citySetKey(city), city])) };
+  }
+  return _citySetDBIndex.map;
+}
+function saveActiveCitySetProgress() {
+  if (!activeCitySetId) return;
+  _citySetProgressPersist[activeCitySetId] = { found:found.map(city => ({...city})), revealed:[...revealedCitySetKeys] };
+}
+function saveCurrentCitiesAsSet() {
+  if (activeCitySetId) return;   // practice sets are already saved sets
+  if (quizMode || circleMode) { setMsg('Save a city set from normal city-typing mode.', 'info'); return; }
+  if (!found.length) { setMsg('Name at least one city before saving a set.', 'info'); return; }
+  openSaveSetModal();
+}
+function openSaveSetModal() {
+  const mapName = (REGIONS[currentRegion] && REGIONS[currentRegion].label) || currentRegion;
+  const unique = new Set(found.map(citySetKey)).size;
+  const esc = t => String(t).replace(/[&<>"]/g, c => '&#' + c.charCodeAt(0) + ';');
+  document.getElementById('saveSetInfo').innerHTML = `Saves the <b>${unique} ${unique === 1 ? 'city' : 'cities'}</b> you named on <b>${esc(mapName)}</b> so you can practice them later.`;
+  const input = document.getElementById('saveSetName');
+  input.value = `${mapName} — ${found.length} ${found.length === 1 ? 'city' : 'cities'}`;
+  document.getElementById('saveSetModal').classList.add('open');
+  input.focus(); input.select();
+}
+function closeSaveSetModal() { document.getElementById('saveSetModal').classList.remove('open'); }
+function confirmSaveSet() {
+  const input = document.getElementById('saveSetName');
+  const name = input.value.trim();
+  if (!name) { input.focus(); return; }
+  if (!found.length) { closeSaveSetModal(); return; }
+  const entries = found.map(citySetSnapshot);
+  const unique = [...new Map(entries.map(entry => [entry.key, entry])).values()];
+  const sets = loadCitySets();
+  sets.unshift({ id:genId(), name, region:currentRegion, cities:unique, best:0, createdAt:Date.now(), updatedAt:Date.now() });
+  closeSaveSetModal();
+  if (saveCitySets(sets)) { renderCitySetsList(); setMsg(`Saved “${name}” (${unique.length} cities).`, 'ok'); }
+}
+document.getElementById('saveSetClose').onclick = closeSaveSetModal;
+document.getElementById('saveSetCancel').onclick = closeSaveSetModal;
+document.getElementById('saveSetConfirm').onclick = confirmSaveSet;
+document.getElementById('saveSetName').addEventListener('keydown', e => {
+  e.stopPropagation();   // typing a name must not reach the game's own key handlers
+  if (e.key === 'Enter') { e.preventDefault(); confirmSaveSet(); }
+  else if (e.key === 'Escape') { e.preventDefault(); closeSaveSetModal(); }
+});
+document.getElementById('saveSetName').addEventListener('keyup', e => e.stopPropagation());
+document.getElementById('saveSetName').addEventListener('keypress', e => e.stopPropagation());
+document.getElementById('saveSetModal').addEventListener('mousedown', e => { if (e.target.id === 'saveSetModal') closeSaveSetModal(); });
+function renderCitySetsList() {
+  const body = document.getElementById('citySetsBody');
+  const saveBtn = document.getElementById('saveCurrentSetBtn');
+  if (!body) return;
+  const sets = loadCitySets().sort((a,b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0));
+  body.innerHTML = '';
+  if (!sets.length) {
+    const empty = document.createElement('div'); empty.className = 'sess-empty';
+    empty.textContent = 'No saved city sets yet. Save the cities you have already named to make your first practice set.';
+    body.appendChild(empty);
+  }
+  sets.forEach(set => {
+    const count = Array.isArray(set.cities) ? set.cities.length : 0;
+    const regionName = (REGIONS[set.region] && REGIONS[set.region].label) || set.region || 'Unknown map';
+    const card = document.createElement('div'); card.className = 'sess-card city-set-card';
+    const top = document.createElement('div'); top.className = 'sess-card-top';
+    const title = document.createElement('span'); title.className = 'sess-card-name'; title.textContent = set.name || regionName;
+    const badge = document.createElement('span'); badge.className = 'sess-badge saved'; badge.textContent = regionName;
+    top.append(title,badge);
+    const meta = document.createElement('div'); meta.className = 'sess-card-meta';
+    meta.textContent = `${count} ${count === 1 ? 'city' : 'cities'} · best result ${Math.min(Number(set.best)||0,count)}/${count}`;
+    const actions = document.createElement('div'); actions.className = 'sess-card-actions';
+    const actionBtn = (label, action, cls='') => { const b=document.createElement('button'); b.type='button'; b.className='cm-btn '+cls; b.textContent=label; b.dataset.action=action; b.dataset.setId=set.id; return b; };
+    actions.append(actionBtn(activeCitySetId === set.id ? 'Resume' : 'Practice', 'play', 'primary'), actionBtn('Restart', 'restart'), actionBtn('Delete', 'delete', 'danger'));
+    card.append(top,meta,actions); body.appendChild(card);
+  });
+  if (saveBtn) saveBtn.disabled = found.length === 0 || (quizMode || circleMode);
+}
+function openCitySetsModal() {
+  renderCitySetsList();
+  document.getElementById('citySetsModal').classList.add('open');
+}
+function closeCitySetsModal() { document.getElementById('citySetsModal').classList.remove('open'); }
+function updateCitySetBest() {
+  if (!activeCitySetId) return;
+  const sets = loadCitySets(), set = sets.find(item => item.id === activeCitySetId);
+  if (!set || found.length <= (Number(set.best) || 0)) return;
+  set.best = found.length; set.updatedAt = Date.now(); saveCitySets(sets);
+}
+function renderCitySetReveals(grid) {
+  if (!activeCitySetId || !revealedCitySetKeys.size) return;
+  const db = citySetDBMap();
+  revealedCitySetKeys.forEach(key => {
+    if (found.some(city => citySetKey(city) === key)) return;
+    const city = db.get(key); if (!city) return;
+    const card = document.createElement('div'); card.className = 'fi set-revealed-row';
+    card.id = 'card-' + dotId(city); card.dataset.cityId = dotId(city); card.title = 'Revealed city — click to hide it. It is not counted until you name it.';
+    card.innerHTML = `<span class="fi-num">?</span><div class="fi-info"><span class="fi-name">${displayName(city)} <span class="set-revealed-tag">REVEALED</span></span><span class="fi-meta">${fmtLocation(city)}</span></div>`;
+    card.insertAdjacentHTML('beforeend', '<span class="set-hide-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 6.1A10.4 10.4 0 0 1 12 6c5 0 8.7 3.6 10 6-.6 1.1-1.6 2.4-2.9 3.5M6.5 7.6C4.4 8.9 2.9 10.7 2 12c1.3 2.4 5 6 10 6 1.5 0 2.9-.3 4.1-.9"/><path d="M9.9 10a3 3 0 0 0 4.1 4.1"/></svg></span>');
+    card.onclick = () => hideCitySetReveals([key]); grid.appendChild(card);
+  });
+}
+function hideCitySetReveals(keys) {
+  if (!activeCitySetId) return;
+  const db = citySetDBMap();
+  let n = 0;
+  keys.forEach(key => {
+    if (!revealedCitySetKeys.delete(key)) return;
+    n++;
+    const city = db.get(key);
+    if (city && !found.some(c => citySetKey(c) === key)) svg.select('#' + dotId(city)).remove();
+  });
+  if (!n) { setMsg('No revealed cities to hide.', 'info'); return; }
+  renderFoundGrid(); updateSummary(); drawNightCanvas();
+  saveActiveCitySetProgress(); persistSession();
+  setMsg(n === 1 ? 'City hidden again.' : `${n} cities hidden again.`, 'info');
+}
+function hideAllCitySetReveals() { hideCitySetReveals([...revealedCitySetKeys]); }
+function syncRevealedCitySetDots() {
+  if (!activeCitySetId || !projection) return;
+  const db = citySetDBMap();
+  revealedCitySetKeys.forEach(key => {
+    if (found.some(city => citySetKey(city) === key)) return;
+    const city = db.get(key); if (!city) return;
+    const sel = svg.select('#' + dotId(city));
+    if (sel.empty()) addDot(city);
+    svg.select('#' + dotId(city)).classed('set-revealed', true).classed('force-visible', true);
+  });
+}
+async function startCitySetPractice(id, restart=false) {
+  const set = getCitySet(id);
+  if (!set || !set.cities || !set.cities.length) { setMsg('This saved city set is empty or unavailable.', 'err'); return; }
+  if (circleMode) exitCircleMode();
+  if (quizMode) setQuizMode(false, quizRegion);
+  if (activeCitySetId) saveActiveCitySetProgress();
+  else captureState._fbr[currentRegion] = found.map(city => ({...city}));
+  if (restart) delete _citySetProgressPersist[id];
+  activeCitySetId = id;
+  activeCitySetKeys = new Set(set.cities.map(city => city.key || citySetKey(city)));
+  const progress = _citySetProgressPersist[id] || { found:[], revealed:[] };
+  found = (progress.found || []).map(saved => citySetDBMap().get(citySetKey(saved)) || saved)
+    .filter(city => activeCitySetKeys.has(citySetKey(city)));
+  revealedCitySetKeys = new Set(progress.revealed || []);
+  document.body.classList.add('city-set-practice');
+  closeCitySetsModal(); closeModePickModal();
+  const changedMap = currentRegion !== set.region;
+  tintRegionSelect(set.region);
+  if (changedMap) await drawMap(set.region);
+  else {
+    svg.select('#map-g').selectAll('.city-dot').remove();
+    found.forEach(addDot); syncRevealedCitySetDots();
+    drawNightCanvas();
+  }
+  renderFoundGrid(); renderBestCountries(); renderOtherStats(); updateSummary();
+  saveActiveCitySetProgress(); persistSession();
+  setMsg(`Practice set: ${set.name} (${set.cities.length} cities).`, 'info');
+}
+function leaveCitySetPractice() {
+  if (!activeCitySetId) return;
+  saveActiveCitySetProgress();
+  const region = currentRegion;
+  activeCitySetId = null; activeCitySetKeys = new Set(); revealedCitySetKeys = new Set();
+  document.body.classList.remove('city-set-practice');
+  svg.select('#map-g').selectAll('.city-dot').remove();
+  found = (captureState._fbr[region] || []).map(city => ({...city}));
+  found.forEach(addDot); drawNightCanvas();
+  tintRegionSelect(region);
+  renderFoundGrid(); renderBestCountries(); renderOtherStats(); updateSummary(); persistSession();
+}
+function syncSetRevealButtons() {
+  ['setRevealBtn','setRevealAllBtn','setHideAllBtn'].forEach(id => { const b = document.getElementById(id); if (b) b.style.display = activeCitySetId ? '' : 'none'; });
+}
+function revealAllCitySetCities() {
+  const set = activeCitySetId && getCitySet(activeCitySetId);
+  if (!set) return;
+  const foundKeys = new Set(found.map(citySetKey));
+  const dbMap = citySetDBMap();
+  let n = 0;
+  set.cities.forEach(entry => {
+    if (foundKeys.has(entry.key) || revealedCitySetKeys.has(entry.key) || !dbMap.get(entry.key)) return;
+    revealedCitySetKeys.add(entry.key); n++;
+  });
+  if (!n) { setMsg(found.length >= set.cities.length ? 'This set is complete.' : 'Every remaining city has already been revealed.', 'info'); return; }
+  syncRevealedCitySetDots(); renderFoundGrid(); updateSummary();
+  saveActiveCitySetProgress(); persistSession();
+  setMsg(`Revealed ${n} ${n === 1 ? 'city' : 'cities'}. Name them to count them.`, 'info');
+}
+function revealNextCitySetCity() {
+  const set = activeCitySetId && getCitySet(activeCitySetId);
+  if (!set) return;
+  const foundKeys = new Set(found.map(citySetKey));
+  const entry = set.cities.find(city => !foundKeys.has(city.key) && !revealedCitySetKeys.has(city.key));
+  if (!entry) { setMsg(found.length >= set.cities.length ? 'This set is complete.' : 'Every remaining city has already been revealed.', 'info'); return; }
+  const city = citySetDBMap().get(entry.key);
+  if (!city) { setMsg(`Could not load ${entry.name || 'that city'} from the current city data.`, 'err'); return; }
+  revealedCitySetKeys.add(entry.key); syncRevealedCitySetDots(); renderFoundGrid(); updateSummary();
+  const newCard = document.getElementById('card-' + dotId(city));
+  if (newCard) newCard.scrollIntoView({ block: 'nearest' });   // revealed rows sit below the named ones — bring the new one into view
+  saveActiveCitySetProgress(); persistSession();
+  setMsg(`Revealed: ${displayName(city)}. Name it to count it.`, 'info');
 }
 
 // Config for the map the quiz is currently running on (null when it's off).
@@ -3769,6 +4031,7 @@ async function drawMap(regionKey) {
     svg.select('#' + dotId(city)).remove();
     addDot(city);
   });
+  syncRevealedCitySetDots();
   resizeNightCanvas();
   drawNightCanvas();
   if (circlePending === regionKey) { circlePending = null; startCircleMode(regionKey, circlePendingTimed); }
@@ -5204,11 +5467,12 @@ function lookupCity(raw) {
   const stateCode = hint ? matchesUSState(hint) : null;
 
   function inScope(c) {
+    if (activeCitySetId && !activeCitySetKeys.has(citySetKey(c))) return false;
     // A city with no population figure (it would show up in the list without one)
     // can't be guessed.
     if (!(Number(c.pop) > 0)) return false;
     if (!cityInRegion(c, region)) return false;
-    if (S.countryMode === 'specific' && !hint && (c.country !== S.specificCountry || (S.specificAdmin1 && c.admin1 !== S.specificAdmin1))) return false;
+    if (!activeCitySetId && S.countryMode === 'specific' && !hint && (c.country !== S.specificCountry || (S.specificAdmin1 && c.admin1 !== S.specificAdmin1))) return false;
     if (hint) {
       if (stateCode) return c.country === 'US' && c.admin1 === stateCode;
       return matchesCountryHint(c.country, hint);
@@ -5893,13 +6157,15 @@ function guess() {
   const raw = input.value.trim(); if (!raw) return;
   const results = lookupCity(raw);
   if (!results.length) {
-    setMsg(`"${raw}" not found${REGIONS[currentRegion].countries ? ' in this region' : ''}.`, 'err');
+    setMsg(activeCitySetId ? `"${raw}" is not in this saved city set.` : `"${raw}" not found${REGIONS[currentRegion].countries ? ' in this region' : ''}.`, 'err');
   } else {
     let addedAny = false;
     results.forEach(city => {
       if (found.find(f=>f.name===city.name&&f.country===city.country&&(f.admin1||'')===( city.admin1||''))) {
         setMsg(`Already found ${displayName(city)}${city.admin1?', '+city.admin1:''}${city.country?', '+city.country:''}!`, 'dup');
       } else {
+        const setKey = citySetKey(city);
+        if (revealedCitySetKeys.has(setKey)) { revealedCitySetKeys.delete(setKey); svg.select('#'+dotId(city)).remove(); }
         found.push(city); addDot(city); addFoundItem(city); addedAny = true; drawNightCanvas();
       }
     });
@@ -6212,6 +6478,10 @@ function removeCity(city) {
   renumberFoundItems();
   renderBestCountries();
   renderOtherStats();
+  updateCitySetBest();
+  saveActiveCitySetProgress();
+  const revealBtn = document.getElementById('setRevealBtn');
+  syncSetRevealButtons();
   updateSummary();
   drawNightCanvas();
   persistSession();
@@ -6275,12 +6545,14 @@ function addFoundItem(city) {
   }
   renderBestCountries();
   renderOtherStats();
+  updateCitySetBest();
+  saveActiveCitySetProgress();
   updateSummary();
 }
 
 function renderFoundGrid() {
   const titleEl = document.getElementById('panelTitle');
-  if (titleEl) titleEl.textContent = (quizMode && quizCfg()) ? quizCfg().Nouns : ((circleMode && circle) ? 'Circle challenge' : 'Cities');
+  if (titleEl) titleEl.textContent = activeCitySetId ? 'Practice set' : ((quizMode && quizCfg()) ? quizCfg().Nouns : ((circleMode && circle) ? 'Circle challenge' : 'Cities'));
 
   const grid = document.getElementById('foundGrid');
   grid.innerHTML = '';
@@ -6299,7 +6571,14 @@ function renderFoundGrid() {
   }
 
   if (!found.length) {
-    renderEmptyFoundGrid(grid);
+    // In a practice set the revealed cities ARE the list until you name one, so skip the placeholder rows
+    // (they used to fill the panel and push the revealed rows out of sight below them).
+    const dbForReveals = activeCitySetId && revealedCitySetKeys.size ? citySetDBMap() : null;
+    const hasReveals = !!dbForReveals && [...revealedCitySetKeys].some(k => dbForReveals.has(k));
+    if (!hasReveals) renderEmptyFoundGrid(grid);
+    renderCitySetReveals(grid);
+    const revealBtn = document.getElementById('setRevealBtn');
+    syncSetRevealButtons();
     return;
   }
   const guessNumbers = new Map(found.map((city, i) => [dotId(city), i + 1]));
@@ -6328,6 +6607,9 @@ function renderFoundGrid() {
     grid.appendChild(overlay);
     grid.scrollTop = 0;   // the "Load data file" message locks the list in place (see CSS), so start from the top
   }
+  renderCitySetReveals(grid);
+  const revealBtn = document.getElementById('setRevealBtn');
+  syncSetRevealButtons();
 }
 
 // Placeholder rows shown while no cities have been entered yet — same size/shape
@@ -7487,12 +7769,22 @@ document.getElementById('countryFilterBtn').addEventListener('click', closeStats
 function updateSummary() {
   const bar = document.getElementById('summaryBar');
   const row = document.getElementById('statusRow');
-  row.style.display = found.length === 0 ? 'none' : '';   // no strip at all while there is nothing to show
-  if (found.length === 0) { bar.style.display = 'none'; } else {
+  row.style.display = found.length === 0 && !activeCitySetId ? 'none' : '';
+  if (found.length === 0 && !activeCitySetId) { bar.style.display = 'none'; } else {
     bar.style.display = 'inline-block';
-    const totalPop = found.reduce((s,c) => s + (c.pop||0), 0);
-    const cityWord = found.length === 1 ? 'city' : 'cities';
-    bar.innerHTML = `You named <strong>${found.length} ${cityWord}</strong>, with a total population of <span class="pop-total">${fmtPop(totalPop)}</span>`;
+    if (activeCitySetId) {
+      const set = getCitySet(activeCitySetId), total = set ? set.cities.length : 0;
+      const pct = total ? Math.min(100, found.length / total * 100) : 0;
+      const foundKeysSum = new Set(found.map(citySetKey));
+      const revealedN = [...revealedCitySetKeys].filter(k => !foundKeysSum.has(k)).length;
+      const revPct = total ? Math.min(100 - pct, revealedN / total * 100) : 0;
+      const cityWord = found.length === 1 ? 'city' : 'cities';
+      bar.innerHTML = `<span class="city-set-sum">You named <strong>${found.length} ${cityWord}</strong> out of <strong>${total}</strong><span class="city-set-progress" role="progressbar" aria-valuenow="${found.length}" aria-valuemax="${total}" style="--set-progress:${pct}%;--set-revealed:${revPct}%"><i></i><b></b></span></span>`;
+    } else {
+      const totalPop = found.reduce((s,c) => s + (c.pop||0), 0);
+      const cityWord = found.length === 1 ? 'city' : 'cities';
+      bar.innerHTML = `You named <strong>${found.length} ${cityWord}</strong>, with a total population of <span class="pop-total">${fmtPop(totalPop)}</span>`;
+    }
   }
 }
 
@@ -7656,6 +7948,7 @@ function modeIconMini(kind) {
   const cfg = {
     N: ['#a6ecb3', '#4fbf6a', '#2a8f4a', '<path d="M16 7.6c-3.4 0-6 2.6-6 5.9 0 4.3 6 10.7 6 10.7s6-6.4 6-10.7c0-3.3-2.6-5.9-6-5.9z" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><circle cx="16" cy="13.4" r="2.3" fill="#fff"/>'],
     P: ['#ffd98a', '#f5a623', '#c77a0a', '<path d="M15 8L23 10.5L24.5 19L16 16.3Z" fill="#fff" fill-opacity=".4"/><path d="M8 11L15 8L23 10.5L24.5 19L17 24L9 21Z" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="M16 16.3L15 8M16 16.3L24.5 19M16 16.3L9 21" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>'],
+    R: ['#d9b8ff', '#9b6be0', '#5f35a8', '<circle cx="16" cy="16" r="8" fill="none" stroke="#fff" stroke-width="1.8"/><path d="M12.2 16.2l2.7 2.7 5-5.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'],
     Z: ['#8cc6ff', '#2f86d6', '#14498f', '<circle cx="16" cy="16" r="8" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="16" cy="16" r="4.2" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="16" cy="16" r="1.5" fill="#fff"/>']
   }[kind];
   if (!cfg) return '';
@@ -7676,7 +7969,8 @@ function tintRegionSelect(rk) {
   if (lbl) {   // "<map> — <icon> <current game mode>" (maps with only one way to play just show their name)
     const mapName = (opt && opt.textContent) || (REGIONS[rk] && REGIONS[rk].label) || rk;
     let name = mapName, mode = null, kind = null;
-    if (quizMode && quizRegion === rk && QUIZ_CFG[rk]) {
+    if (activeCitySetId) { kind = 'R'; mode = 'Practice'; }
+    else if (quizMode && quizRegion === rk && QUIZ_CFG[rk]) {
       const parts = String(QUIZ_CFG[rk].label || '').split(' — ');
       kind = 'P'; name = parts.length > 1 ? parts[0] : mapName; mode = parts.length > 1 ? parts.slice(1).join(' — ') : (QUIZ_CFG[rk].quizTitle || 'Quiz');
     } else if (circleMode && circleRegion === rk) { kind = 'Z'; mode = 'Zones'; }
@@ -7732,9 +8026,7 @@ function buildMapList() {
       const code = regionFlags[o.value] ? [...regionFlags[o.value]].map(c => String.fromCharCode(c.codePointAt(0) - 0x1F1E6 + 65)).join('') : '';
       btn.innerHTML = `${icon}${code ? `<span class="map-opt-code">${code}</span>` : ''}<span class="map-opt-globe">${regionIconSVG(o.value)}</span><span>${o.textContent}</span><span class="map-opt-check"></span>`;
       btn.onclick = () => {
-        if (QUIZ_CFG[o.value] || CIRCLE_CFG[o.value]) { closeMapModal(); openModePickModal(o.value); return; }
-        closeMapModal();
-        if (o.value !== currentRegion) guardLeaveZones(() => setRegion(o.value));
+        closeMapModal(); openModePickModal(o.value);
       };
       grid.appendChild(btn);
     });
@@ -7758,7 +8050,8 @@ function closeMapModal() { document.getElementById('mapModal').classList.remove(
 // ─── MAP SELECTOR: CLEAR ALL MAPS ────────────────────────────────────────────
 // Every map keeps its own list of typed cities (captureState._fbr); the current map's live list is `found`.
 function typedCitiesByMap() {
-  const by = { ...(captureState._fbr || {}), [currentRegion]: found };
+  const by = { ...(captureState._fbr || {}) };
+  if (!activeCitySetId) by[currentRegion] = found;
   const maps = Object.keys(by).filter(k => by[k] && by[k].length);
   return { maps, total: maps.reduce((n, k) => n + by[k].length, 0) };
 }
@@ -7771,9 +8064,11 @@ function updateMapFoot() {
 }
 function clearAllMapsNow() {
   Object.keys(captureState._fbr || {}).forEach(k => { captureState._fbr[k] = []; });
-  found = []; missed = 0;
+  if (!activeCitySetId) found = [];
+  missed = 0;
   document.getElementById('sortByPop').checked = false; sortByPop = false;
   svg.select('#map-g').selectAll('.city-dot:not(.circle-dot)').remove();   // keep a running Zones circle's own dots
+  if (activeCitySetId) { found.forEach(addDot); syncRevealedCitySetDots(); }
   renderFoundGrid(); updateSummary(); renderBestCountries(); renderOtherStats();
   if (!circleMode) { currentTransform = d3.zoomIdentity; svg.transition().duration(400).call(zoomBehavior.transform, d3.zoomIdentity); }
   drawNightCanvas();
@@ -7795,6 +8090,7 @@ document.getElementById('clearMapsConfirm').onclick = () => {
 
 document.getElementById('mapPickBtn').onclick = e => { e.stopPropagation(); openMapModal(); };
 document.getElementById('mapClose').onclick = closeMapModal;
+document.getElementById('saveSetMapBtn').onclick = e => { e.stopPropagation(); saveCurrentCitiesAsSet(); };
 
 // ─── MODE PICKER MODAL — Normal vs region quiz, shown after picking Japan / USA ──
 let modePickRegion = null; // map ('japan' | 'usa') the open modal is choosing a mode for
@@ -7821,9 +8117,10 @@ function openModePickModal(rk) {
   const circleBtn = document.getElementById('modePickCircleBtn');
   circleBtn.style.display = ccfg ? '' : 'none';
   if (ccfg) { document.getElementById('modePickCircleTitle').textContent = 'Zones'; document.getElementById('modePickCircleDesc').textContent = 'Guess as many cities as you can in specific locations of this region. 3 rounds, get more points for bigger cities!'; }
-  const activeQuiz = currentRegion === rk ? (circleMode && circleRegion === rk ? '2' : (quizMode && quizRegion === rk ? '1' : '0')) : null;
+  const activeQuiz = currentRegion === rk ? (activeCitySetId ? '3' : (circleMode && circleRegion === rk ? '2' : (quizMode && quizRegion === rk ? '1' : '0'))) : null;
   document.querySelectorAll('.modepick-opt').forEach(btn => {
-    const isCurrent = activeQuiz !== null && btn.dataset.quiz === activeQuiz;
+    const mode = btn.dataset.setMode === '1' ? '3' : btn.dataset.quiz;
+    const isCurrent = activeQuiz !== null && mode === activeQuiz;
     btn.classList.toggle('current', isCurrent);
     const chk = btn.querySelector('.modepick-check');
     if (chk) chk.textContent = isCurrent ? '✓' : '';
@@ -7833,12 +8130,14 @@ function openModePickModal(rk) {
 function closeModePickModal() { document.getElementById('modePickModal').classList.remove('open'); }
 document.querySelectorAll('.modepick-opt').forEach(btn => {
   btn.onclick = () => {
+    if (btn.dataset.setMode === '1') { closeModePickModal(); openCitySetsModal(); return; }
     const quiz = btn.dataset.quiz === '1';
     const rk = modePickRegion;
     closeModePickModal();
     if (!rk) return;
     if (btn.dataset.quiz === '2') { openCircleTimerModal(rk); return; }   // Circle challenge: ask timed / untimed first
     guardLeaveZones(() => {   // leaving a Zones session in progress needs confirming
+      if (activeCitySetId) leaveCitySetPractice();
       if (circleMode) exitCircleMode(currentRegion !== rk);
       if (currentRegion === rk) {
         const changed = (quizMode && quizRegion === rk) !== quiz;
@@ -7857,6 +8156,25 @@ document.querySelectorAll('.modepick-opt').forEach(btn => {
 });
 document.getElementById('modePickClose').onclick = closeModePickModal;
 document.getElementById('modePickBack').onclick = () => { closeModePickModal(); openMapModal(); };   // ← back to the map selector
+document.getElementById('citySetsBack').onclick = () => { closeCitySetsModal(); openModePickModal(modePickRegion || currentRegion); };
+document.getElementById('citySetsClose').onclick = closeCitySetsModal;
+document.getElementById('saveCurrentSetBtn').onclick = saveCurrentCitiesAsSet;
+document.getElementById('setRevealBtn').onclick = revealNextCitySetCity;
+document.getElementById('setRevealAllBtn').onclick = revealAllCitySetCities;
+document.getElementById('setHideAllBtn').onclick = hideAllCitySetReveals;
+document.getElementById('citySetsBody').onclick = e => {
+  const button = e.target.closest('[data-action][data-set-id]'); if (!button) return;
+  const { action, setId } = button.dataset;
+  if (action === 'play') { startCitySetPractice(setId); return; }
+  if (action === 'restart') { startCitySetPractice(setId, true); return; }
+  if (action === 'delete') {
+    const set = getCitySet(setId); if (!set || !confirm(`Delete saved set “${set.name}”?`)) return;
+    if (activeCitySetId === setId) leaveCitySetPractice();
+    const sets = loadCitySets().filter(item => item.id !== setId);
+    delete _citySetProgressPersist[setId];
+    saveCitySets(sets); renderCitySetsList(); persistSession();
+  }
+};
 
 // Menu windows close only with their ✕ button (no click-outside / Escape).
 // ─── ZONES: CONFIRM BEFORE LEAVING ───────────────────────────────────────────
@@ -7893,6 +8211,7 @@ document.querySelectorAll('#circleTimerList .ctm-opt').forEach(btn => {
     closeCircleTimerModal();
     if (!rk) return;
     guardLeaveZones(() => {   // starting over (or on another map) also ends the current session
+      if (activeCitySetId) leaveCitySetPractice();
       if (currentRegion === rk) { if (circleMode) exitCircleMode(); startCircleMode(rk, timed); }
       else { circlePending = rk; circlePendingTimed = timed; setRegion(rk, false); }
     });
@@ -7902,8 +8221,14 @@ document.getElementById('circleTimerClose').onclick = closeCircleTimerModal;
 document.getElementById('circleTimerBack').onclick = () => { const rk = circleTimerRegion; closeCircleTimerModal(); if (rk) openModePickModal(rk); else openMapModal(); };   // ← back to the mode picker
 
 function setRegion(rk, quizWanted) {
-  // Save current region's cities before switching
-  captureState._fbr[currentRegion] = found.map(c => ({...c}));
+  // Keep a practice run separate from the ordinary per-map found list.
+  if (activeCitySetId) {
+    saveActiveCitySetProgress();
+    activeCitySetId = null; activeCitySetKeys = new Set(); revealedCitySetKeys = new Set();
+    document.body.classList.remove('city-set-practice');
+  } else {
+    captureState._fbr[currentRegion] = found.map(c => ({...c}));
+  }
 
   if (QUIZ_CFG[rk]) setQuizMode(!!quizWanted, rk);
   tintRegionSelect(rk);
@@ -7930,19 +8255,24 @@ document.getElementById('regionSelect').onchange = e => {
 
 // ─── SETTINGS CONTROLS ───────────────────────────────────────────────────────
 document.getElementById('clearBtn').onclick = () => {
-  if (found.length > 0 && !confirm('Clear all cities? This cannot be undone.')) return;
+  const practicing = !!activeCitySetId;   // in a practice set, "Clear all" restarts the set from the beginning
+  if (practicing ? (found.length > 0 || revealedCitySetKeys.size > 0) && !confirm('Restart this practice set? Your named and revealed cities will be cleared and you will start again from the beginning.') : (found.length > 0 && !confirm('Clear all cities? This cannot be undone.'))) return;
   found=[]; missed=0;
-  captureState._fbr[currentRegion] = [];
+  if (practicing) { revealedCitySetKeys = new Set(); delete _citySetProgressPersist[activeCitySetId]; }
+  if (activeCitySetId) saveActiveCitySetProgress();
+  else captureState._fbr[currentRegion] = [];
   renderFoundGrid();
   updateSummary();
   document.getElementById('sortByPop').checked = false;
   sortByPop = false;
   svg.select('#map-g').selectAll('.city-dot').remove();
+  if (activeCitySetId) syncRevealedCitySetDots();
+  drawNightCanvas();
   renderBestCountries();
   renderOtherStats();
   currentTransform = d3.zoomIdentity;
   svg.transition().duration(400).call(zoomBehavior.transform, d3.zoomIdentity);
-  setMsg('All cities cleared.','info');
+  setMsg(practicing ? 'Practice set restarted.' : 'All cities cleared.','info');
   persistSession();
 };
 document.getElementById('zoomIn').onclick = ()=>zoomBehavior.scaleBy(svg.transition().duration(250), 1.6);
@@ -8637,11 +8967,14 @@ function saveAllSessions(sessions) {
 function captureState() {
   // Save current region's found list into foundByRegion before snapshotting
   const fbr = {...(captureState._fbr || {})};
-  fbr[currentRegion] = found.map(c => ({...c}));
+  if (activeCitySetId) saveActiveCitySetProgress();
+  else fbr[currentRegion] = found.map(c => ({...c}));
   captureState._fbr = fbr;
   return {
     foundByRegion: fbr,
     region: currentRegion,
+    activeCitySetId,
+    citySetProgress: _citySetProgressPersist,
     S: {...S},
     sortByPop,
   };
@@ -8681,7 +9014,13 @@ async function restoreState(snap) {
   syncCountryFilterUI();
 
   // Restore region dropdown
-  const region = snap.region || 'world';
+  _citySetProgressPersist = snap.citySetProgress || {};
+  const restoredSet = snap.activeCitySetId ? getCitySet(snap.activeCitySetId) : null;
+  activeCitySetId = restoredSet ? restoredSet.id : null;
+  activeCitySetKeys = new Set(restoredSet ? restoredSet.cities.map(city => city.key || citySetKey(city)) : []);
+  revealedCitySetKeys = new Set();
+  document.body.classList.toggle('city-set-practice', !!restoredSet);
+  const region = restoredSet ? restoredSet.region : (snap.region || 'world');
   tintRegionSelect(region);
 
   // Restore per-region found cities
@@ -8695,7 +9034,11 @@ async function restoreState(snap) {
   for (const [r, cities] of Object.entries(fbr)) {
     captureState._fbr[r] = cities.map(c => ({...c}));
   }
-  found = (captureState._fbr[region] || []).map(c => ({...c}));
+  if (restoredSet) {
+    const progress = _citySetProgressPersist[restoredSet.id] || { found:[], revealed:[] };
+    found = (progress.found || []).map(c => citySetDBMap().get(citySetKey(c)) || ({...c})).filter(c => activeCitySetKeys.has(citySetKey(c)));
+    revealedCitySetKeys = new Set(progress.revealed || []);
+  } else found = (captureState._fbr[region] || []).map(c => ({...c}));
   await drawMap(region);
   renderFoundGrid();
   renderBestCountries();
@@ -10458,6 +10801,54 @@ body.skin-sky.night-mode #clearMapsModal .cm-leave-warn{font-size:13.5px;line-he
 body.skin-sky.night-mode #clearMapsModal .cm-leave-warn b{color:#ff9a8f;font-weight:800}
 body.skin-sky.night-mode #clearMapsModal .cm-leave-q{font-size:16px;font-weight:800;color:#91b0ec}
 body.skin-sky.night-mode #clearMapsModal .cm-actions{margin-top:6px}
+#saveSetModal{display:none;position:fixed;inset:0;z-index:135;background:rgba(0,0,0,.45);align-items:center;justify-content:center}
+#saveSetModal.open{display:flex}
+#saveSetModal .cm-box{width:400px}
+#saveSetModal .cm-leave-warn{font-size:13.5px;line-height:1.5;color:var(--text2);text-align:center}
+#saveSetModal .cm-leave-q{font-size:15px;font-weight:700;color:var(--text);text-align:center}
+body.skin-sky:not(.night-mode) #saveSetModal{background:rgba(110,168,232,.38);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
+body.skin-sky:not(.night-mode) #saveSetModal .cm-box{width:440px;border-radius:28px;border:1px solid rgba(255,255,255,.85);background:linear-gradient(180deg,rgba(248,252,255,.97),rgba(222,238,253,.96));box-shadow:0 20px 50px rgba(40,100,190,.33),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #saveSetModal .cm-head{margin:12px 12px 4px;padding:6px 8px 6px 16px;border:none;border-radius:999px;background:linear-gradient(180deg,#fff,#eaf4fe);box-shadow:0 4px 12px rgba(70,140,220,.18),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #saveSetModal .cm-head h2{font-size:17px;line-height:1.15;font-weight:800;color:#0f3f9c;letter-spacing:-.01em}
+body.skin-sky:not(.night-mode) #saveSetModal .cm-x{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:34px;height:34px;padding:0;border-radius:50%;font-size:18px;font-weight:700;color:#2a6fe0;background:linear-gradient(180deg,#fff,#e6f1fd);box-shadow:0 2px 8px rgba(70,140,220,.26),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #saveSetModal .cm-x:hover{background:linear-gradient(180deg,#fff,#d6e8fc)}
+body.skin-sky:not(.night-mode) #saveSetModal .cm-body{padding:10px 22px 20px;gap:10px}
+body.skin-sky:not(.night-mode) #saveSetModal .cm-leave-warn{font-size:13.5px;line-height:1.45;font-weight:600;color:#5a7ab5}
+body.skin-sky:not(.night-mode) #saveSetModal .cm-leave-warn b{color:#b3261e;font-weight:800}
+body.skin-sky:not(.night-mode) #saveSetModal .cm-leave-q{font-size:16px;font-weight:800;color:#0f3f9c}
+body.skin-sky:not(.night-mode) #saveSetModal .cm-actions{margin-top:6px}
+body.skin-sky.night-mode #saveSetModal{background:rgba(2,8,22,0.62);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
+body.skin-sky.night-mode #saveSetModal .cm-box{width:440px;border-radius:28px;border:1px solid rgba(255,255,255,0.14);background:linear-gradient(180deg,rgba(12,27,50,0.97),rgba(16,36,70,0.96));box-shadow:0 20px 50px rgba(0,8,30,0.59),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #saveSetModal .cm-head{margin:12px 12px 4px;padding:6px 8px 6px 16px;border:none;border-radius:999px;background:linear-gradient(180deg,#101a28,#0e1f3d);box-shadow:0 4px 12px rgba(0,8,30,0.32),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #saveSetModal .cm-head h2{font-size:17px;line-height:1.15;font-weight:800;color:#91b0ec;letter-spacing:-.01em}
+body.skin-sky.night-mode #saveSetModal .cm-x{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:34px;height:34px;padding:0;border-radius:50%;font-size:18px;font-weight:700;color:#719fea;background:linear-gradient(180deg,#101a28,#0f2040);box-shadow:0 2px 8px rgba(0,8,30,0.47),inset 0 1px 0 rgba(255,255,255,0.28)}
+body.skin-sky.night-mode #saveSetModal .cm-x:hover{background:linear-gradient(180deg,#101a28,#12264c)}
+body.skin-sky.night-mode #saveSetModal .cm-body{padding:10px 22px 20px;gap:10px}
+body.skin-sky.night-mode #saveSetModal .cm-leave-warn{font-size:13.5px;line-height:1.45;font-weight:600;color:#7f9bc9}
+body.skin-sky.night-mode #saveSetModal .cm-leave-warn b{color:#ff9a8f;font-weight:800}
+body.skin-sky.night-mode #saveSetModal .cm-leave-q{font-size:16px;font-weight:800;color:#91b0ec}
+body.skin-sky.night-mode #saveSetModal .cm-actions{margin-top:6px}
+#saveSetModal .cm-box{width:420px}
+#saveSetModal .cm-leave-q{text-align:left}
+#saveSetModal .cm-leave-warn{text-align:left}
+#saveSetName{width:100%;box-sizing:border-box;padding:10px 12px;font:inherit;font-size:15px;font-weight:600;border:1.5px solid var(--border);border-radius:9px;background:var(--bg);color:var(--text);outline:none}
+#saveSetName:focus{border-color:var(--accent2)}
+#saveSetModal .cm-actions .cm-btn{white-space:nowrap}
+body.skin-sky:not(.night-mode) #saveSetModal .cm-leave-q{text-align:left;padding-left:6px}
+body.skin-sky:not(.night-mode) #saveSetModal .cm-leave-warn{text-align:left;padding-left:6px}
+body.skin-sky:not(.night-mode) #saveSetName{height:46px;padding:0 20px;border:1.5px solid #bcd1ec;border-radius:999px;background:#fff;color:#15356b;font-size:16px;font-weight:700;box-shadow:inset 0 2px 4px rgba(80,140,210,.12)}
+body.skin-sky:not(.night-mode) #saveSetName:focus{border-color:#2a6fe0;box-shadow:0 0 0 3px rgba(42,111,224,.2)}
+body.skin-sky:not(.night-mode) #saveSetModal .cm-actions .cm-btn{height:46px;border:1.5px solid transparent;border-radius:999px;background:linear-gradient(180deg,#fff,#e3effd);color:#0f3f9c;font-size:15.5px;font-weight:800;box-shadow:0 5px 12px rgba(70,140,220,.22),inset 0 1px 0 #fff}
+body.skin-sky:not(.night-mode) #saveSetModal .cm-actions .cm-btn.primary{background:linear-gradient(180deg,#4aa6ff,#2a6fe8);color:#fff;box-shadow:0 6px 14px rgba(42,111,232,.4),inset 0 1px 0 rgba(255,255,255,.45)}
+body.skin-sky:not(.night-mode) #saveSetModal .cm-actions .cm-btn:hover{transform:translateY(-1px)}
+body.skin-sky.night-mode #saveSetModal .cm-leave-q{text-align:left;padding-left:6px}
+body.skin-sky.night-mode #saveSetModal .cm-leave-warn{text-align:left;padding-left:6px}
+body.skin-sky.night-mode #saveSetName{height:46px;padding:0 20px;border:1.5px solid #1d3465;border-radius:999px;background:#101a28;color:#bcd0f3;font-size:16px;font-weight:700}
+body.skin-sky.night-mode #saveSetName:focus{border-color:#2a6fe0;box-shadow:0 0 0 3px rgba(42,111,224,.25)}
+body.skin-sky.night-mode #saveSetModal .cm-actions .cm-btn{height:46px;border:1.5px solid transparent;border-radius:999px;background:linear-gradient(180deg,#101a28,#0f2040);color:#91b0ec;font-size:15.5px;font-weight:800;box-shadow:0 4px 12px rgba(0,8,30,.45),inset 0 1px 0 rgba(255,255,255,.2)}
+body.skin-sky.night-mode #saveSetModal .cm-actions .cm-btn.primary{background:linear-gradient(180deg,#3a86f0,#1f58c4);color:#fff}
+body.skin-nasa #saveSetModal{background:rgba(10,13,10,.78)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+body.skin-nasa #saveSetName{border:1px solid #766b4e;border-radius:3px;background:#1b2018;color:#e8dfc6}
 body.skin-sky.night-mode #clearMapsModal .cm-btn.danger{height:46px;border:1.5px solid transparent;border-radius:999px;background:linear-gradient(180deg,#f0645a,#c0332b);color:#fff;font-size:15.5px;font-weight:800;box-shadow:0 6px 14px rgba(0,8,30,0.5),inset 0 1px 0 rgba(255,255,255,0.3);transition:transform .12s}
 body.skin-sky.night-mode #clearMapsModal .cm-btn.danger:hover:not(:disabled){background:linear-gradient(180deg,#f67268,#cf3b33);transform:translateY(-1px)}
 /* map selector footer */
@@ -10819,6 +11210,60 @@ body.skin-nasa.map-panning .city-dot circle.main-dot{filter:none!important}
 body.skin-nasa.nasa-many #mapWrap.nasa-tex #countries-g,
 body.skin-nasa.map-panning #mapWrap.nasa-tex #countries-g{filter:none!important}
 body.skin-nasa.map-panning #map-g path{shape-rendering:optimizeSpeed}
+
+/* Saved city-set practice mode */
+#citySetsModal{display:none;position:fixed;inset:0;z-index:125;background:rgba(0,0,0,.48);align-items:center;justify-content:center}
+#citySetsModal.open{display:flex}
+#citySetsBox{width:560px}
+#citySetsHead h2{flex:1;margin:0}
+#citySetsBody{max-height:min(62vh,560px);min-height:110px}
+#citySetsActions{padding:0 18px 16px}
+.city-set-card .sess-card-actions{display:flex;gap:8px;flex-wrap:wrap}
+.city-set-card .cm-btn{flex:1;white-space:nowrap}
+.city-set-card .sess-badge{max-width:48%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#summaryBar .city-set-sum{display:inline-block;vertical-align:middle;white-space:nowrap;text-align:left}
+#summaryBar .city-set-progress{display:flex;width:100%;height:6px;margin:5px 0 0;border-radius:99px;background:rgba(120,120,120,.22);overflow:hidden}
+#summaryBar .city-set-progress i{display:block;flex:0 0 auto;width:var(--set-progress,0%);height:100%;border-radius:0;background:var(--accent2,#d39a47);transition:width .25s ease}
+body.skin-nasa #citySetsModal{background:rgba(10,13,10,.78);backdrop-filter:none;-webkit-backdrop-filter:none}
+body.skin-nasa #citySetsBox{background:linear-gradient(180deg,#292e24,#1b2018);border:1px solid #766b4e;border-radius:3px;color:#e8dfc6}
+body.skin-nasa #citySetsHead{background:#30352a;border-bottom-color:#5b5c48}
+body.skin-nasa #citySetsHead h2{color:#e2a24a}
+body.city-set-practice #mapWrap .city-dot.set-revealed{display:block!important}
+body.city-set-practice #mapWrap .city-dot.set-revealed circle.main-dot{display:block!important;fill:#969b98!important;fill-opacity:1!important;stroke:#555b58!important;stroke-width:.7px!important;filter:none!important}
+body.city-set-practice.pin-mode #mapWrap .city-dot.set-revealed circle.main-dot{display:none!important}
+body.city-set-practice.pin-mode #mapWrap .city-dot.set-revealed .pin-group{display:block!important}
+body.city-set-practice.pin-mode #mapWrap .city-dot.set-revealed .pin-ball{fill:#969b98!important;filter:none!important}
+body.city-set-practice.night-mode #mapWrap .city-dot.set-revealed{display:block!important}
+body.city-set-practice .fi.set-revealed-row{border-color:#777e7a!important;background:linear-gradient(180deg,#555c59,#444b48)!important;color:#e0e3df!important;box-shadow:inset 0 1px rgba(255,255,255,.08)!important}
+body.city-set-practice .fi.set-revealed-row .fi-num{border-color:#9ca39f!important;background:#3a403d!important;color:#cbd0cc!important;box-shadow:none!important;text-shadow:none!important}
+body.city-set-practice .fi.set-revealed-row .fi-name,body.city-set-practice .fi.set-revealed-row .fi-meta{color:#d0d5d1!important}
+/* Practice set header: title row, Reveal one / Reveal all side by side, Hide all, then Sort by population — no text wraps */
+body.city-set-practice #panelHeader{display:grid!important;grid-template-columns:1fr 1fr;align-items:center;column-gap:8px;row-gap:8px}
+body.city-set-practice #panelTitle{grid-column:1/-1;grid-row:1;white-space:nowrap;min-width:0}
+body.city-set-practice #setRevealBtn{grid-column:1;grid-row:2;margin:0;white-space:nowrap}
+body.city-set-practice #setRevealAllBtn{grid-column:2;grid-row:2;margin:0;white-space:nowrap}
+body.city-set-practice #setHideAllBtn{grid-column:1/-1;grid-row:3;margin:0;white-space:nowrap}
+body.city-set-practice .fi.set-revealed-row{cursor:pointer}
+body.city-set-practice .fi.set-revealed-row .set-hide-ico{margin-left:auto;flex:0 0 auto;display:flex;align-items:center;color:#c1c7c2;opacity:.8}
+body.city-set-practice .fi.set-revealed-row:hover .set-hide-ico{opacity:1}
+body.city-set-practice #sortLabel{grid-column:1/-1;grid-row:4;justify-self:start;margin:0;white-space:nowrap}
+body.city-set-practice #saveSetMapBtn{display:none!important}
+.set-revealed-tag{display:inline-block;margin-left:6px;font-size:9px;font-weight:700;letter-spacing:.08em;color:#c1c7c2}
+body.skin-nasa.city-set-practice .fi.set-revealed-row{border-color:#71766e!important;background:linear-gradient(180deg,#41463d,#30352e)!important;color:#d6d6cb!important}
+body.skin-nasa.city-set-practice #mapWrap .city-dot.set-revealed circle.main-dot{fill:#969b98!important;stroke:#555b58!important;filter:none!important}
+@media(max-width:640px){#citySetsBox{width:94vw}#citySetsActions{padding:0 12px 12px}.city-set-card .sess-badge{font-size:10px}}
+/* Quick-save control sits above the two map appearance/settings buttons. */
+#saveSetMapBtn{position:absolute;left:10px;bottom:88px;z-index:7;width:32px;height:32px;padding:5px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:7px;background:rgba(255,255,255,.88);color:var(--text2);box-shadow:0 2px 7px rgba(0,0,0,.16);cursor:pointer;transition:transform .15s ease,background .15s ease,color .15s ease,box-shadow .15s ease}
+#saveSetMapBtn:hover{transform:translateY(-1px);background:var(--surface);color:var(--accent2);box-shadow:0 3px 10px rgba(0,0,0,.22)}
+#saveSetMapBtn:active{transform:translateY(1px)}
+#saveSetMapBtn:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+body.skin-sky:not(.night-mode) #saveSetMapBtn{left:16px;bottom:96px;width:32px;height:32px;padding:5px;border:0;border-radius:11px;background:var(--sky-pill);color:#17427d;box-shadow:var(--sky-shadow)}
+body.skin-sky:not(.night-mode) #saveSetMapBtn:hover{background:linear-gradient(180deg,#fff,#d9ebfd);color:#1766cc}
+body.skin-sky.night-mode #saveSetMapBtn{left:16px;bottom:96px;width:32px;height:32px;border:1px solid rgba(125,175,238,.3);border-radius:11px;background:rgba(20,30,52,.9);color:#d6e7ff}
+body.skin-nasa #saveSetMapBtn{left:8px;bottom:80px;width:22px;height:22px;padding:3px;border:1px solid #a17b45;border-radius:3px;background:linear-gradient(180deg,#393b2f,#24291f);color:#e2a24a;box-shadow:inset 0 1px rgba(255,245,214,.12),0 1px 3px rgba(0,0,0,.45)}
+body.skin-nasa #saveSetMapBtn:hover{border-color:#dfb368;background:#494538;color:#ffd27a}
+body.skin-nasa #saveSetMapBtn svg{width:14px;height:14px}
+@media(max-width:640px){#saveSetMapBtn{left:calc(10px + env(safe-area-inset-left));bottom:calc(104px + env(safe-area-inset-bottom))}body.skin-sky:not(.night-mode) #saveSetMapBtn,body.skin-sky.night-mode #saveSetMapBtn{left:calc(16px + env(safe-area-inset-left));bottom:calc(96px + env(safe-area-inset-bottom))}body.skin-nasa #saveSetMapBtn{left:calc(8px + env(safe-area-inset-left));bottom:calc(80px + env(safe-area-inset-bottom))}}
 </style>
 <div id="cadm"><div class="w">
 <div class="bar"><b>City data editor</b>
