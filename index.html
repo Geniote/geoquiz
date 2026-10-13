@@ -8193,12 +8193,8 @@ document.getElementById('mapPickBtn').onclick = e => { e.stopPropagation(); open
 document.getElementById('mapClose').onclick = closeMapModal;
 document.getElementById('saveSetMapBtn').onclick = e => {
   e.stopPropagation();
-  if (!found.length || quizMode || circleMode) {
-    modePickRegion = currentRegion;
-    openCitySetsModal();
-    return;
-  }
-  saveCurrentCitiesAsSet();
+  modePickRegion = currentRegion;
+  openCitySetsModal();
 };
 
 // ─── MODE PICKER MODAL — Normal vs region quiz, shown after picking Japan / USA ──
@@ -8530,11 +8526,6 @@ function cfScore(o, q) {
   const cands = [label];
   if (v === 'any') cands.push('any');
   else if (v === 'every') cands.push('every', 'all');
-  else if (v.startsWith('c:')) {
-    const code = v.slice(2);
-    cands.push(code.toLowerCase());
-    (ISO_ALIASES[code] || []).forEach(a => cands.push(fold(a)));
-  }
   let best = 0;
   cands.forEach(c => {
     if (c === q) best = Math.max(best, 4);
