@@ -3102,7 +3102,10 @@ function renderCitySetsList() {
     actions.append(actionBtn(activeCitySetId === set.id ? 'Resume' : 'Practice', 'play', 'primary'), actionBtn('Restart', 'restart'), actionBtn('Delete', 'delete', 'danger'));
     card.append(top,meta,actions); body.appendChild(card);
   });
-  if (saveBtn) saveBtn.disabled = found.length === 0 || (quizMode || circleMode);
+  if (saveBtn) {
+    saveBtn.disabled = found.length === 0 || (quizMode || circleMode || !!activeCitySetId);
+    saveBtn.title = activeCitySetId ? 'A saved set is already loaded for practice.' : 'Save the currently named cities as a new practice set.';
+  }
 }
 function openCitySetsModal() {
   renderCitySetsList();
