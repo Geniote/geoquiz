@@ -2179,7 +2179,7 @@ body.skin-nasa #mapWrap,body.skin-nasa #panel{top:calc(var(--bar-h,20px) + 12px)
         <span class="modepick-desc" id="modePickCircleDesc"></span>
       </button>
       <button type="button" class="modepick-opt" id="modePickSetsBtn" data-set-mode="1">
-        <span class="modepick-row"><span class="modepick-lead"><span class="ctm-ico" aria-hidden="true">▤</span><span class="modepick-title">Saved city sets</span></span><span class="modepick-check"></span></span>
+        <span class="modepick-row"><span class="modepick-lead"><span class="ctm-ico"><svg viewBox="0 0 32 32" aria-hidden="true"><defs><radialGradient id="mpR" cx="35%" cy="28%" r="85%"><stop offset="0" stop-color="#d9b8ff"/><stop offset=".55" stop-color="#9b6be0"/><stop offset="1" stop-color="#5f35a8"/></radialGradient></defs><circle cx="16" cy="16" r="14.5" fill="url(#mpR)" stroke="rgba(10,50,110,.35)" stroke-width="1"/><ellipse cx="12.5" cy="8.6" rx="7" ry="3.6" fill="#fff" opacity=".28"/><circle cx="16" cy="16" r="8" fill="none" stroke="#fff" stroke-width="1.8"/><path d="M12.2 16.2l2.7 2.7 5-5.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="modepick-title">Saved city sets</span></span><span class="modepick-check"></span></span>
         <span class="modepick-desc">Practice a saved collection of cities on any map.</span>
       </button>
     </div>
@@ -3118,7 +3118,7 @@ function updateCitySetBest() {
 function renderCitySetReveals(grid) {
   if (!activeCitySetId || !revealedCitySetKeys.size) return;
   const db = citySetDBMap();
-  revealedCitySetKeys.forEach(key => {
+  [...revealedCitySetKeys].reverse().forEach(key => {
     if (found.some(city => citySetKey(city) === key)) return;
     const city = db.get(key); if (!city) return;
     const card = document.createElement('div'); card.className = 'fi set-revealed-row';
@@ -3142,6 +3142,106 @@ function hideCitySetReveals(keys) {
   renderFoundGrid(); updateSummary(); drawNightCanvas();
   saveActiveCitySetProgress(); persistSession();
   setMsg(n === 1 ? 'City hidden again.' : `${n} cities hidden again.`, 'info');
+}
+// ---- Practice set completed: confetti + celebration card ---------------------------------------------
+let _setDoneRaf = 0, _setDoneTimer = 0;
+function checkCitySetComplete() {
+  if (!activeCitySetId || !activeCitySetKeys.size) return;
+  const foundKeys = new Set(found.map(citySetKey));
+  if (![...activeCitySetKeys].every(k => foundKeys.has(k))) return;
+  const id = activeCitySetId;
+  clearTimeout(_setDoneTimer);
+  // short pause so the last city's dot and row land first
+  _setDoneTimer = setTimeout(() => { if (activeCitySetId === id) showCitySetComplete(getCitySet(id)); }, 700);
+}
+function buildSetCompleteOverlay() {
+  let ov = document.getElementById('setDoneOverlay');
+  if (ov) return ov;
+  ov = document.createElement('div');
+  ov.id = 'setDoneOverlay';
+  ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); ov.setAttribute('aria-labelledby', 'setDoneTitle');
+  ov.innerHTML = `<canvas id="setDoneConfetti"></canvas>
+    <div class="setdone-card">
+      <div class="setdone-badge">
+        <span class="setdone-ring"></span><span class="setdone-ring r2"></span>
+        <svg viewBox="0 0 96 96" aria-hidden="true"><defs><radialGradient id="sdG" cx="35%" cy="28%" r="85%"><stop offset="0" stop-color="#d9b8ff"/><stop offset=".55" stop-color="#9b6be0"/><stop offset="1" stop-color="#5f35a8"/></radialGradient></defs>
+          <circle cx="48" cy="48" r="44" fill="url(#sdG)" stroke="rgba(255,255,255,.7)" stroke-width="2"/>
+          <ellipse cx="38" cy="25" rx="21" ry="11" fill="#fff" opacity=".28"/>
+          <path class="setdone-check" d="M29 49l13 13 26-28" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" pathLength="1"/></svg>
+        <i class="setdone-spark s1"></i><i class="setdone-spark s2"></i><i class="setdone-spark s3"></i><i class="setdone-spark s4"></i>
+      </div>
+      <h2 id="setDoneTitle">Set complete!</h2>
+      <div class="setdone-name"></div>
+      <div class="setdone-count"><span class="setdone-num">0</span><span class="setdone-of"></span></div>
+      <div class="setdone-actions"><button type="button" class="setdone-btn" id="setDoneAgain">Practice again</button><button type="button" class="setdone-btn primary" id="setDoneClose">Done</button></div>
+    </div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('mousedown', e => { if (e.target === ov) closeSetComplete(); });
+  document.getElementById('setDoneClose').onclick = closeSetComplete;
+  document.getElementById('setDoneAgain').onclick = () => { const id = activeCitySetId; closeSetComplete(); if (id) startCitySetPractice(id, true); };
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && ov.classList.contains('open')) closeSetComplete(); });
+  return ov;
+}
+function showCitySetComplete(set) {
+  if (!set) return;
+  const ov = buildSetCompleteOverlay();
+  const total = set.cities.length;
+  ov.querySelector('.setdone-name').textContent = set.name || 'Practice set';
+  ov.querySelector('.setdone-of').textContent = ` / ${total} ${total === 1 ? 'city' : 'cities'}`;
+  const num = ov.querySelector('.setdone-num');
+  num.textContent = '0';
+  ov.classList.remove('open'); void ov.offsetWidth;   // restart the CSS animations
+  ov.classList.add('open');
+  const t0 = performance.now(), dur = Math.min(1400, 500 + total * 25);
+  const tick = now => { const k = Math.min(1, (now - t0) / dur); num.textContent = Math.round(total * (1 - Math.pow(1 - k, 3))); if (k < 1 && ov.classList.contains('open')) requestAnimationFrame(tick); };
+  requestAnimationFrame(tick);
+  if (!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) launchSetDoneConfetti();
+  document.getElementById('setDoneClose').focus();
+}
+function closeSetComplete() {
+  const ov = document.getElementById('setDoneOverlay');
+  if (ov) ov.classList.remove('open');
+  cancelAnimationFrame(_setDoneRaf); _setDoneRaf = 0;
+  const cv = document.getElementById('setDoneConfetti');
+  if (cv) cv.getContext('2d').clearRect(0, 0, cv.width, cv.height);
+}
+function launchSetDoneConfetti() {
+  const cv = document.getElementById('setDoneConfetti'); if (!cv) return;
+  cancelAnimationFrame(_setDoneRaf);
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const W = cv.width = Math.round(innerWidth * dpr), H = cv.height = Math.round(innerHeight * dpr);
+  const ctx = cv.getContext('2d');
+  const colors = ['#ffd24a', '#ff6f91', '#4aa6ff', '#7bdc8c', '#b48cff', '#ff9a4a', '#ffffff'];
+  const parts = [];
+  const spawn = (x, y, vx, vy) => parts.push({
+    x, y, vx, vy, w: (6 + Math.random() * 7) * dpr, h: (9 + Math.random() * 8) * dpr,
+    rot: Math.random() * 6.28, vr: (Math.random() - .5) * .35, c: colors[(Math.random() * colors.length) | 0],
+    life: 0, max: 200 + Math.random() * 110, shape: Math.random() < .25 ? 1 : 0
+  });
+  const burst = (x, dir) => { for (let i = 0; i < 80; i++) { const a = (-Math.PI / 2) + dir * (.15 + Math.random() * .75), v = (13 + Math.random() * 15) * dpr; spawn(x, H, Math.cos(a) * v, Math.sin(a) * v); } };
+  burst(0, 1); burst(W, -1);
+  const start = performance.now();
+  let rained = 0;
+  const step = now => {
+    const el = now - start;
+    // a second, lighter wave: confetti raining from the top for ~2.2 s
+    if (el < 2200 && rained < 150) { for (let i = 0; i < 3; i++) { rained++; spawn(Math.random() * W, -20 * dpr, (Math.random() - .5) * 3 * dpr, (2 + Math.random() * 3) * dpr); } }
+    ctx.clearRect(0, 0, W, H);
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const q = parts[i];
+      q.vy += .38 * dpr; q.vx *= .992; q.vy *= .992; q.x += q.vx; q.y += q.vy; q.rot += q.vr; q.life++;
+      if (q.y > H + 40 || q.life > q.max) { parts.splice(i, 1); continue; }
+      ctx.save(); ctx.translate(q.x, q.y); ctx.rotate(q.rot);
+      ctx.globalAlpha = Math.min(1, (q.max - q.life) / 40);
+      ctx.fillStyle = q.c;
+      if (q.shape) { ctx.beginPath(); ctx.arc(0, 0, q.w / 2, 0, 6.283); ctx.fill(); }
+      else ctx.fillRect(-q.w / 2, -q.h / 2, q.w, q.h * Math.abs(Math.cos(q.rot * 1.7 + q.life * .05)) + 1);
+      ctx.restore();
+    }
+    if (parts.length || el < 2200) _setDoneRaf = requestAnimationFrame(step);
+    else ctx.clearRect(0, 0, W, H);
+  };
+  _setDoneRaf = requestAnimationFrame(step);
 }
 function hideAllCitySetReveals() { hideCitySetReveals([...revealedCitySetKeys]); }
 function syncRevealedCitySetDots() {
@@ -3223,7 +3323,7 @@ function revealNextCitySetCity() {
   if (!city) { setMsg(`Could not load ${entry.name || 'that city'} from the current city data.`, 'err'); return; }
   revealedCitySetKeys.add(entry.key); syncRevealedCitySetDots(); renderFoundGrid(); updateSummary();
   const newCard = document.getElementById('card-' + dotId(city));
-  if (newCard) newCard.scrollIntoView({ block: 'nearest' });   // revealed rows sit below the named ones — bring the new one into view
+  if (newCard) newCard.scrollIntoView({ block: 'nearest' });   // keep the freshly revealed row in view
   saveActiveCitySetProgress(); persistSession();
   setMsg(`Revealed: ${displayName(city)}. Name it to count it.`, 'info');
 }
@@ -6548,6 +6648,7 @@ function addFoundItem(city) {
   updateCitySetBest();
   saveActiveCitySetProgress();
   updateSummary();
+  checkCitySetComplete();
 }
 
 function renderFoundGrid() {
@@ -6585,6 +6686,7 @@ function renderFoundGrid() {
   const list = sortByPop
     ? [...found].sort((a,b) => (b.pop||0) - (a.pop||0))
     : [...found].reverse();
+  renderCitySetReveals(grid);   // revealed cities sit at the top of the list, above the named ones (newest first)
   const frag = document.createDocumentFragment(), cards = [];
   list.forEach(city => {
     const card = makeFoundCityCard(city, guessNumbers.get(dotId(city)), dotId(city) === _justAddedId);
@@ -6607,7 +6709,6 @@ function renderFoundGrid() {
     grid.appendChild(overlay);
     grid.scrollTop = 0;   // the "Load data file" message locks the list in place (see CSS), so start from the top
   }
-  renderCitySetReveals(grid);
   const revealBtn = document.getElementById('setRevealBtn');
   syncSetRevealButtons();
 }
@@ -8137,7 +8238,20 @@ document.querySelectorAll('.modepick-opt').forEach(btn => {
     if (!rk) return;
     if (btn.dataset.quiz === '2') { openCircleTimerModal(rk); return; }   // Circle challenge: ask timed / untimed first
     guardLeaveZones(() => {   // leaving a Zones session in progress needs confirming
-      if (activeCitySetId) leaveCitySetPractice();
+      const wasCitySetPractice = !!activeCitySetId;
+      if (wasCitySetPractice) {
+        leaveCitySetPractice();
+        // Explicitly reload the ordinary map list after leaving a practice set.
+        // This keeps the set's found/revealed markers from leaking into Normal,
+        // and restores the per-map cities captured before practice began.
+        if (currentRegion === rk) {
+          found = (captureState._fbr[rk] || []).map(city => ({...city}));
+          svg.select('#map-g').selectAll('.city-dot').remove();
+          found.forEach(addDot);
+          drawNightCanvas();
+          renderFoundGrid(); renderBestCountries(); renderOtherStats(); updateSummary();
+        }
+      }
       if (circleMode) exitCircleMode(currentRegion !== rk);
       if (currentRegion === rk) {
         const changed = (quizMode && quizRegion === rk) !== quiz;
@@ -11248,6 +11362,46 @@ body.city-set-practice .fi.set-revealed-row .set-hide-ico{margin-left:auto;flex:
 body.city-set-practice .fi.set-revealed-row:hover .set-hide-ico{opacity:1}
 body.city-set-practice #sortLabel{grid-column:1/-1;grid-row:4;justify-self:start;margin:0;white-space:nowrap}
 body.city-set-practice #saveSetMapBtn{display:none!important}
+/* Practice set completed — celebration */
+#setDoneOverlay{display:none;position:fixed;inset:0;z-index:140;align-items:center;justify-content:center;background:rgba(40,70,140,.38);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+#setDoneOverlay.open{display:flex;animation:setdoneFade .35s ease both}
+#setDoneConfetti{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.setdone-card{position:relative;width:min(380px,90vw);padding:30px 26px 24px;text-align:center;border-radius:30px;border:1px solid rgba(255,255,255,.85);background:linear-gradient(180deg,rgba(250,253,255,.98),rgba(222,238,253,.97));box-shadow:0 24px 60px rgba(30,70,150,.45),inset 0 1px 0 #fff;color:#15356b;overflow:hidden;animation:setdoneCard .75s cubic-bezier(.2,1.25,.4,1) both}
+.setdone-card::after{content:'';position:absolute;top:-30%;bottom:-30%;width:38%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.75),transparent);transform:skewX(-18deg);animation:setdoneShine 1.5s .55s ease-out both;pointer-events:none}
+.setdone-badge{position:relative;width:96px;height:96px;margin:0 auto 14px;animation:setdoneBadge 1s .15s cubic-bezier(.2,1.4,.4,1) both}
+.setdone-badge svg{position:relative;display:block;width:96px;height:96px;filter:drop-shadow(0 8px 14px rgba(95,53,168,.45))}
+.setdone-check{stroke-dasharray:1;stroke-dashoffset:1;animation:setdoneCheck .6s .65s ease-out forwards}
+.setdone-ring{position:absolute;inset:0;border-radius:50%;border:3px solid rgba(155,107,224,.6);animation:setdoneRing 1.7s .5s ease-out infinite;opacity:0}
+.setdone-ring.r2{animation-delay:1.35s}
+.setdone-spark{position:absolute;width:12px;height:12px;background:#ffd24a;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);opacity:0;animation:setdoneSpark 1.8s ease-in-out infinite}
+.setdone-spark.s1{top:-6px;right:2px;animation-delay:.8s}.setdone-spark.s2{bottom:6px;left:-10px;width:16px;height:16px;animation-delay:1.2s;background:#ff8fb1}.setdone-spark.s3{top:10px;left:-14px;animation-delay:1.6s;background:#7bdc8c}.setdone-spark.s4{bottom:-4px;right:-8px;width:10px;height:10px;animation-delay:.4s;background:#4aa6ff}
+.setdone-card h2{margin:0;font-size:28px;font-weight:800;letter-spacing:-.01em;color:#0f3f9c;animation:setdoneRise .5s .5s ease-out both}
+.setdone-name{margin:6px 0 2px;font-size:15px;font-weight:700;color:#5a7ab5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;animation:setdoneRise .5s .6s ease-out both}
+.setdone-count{margin:10px 0 20px;font-size:20px;font-weight:700;color:#5a7ab5;animation:setdoneRise .5s .7s ease-out both}
+.setdone-num{font-size:44px;font-weight:800;color:#2a6fe0;font-variant-numeric:tabular-nums}
+.setdone-actions{display:flex;gap:10px;animation:setdoneRise .5s .85s ease-out both}
+.setdone-btn{flex:1;height:46px;padding:0 14px;border:1.5px solid transparent;border-radius:999px;background:linear-gradient(180deg,#fff,#e3effd);color:#0f3f9c;font:inherit;font-size:15.5px;font-weight:800;white-space:nowrap;cursor:pointer;box-shadow:0 5px 12px rgba(70,140,220,.22),inset 0 1px 0 #fff;transition:transform .12s}
+.setdone-btn.primary{background:linear-gradient(180deg,#4aa6ff,#2a6fe8);color:#fff;box-shadow:0 6px 14px rgba(42,111,232,.4),inset 0 1px 0 rgba(255,255,255,.45)}
+.setdone-btn:hover{transform:translateY(-1px)}
+body.night-mode .setdone-card,body.skin-sky.night-mode .setdone-card{background:linear-gradient(180deg,rgba(12,27,50,.98),rgba(16,36,70,.97));border-color:rgba(255,255,255,.14);color:#a6c1ee}
+body.night-mode .setdone-card h2{color:#91b0ec}body.night-mode .setdone-name,body.night-mode .setdone-count{color:#7f9bc9}body.night-mode .setdone-num{color:#6a9ef1}
+body.night-mode .setdone-btn{background:linear-gradient(180deg,#101a28,#0f2040);color:#91b0ec;box-shadow:0 4px 12px rgba(0,8,30,.45),inset 0 1px 0 rgba(255,255,255,.2)}
+body.night-mode .setdone-btn.primary{background:linear-gradient(180deg,#3a86f0,#1f58c4);color:#fff}
+body.skin-nasa #setDoneOverlay{background:rgba(10,13,10,.8);-webkit-backdrop-filter:none;backdrop-filter:none}
+body.skin-nasa .setdone-card{border:1px solid #766b4e;border-radius:3px;background:linear-gradient(180deg,#292e24,#1b2018);color:#e8dfc6;box-shadow:0 18px 42px rgba(0,0,0,.62)}
+body.skin-nasa .setdone-card h2{color:#e2a24a;font-family:'Share Tech Mono',monospace;letter-spacing:.08em;text-transform:uppercase}
+body.skin-nasa .setdone-name,body.skin-nasa .setdone-count{color:#d4ccb2}body.skin-nasa .setdone-num{color:#e2a24a}
+body.skin-nasa .setdone-btn{border:1px solid #a17b45;border-radius:3px;background:linear-gradient(180deg,#393b2f,#24291f);color:#e2a24a;box-shadow:none}
+body.skin-nasa .setdone-btn.primary{background:#e2a24a;color:#1b2018}
+@keyframes setdoneFade{from{opacity:0}to{opacity:1}}
+@keyframes setdoneCard{0%{opacity:0;transform:translateY(30px) scale(.6)}60%{opacity:1;transform:translateY(-6px) scale(1.04)}100%{opacity:1;transform:none}}
+@keyframes setdoneBadge{0%{transform:scale(0) rotate(-40deg)}70%{transform:scale(1.15) rotate(6deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes setdoneCheck{to{stroke-dashoffset:0}}
+@keyframes setdoneRing{0%{opacity:.7;transform:scale(.95)}100%{opacity:0;transform:scale(1.9)}}
+@keyframes setdoneSpark{0%,100%{opacity:0;transform:scale(.3) rotate(0)}50%{opacity:1;transform:scale(1.15) rotate(90deg)}}
+@keyframes setdoneRise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes setdoneShine{to{left:140%}}
+@media (prefers-reduced-motion:reduce){.setdone-card,.setdone-badge,.setdone-card h2,.setdone-name,.setdone-count,.setdone-actions{animation:none}.setdone-card::after,.setdone-ring,.setdone-spark{display:none}.setdone-check{animation:none;stroke-dashoffset:0}}
 .set-revealed-tag{display:inline-block;margin-left:6px;font-size:9px;font-weight:700;letter-spacing:.08em;color:#c1c7c2}
 body.skin-nasa.city-set-practice .fi.set-revealed-row{border-color:#71766e!important;background:linear-gradient(180deg,#41463d,#30352e)!important;color:#d6d6cb!important}
 body.skin-nasa.city-set-practice #mapWrap .city-dot.set-revealed circle.main-dot{fill:#969b98!important;stroke:#555b58!important;filter:none!important}
