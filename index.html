@@ -2550,7 +2550,7 @@ const MAP_DEFAULTS = { landColor:'#e8e4da', seaColor:'#c8dff0', borderColor:'#aa
 // Skins: a palette applied together with a body class that restyles the interface (CSS section "SKINS").
 const SKIN_PRESETS = {
   sky: { landColor:'#e9f4fe', seaColor:'#bddcfa', borderColor:'#94bfea', dotColor:'#ff7575', dotAlpha:0.75 },
-  nasa: { landColor:'#b6b997', seaColor:'#1b2119', borderColor:'#5b624e', dotColor:'#e2a24a', dotAlpha:0.95 }
+  nasa: { landColor:'#b6b997', seaColor:'#1b2119', borderColor:'#5b624e', dotColor:'#e2a24a', dotAlpha:0.95 },
 };
 function mapDef() { const k = SKIN_PRESETS[S.skin]; return k ? { landColor:k.landColor, seaColor:k.seaColor, borderColor:k.borderColor } : MAP_DEFAULTS; }
 function dotDef() { const k = SKIN_PRESETS[S.skin]; return k ? Object.assign({}, DOT_DEFAULTS, { dotColor:k.dotColor, dotAlpha:k.dotAlpha }) : DOT_DEFAULTS; }
@@ -3018,11 +3018,33 @@ function citySetSnapshot(city) {
     isCapital:!!city.isCapital };
 }
 function loadCitySets() {
-  try { const sets = JSON.parse(localStorage.getItem(CITY_SET_STORAGE_KEY) || '[]'); return Array.isArray(sets) ? sets : []; }
+  try {
+    const sets = JSON.parse(localStorage.getItem(CITY_SET_STORAGE_KEY) || '[]');
+    if (!Array.isArray(sets)) return [];
+    // Newer saves store only each city's stable key. Expand those keys to the
+    // lightweight entry shape used by the practice UI; older full snapshots
+    // remain readable and are compacted the next time they are saved.
+    return sets.map(set => {
+      if (Array.isArray(set.cityKeys)) set.cities = set.cityKeys.map(key => ({ key }));
+      return set;
+    });
+  }
   catch (e) { return []; }
 }
 function saveCitySets(sets) {
-  try { localStorage.setItem(CITY_SET_STORAGE_KEY, JSON.stringify(sets)); return true; }
+  try {
+    // Full city snapshots repeated the same property names thousands of times
+    // and quickly consumed localStorage's small quota. City keys are enough:
+    // the quiz's city database resolves them when the set is played.
+    const compactSets = sets.map(set => {
+      const compact = { ...set };
+      compact.cityKeys = (Array.isArray(set.cities) ? set.cities : []).map(city => city.key || citySetKey(city));
+      delete compact.cities;
+      return compact;
+    });
+    localStorage.setItem(CITY_SET_STORAGE_KEY, JSON.stringify(compactSets));
+    return true;
+  }
   catch (e) { setMsg('Could not save city set. Browser storage may be full.', 'err'); return false; }
 }
 function getCitySet(id) { return loadCitySets().find(set => set.id === id) || null; }
@@ -8969,7 +8991,8 @@ document.getElementById('skinClose').onclick = closeSkinModal;
   queue();
 })();
 document.querySelectorAll('#skinList .skin-card').forEach(b => { b.onclick = () => { setSkin(b.dataset.skin); closeSkinModal(); }; });
-syncSkinUI();
+// Migrate sessions that were using the removed Nothing skin back to Classic.
+if (S.skin === 'nothing') setSkin('classic'); else syncSkinUI();
 
 document.getElementById('physicalMode').onchange = async e => {
   S.physicalMode = e.target.checked;
