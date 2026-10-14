@@ -516,6 +516,15 @@ body.circle-mode .circle-dot.circle-old:not(.circle-missed) circle.main-dot{fill
 body.circle-mode .circle-dot.circle-wrong:not(.circle-missed):not(.circle-old) circle.main-dot,body.circle-mode .circle-dot.circle-wrong.circle-old:not(.circle-missed) circle.main-dot{fill:#e53935 !important;fill-opacity:var(--dot-alpha,.75) !important;stroke:none !important;stroke-width:0 !important}
 .circle-old-overlay{fill:rgba(130,135,145,.08);stroke:#8a8f98;stroke-width:1.5;stroke-dasharray:7 5;vector-effect:non-scaling-stroke;pointer-events:none}
 #circle-overlay{fill:rgba(57,73,171,.12);stroke:#3949AB;stroke-width:2;stroke-dasharray:7 5;vector-effect:non-scaling-stroke;pointer-events:none}
+/* Night mode + Zones: night mode hides every SVG dot and draws the lights on #nightCanvas, which Zones switches off, so the zone's
+   own dots are shown here as SVG instead, styled as city lights, and the circle outlines get night-friendly colours. */
+body.night-mode.circle-mode .city-dot.circle-dot{display:block}
+body.night-mode.circle-mode .circle-dot:not(.circle-missed):not(.circle-wrong):not(.circle-old) circle.main-dot{fill:url(#cityLightGrad) !important;fill-opacity:var(--dot-alpha,1) !important;stroke:none !important}
+body.night-mode.circle-mode .circle-dot.circle-old:not(.circle-missed) circle.main-dot{fill:#8f98ab !important;fill-opacity:.75 !important;filter:none}
+body.night-mode.circle-mode .circle-dot.circle-wrong:not(.circle-missed) circle.main-dot{fill:#ff5a5f !important;fill-opacity:var(--dot-alpha,1) !important;filter:drop-shadow(0 0 4px rgba(255,90,95,.9))}
+body.night-mode.circle-mode .circle-missed circle.main-dot{fill:#c9d1e0;fill-opacity:.85;stroke:none;filter:drop-shadow(0 0 3px rgba(200,210,230,.6))}
+body.night-mode.circle-mode #circle-overlay{fill:rgba(130,165,255,.13);stroke:#9db8ff}
+body.night-mode.circle-mode .circle-old-overlay{fill:rgba(170,180,200,.06);stroke:#7d879a}
 /* The info text moves to the right of the panel so the panel can sit in the top-left corner without covering it */
 body.circle-mode #sortLabel{display:none}
 body:not(.circle-mode) #circleBoardBtn{display:none}
@@ -6312,6 +6321,7 @@ function guess() {
     setMsg(activeCitySetId ? `"${raw}" is not in this saved city set.` : `"${raw}" not found${REGIONS[currentRegion].countries ? ' in this region' : ''}.`, 'err');
   } else {
     let addedAny = false;
+    _statsCelebrateArm = true;
     results.forEach(city => {
       if (found.find(f=>f.name===city.name&&f.country===city.country&&(f.admin1||'')===( city.admin1||''))) {
         setMsg(`Already found ${displayName(city)}${city.admin1?', '+city.admin1:''}${city.country?', '+city.country:''}!`, 'dup');
@@ -6321,6 +6331,7 @@ function guess() {
         found.push(city); addDot(city); addFoundItem(city); addedAny = true; drawNightCanvas();
       }
     });
+    _statsCelebrateArm = false;
     if (addedAny) {
       const names = results.map(c=>`${displayName(c)} (${fmtLocation(c)})`).join(', ');
       const popStr = results.length===1&&results[0].pop ? ` — pop. ${fmtPop(results[0].pop)}` : '';
@@ -6436,7 +6447,7 @@ function cityScreenPos(city) {
 }
 
 function findCityAtScreenPos(sx, sy) {
-  if (quizMode) return null; // cities are hidden during the Prefectures quiz — nothing to hit
+  if (quizMode || circleMode) return null; // cities are hidden during the Prefectures quiz / Zones — the normal game's found cities can't be hit
   let best = null, bestDist = Infinity;
   for (const city of found) {
     const pos = cityScreenPos(city);
@@ -7291,7 +7302,7 @@ const UN_COUNTRIES = new Set([
 // capital's name never does). A voivodeship with two seats (Kuyavian-Pomeranian,
 // Lubusz) counts once either seat is found.
 const ES_REGION_CAPITAL_NAMES = {
-  '01':['Vitoria-Gasteiz', 'Vitoria', 'Gasteiz'],
+  '01':['Vitoria-Gasteiz', 'Gasteiz/Vitoria', 'Vitoria/Gasteiz', 'Vitoria', 'Gasteiz'],
   '02':['Albacete'],
   '03':['Alicante', 'Alacant'],
   '04':['Almería'],
@@ -7649,6 +7660,81 @@ QUIZ_CFG.russia = {
 };
 
 let _otherStatsBaseCache = null;
+// ─── STAT GOAL CELEBRATION ───────────────────────────────────────────────────
+// Fires once each time a stats row (1M+/500k+/100k+ cities, countries, capitals, states…) goes from
+// incomplete to complete because of a guess the player just typed. Click-through toast + a few confetti
+// bits, auto-dismissed; it never takes focus, so typing can carry on uninterrupted.
+let _statsCelebrateArm = false;
+const _statsWasComplete = new Map();
+// Fireworks + confetti on a click-through canvas laid over the map; ~4 s, hard-capped, removes itself.
+function statGoalFireworks() {
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const mw = document.getElementById('mapWrap'); if (!mw) return;
+  const old = document.getElementById('statGoalFx'); if (old) old.remove();
+  const r = mw.getBoundingClientRect(); if (r.width < 50 || r.height < 50) return;
+  const cv = document.createElement('canvas'); cv.id = 'statGoalFx';
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
+  cv.style.cssText = `left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px`;
+  document.body.appendChild(cv);
+  const ctx = cv.getContext('2d'); ctx.scale(dpr, dpr);
+  const W = r.width, H = r.height, P = [];
+  const palette = [45, 30, 350, 140, 200, 280];
+  const burst = (x, y) => {
+    const hue = palette[Math.floor(Math.random() * palette.length)], n = 54;
+    for (let i = 0; i < n; i++) {
+      const a = (Math.PI * 2 * i) / n + Math.random() * 0.15, v = 1.6 + Math.random() * 3.4;
+      P.push({ k: 's', x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, l: 1, d: 0.011 + Math.random() * 0.01, h: hue + Math.random() * 24 - 12, z: 1.6 + Math.random() * 1.6 });
+    }
+  };
+  for (let i = 0; i < 70; i++) {
+    setTimeout(() => P.push({ k: 'c', x: Math.random() * W, y: -12, vx: (Math.random() - 0.5) * 1.4, vy: 1.4 + Math.random() * 2.2, rot: Math.random() * 6.28, vr: (Math.random() - 0.5) * 0.3, l: 1, d: 0.0045, h: palette[i % palette.length] + Math.random() * 20 }), Math.random() * 1400);
+  }
+  [[0.30, 0.30, 100], [0.70, 0.26, 520], [0.50, 0.38, 980], [0.18, 0.48, 1400], [0.82, 0.44, 1800]].forEach(([fx, fy, t]) => setTimeout(() => burst(W * fx, H * fy), t));
+  const t0 = performance.now();
+  (function frame(now) {
+    const el = now - t0;
+    ctx.clearRect(0, 0, W, H);
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = P.length - 1; i >= 0; i--) {
+      const q = P[i];
+      q.x += q.vx; q.y += q.vy; q.l -= q.d;
+      if (q.k === 's') { q.vy += 0.04; q.vx *= 0.985; q.vy *= 0.985; } else { q.rot += q.vr; q.vx += Math.sin(q.y / 28) * 0.02; }
+      if (q.l <= 0 || q.y > H + 20) { P.splice(i, 1); continue; }
+      ctx.globalAlpha = Math.max(0, Math.min(1, q.l * 1.2));
+      ctx.fillStyle = `hsl(${q.h},100%,${q.k === 's' ? 65 : 60}%)`;
+      if (q.k === 's') { ctx.beginPath(); ctx.arc(q.x, q.y, q.z, 0, 6.283); ctx.fill(); }
+      else { ctx.save(); ctx.translate(q.x, q.y); ctx.rotate(q.rot); ctx.fillRect(-3, -5, 6, 10); ctx.restore(); }
+    }
+    ctx.globalAlpha = 1;
+    if (el < 4800 && (el < 2400 || P.length)) requestAnimationFrame(frame); else cv.remove();
+  })(t0);
+}
+
+function showStatGoalToast(title, sub, grand, icon) {
+  let box = document.getElementById('statGoalToasts');
+  if (!box) { box = document.createElement('div'); box.id = 'statGoalToasts'; box.setAttribute('aria-live', 'polite'); document.body.appendChild(box); }
+  const t = document.createElement('div');
+  t.className = 'stat-goal-toast' + (grand ? ' grand' : '');
+  const colors = ['#ffd24a', '#ff8a5c', '#6ccf8e', '#6cb8ff', '#c08cff', '#fff'];
+  const nBits = grand ? 40 : 16;
+  let bits = '';
+  for (let i = 0; i < nBits; i++) {
+    const a = (Math.PI * 2 * i) / nBits + Math.random() * 0.4, d = grand ? 80 + Math.random() * 110 : 40 + Math.random() * 55;
+    const dy = Math.round(Math.sin(a) * d) - (grand ? 30 : 0);   // grand bits skew upward so they stay over the map
+    bits += `<i class="sg-bit" style="background:${colors[i % colors.length]};--dx:${Math.round(Math.cos(a) * d)}px;--dy:${dy}px;--rot:${Math.round(Math.random() * 540 - 270)}deg"></i>`;
+  }
+  const esc = x => String(x).replace(/[&<>"]/g, c => '&#' + c.charCodeAt(0) + ';');
+  const extra = grand ? '<span class="sg-wave"></span><span class="sg-wave w2"></span><span class="sg-shine"></span>' : '';
+  t.innerHTML = `${extra}<span class="sg-ico">${grand ? (icon || '🏆') : '✓'}</span><span>${esc(title)}${sub ? `<span class="sg-sub">${esc(sub)}</span>` : ''}</span>${bits}`;
+  box.appendChild(t);
+  // Centre it on the map itself, near its bottom edge (not the whole window, so side panels don't skew it)
+  const mw = document.getElementById('mapWrap');
+  if (mw) { const r = mw.getBoundingClientRect(); box.style.left = Math.round(r.left + r.width / 2) + 'px'; box.style.bottom = Math.max(16, Math.round(window.innerHeight - r.bottom + 28)) + 'px'; }
+  if (grand) statGoalFireworks();
+  setTimeout(() => { t.remove(); if (!box.children.length) box.remove(); }, grand ? 6700 : 5400);
+}
+
 function renderOtherStats() {
   const el = document.getElementById('otherStatsList');
   if (!el) return;
@@ -7728,7 +7814,8 @@ function renderOtherStats() {
     const totalCountries = applicableUN.length;
     const gotCountries = new Set(regionFound.map(c => c.country).filter(c => UN_COUNTRIES.has(c))).size;
     const pctCountries = totalCountries ? ((gotCountries/totalCountries)*100).toFixed(1) : '0.0';
-    rows.push({ key: 'countries', label: 'countries', got: gotCountries, total: totalCountries, pct: pctCountries });
+    // A single-country map (Spain, Poland, Russia, Brazil) has nothing to count here; only world/continent maps get this row
+    if (totalCountries > 1) rows.push({ key: 'countries', label: 'countries', got: gotCountries, total: totalCountries, pct: pctCountries });
 
     // Russia: "capitals" means the capitals of the federal subjects, not just Moscow.
     if (currentRegion === 'spain' || currentRegion === 'poland') {
@@ -7755,6 +7842,14 @@ function renderOtherStats() {
   rows.forEach(({ key, label, got, total, pct }) => {
     if (total === 0) return; // hide rows with no data
     const complete = total > 0 && got >= total;
+    const goalId = statsBaseKey + '|' + (key || label);
+    const wasComplete = _statsWasComplete.get(goalId);
+    _statsWasComplete.set(goalId, complete);
+    if (complete && wasComplete !== true && _statsCelebrateArm) {
+      // 100k+ cities and every flavour of "capitals" get the big version; the rest get the small bubble
+      const grandGoal = key === 'pop100000' || key === 'capitals';
+      showStatGoalToast(label.charAt(0).toUpperCase() + label.slice(1) + ' complete!', scoped ? statsLabel() : `${got} / ${total}`, grandGoal, key === 'capitals' ? '👑' : '🏆');
+    }
     const row = document.createElement('div');
     row.className = 'stat-row' + (complete ? ' stat-complete' : '');
     row.dataset.key = key || ''; row.dataset.label = label;
@@ -10012,7 +10107,7 @@ function buildMissedModal(onlyKey, onlyLabel) {
     const missedCountries = applicableUN2.filter(c => !gotC.has(c))
       .map(c => ({ label: fmtCountry(c), cls: 'country' }))
       .sort((a,b) => a.label.localeCompare(b.label));
-    if (missedCountries.length) sections.push({ key: 'countries', title: `Missing countries (${missedCountries.length})`, chips: missedCountries });
+    if (missedCountries.length && applicableUN2.length > 1) sections.push({ key: 'countries', title: `Missing countries (${missedCountries.length})`, chips: missedCountries });
   }
 
   const body = document.getElementById('missedBody');
@@ -11427,6 +11522,31 @@ body.city-set-practice #sortLabel{grid-column:1/-1;grid-row:4;justify-self:start
 .setdone-badge.quiz-completion .setdone-yellow-icon{display:block;filter:drop-shadow(0 8px 14px rgba(199,122,10,.45))}
 .setdone-fill{opacity:0;animation:setdoneFade .4s .65s ease-out forwards}
 .setdone-badge.quiz-completion .setdone-ring{border-color:rgba(245,166,35,.65)}
+/* Stat-goal celebration: small, click-through toast + confetti that never takes focus or blocks the typing bar */
+#statGoalToasts{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:8000;display:flex;flex-direction:column-reverse;align-items:center;gap:8px;pointer-events:none}
+.stat-goal-toast{position:relative;display:flex;align-items:center;gap:10px;padding:8px 18px 8px 8px;border-radius:999px;background:linear-gradient(180deg,#ffe9a8,#f5b73c);color:#5a3600;font:700 15px/1.2 system-ui,-apple-system,Segoe UI,sans-serif;box-shadow:0 6px 22px rgba(199,122,10,.45),inset 0 1px 0 rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.7);opacity:0;animation:statGoalIn .45s cubic-bezier(.2,1.4,.4,1) forwards,statGoalOut .6s ease-in 4.6s forwards;white-space:nowrap}
+.stat-goal-toast .sg-ico{width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 35% 28%,#fff6d6,#f5a623 60%,#c77a0a);display:flex;align-items:center;justify-content:center;font-size:17px;color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.stat-goal-toast .sg-sub{display:block;font-weight:600;font-size:11px;opacity:.75;margin-top:1px}
+.stat-goal-toast .sg-bit{position:absolute;left:30px;top:50%;width:7px;height:7px;border-radius:2px;opacity:0;animation:statGoalBit 1.2s ease-out .15s forwards}
+@keyframes statGoalIn{from{opacity:0;transform:translateY(16px) scale(.7)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes statGoalOut{to{opacity:0;transform:translateY(8px) scale(.96)}}
+@keyframes statGoalBit{0%{opacity:1;transform:translate(0,0) rotate(0)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(var(--rot))}}
+/* Grand tier (100k+ cities, all capitals): bigger trophy badge, shine sweep, shockwave rings, glow pulse, plus fireworks over the map */
+.stat-goal-toast.grand{padding:12px 28px 12px 12px;gap:14px;font-size:19px;background:linear-gradient(180deg,#fff2bf,#f7b733 55%,#e08e0b);box-shadow:0 0 0 2px rgba(255,255,255,.65),0 10px 34px rgba(224,142,11,.6),0 0 60px rgba(255,200,60,.5);animation:statGoalIn .6s cubic-bezier(.2,1.5,.4,1) forwards,statGoalGlow 1.5s ease-in-out .6s 3,statGoalOut .7s ease-in 5.9s forwards}
+.stat-goal-toast.grand .sg-ico{width:46px;height:46px;font-size:26px;animation:statGoalSpin 1s cubic-bezier(.2,1.3,.4,1) .15s both}
+.stat-goal-toast.grand .sg-sub{font-size:12px}
+.stat-goal-toast.grand .sg-bit{left:50%;width:9px;height:9px;animation-duration:1.7s}
+.stat-goal-toast .sg-shine{position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none}
+.stat-goal-toast .sg-shine::after{content:'';position:absolute;top:0;bottom:0;left:-60%;width:40%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.8),transparent);transform:skewX(-20deg);animation:statGoalShine 1.1s ease-in-out .7s 3}
+.stat-goal-toast .sg-wave{position:absolute;inset:0;border-radius:inherit;border:3px solid rgba(255,214,90,.95);opacity:0;pointer-events:none;animation:statGoalWave 1.3s ease-out .25s forwards}
+.stat-goal-toast .sg-wave.w2{animation-delay:.6s;border-color:rgba(255,255,255,.9)}
+@keyframes statGoalSpin{0%{transform:scale(0) rotate(-200deg)}70%{transform:scale(1.2) rotate(12deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes statGoalGlow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.12) drop-shadow(0 0 14px rgba(255,210,80,.9))}}
+@keyframes statGoalShine{from{left:-60%}to{left:140%}}
+@keyframes statGoalWave{0%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(1.7,2.2)}}
+#statGoalFx{position:fixed;z-index:7999;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.stat-goal-toast{animation:statGoalFade 5.2s ease both}.stat-goal-toast.grand{animation:statGoalFade 6.4s ease both}.stat-goal-toast .sg-bit,.stat-goal-toast .sg-shine,.stat-goal-toast .sg-wave,#statGoalFx{display:none}.stat-goal-toast.grand .sg-ico{animation:none}@keyframes statGoalFade{0%{opacity:0}8%,88%{opacity:1}100%{opacity:0}}}
+
 .setdone-check{stroke-dasharray:1;stroke-dashoffset:1;animation:setdoneCheck .6s .65s ease-out forwards}
 .setdone-ring{position:absolute;inset:0;border-radius:50%;border:3px solid rgba(155,107,224,.6);animation:setdoneRing 1.7s .5s ease-out infinite;opacity:0}
 .setdone-ring.r2{animation-delay:1.35s}
