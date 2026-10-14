@@ -9799,24 +9799,51 @@ function mergeCountryOverlay(baseRows, overlayRows, countries) {
 // A file that's missing or fails to parse is skipped silently — that
 // country's data just stays whatever the base file has, same as if the
 // file weren't declared at all.
+// The Poland and Spain data sets always apply, even if data-version.json carries no "countryFiles" list. The update-cities.yml
+// workflow rewrites data-version.json and drops that list (its 2026-10-11 run left only version + updated), which silently turned both
+// data sets off. Anything declared in data-version.json is still honoured and goes first; these two are added when not already declared.
+const DEFAULT_COUNTRY_FILES = [
+  { file: 'data-pl.txt', countries: ['PL'] },
+  { file: 'data-es.txt', countries: ['ES'] }
+];
+function effectiveCountryFiles(declared) {
+  const out = Array.isArray(declared) ? declared.filter(e => e && e.file) : [];
+  DEFAULT_COUNTRY_FILES.forEach(d => { if (!out.some(e => e.file === d.file)) out.push({ file: d.file, countries: d.countries.slice() }); });
+  return out;
+}
 async function applyCountryOverlays(baseRows, countryFiles) {
+  countryFiles = effectiveCountryFiles(countryFiles);
   let result = baseRows;
-  if (!countryFiles || !countryFiles.length) return result;
+  // Diagnostics: every declared file gets a status line (open the browser console, F12, or read window.cityOverlayReport)
+  // so a data set that silently stopped applying (file renamed, 404, wrong columns, wrong country code) is easy to spot.
+  const report = window.cityOverlayReport = [];
+  if (!countryFiles || !countryFiles.length) {
+    console.info('[city overlays] data-version.json declares no "countryFiles", so no per-country data sets (e.g. Poland / Spain) are applied.');
+    return result;
+  }
   for (const entry of countryFiles) {
     if (!entry || !entry.file) continue;
+    const st = { file: entry.file, countries: entry.countries || null, ok: false, rows: 0, used: 0, reason: '' };
+    report.push(st);
     try {
       let overlayRows;
       if (CITY_WORKER_SUPPORTED) {
         const r = await runInCityWorker({ cmd: 'fetchText', url: entry.file });
-        if (!r.ok) continue;
+        if (!r.ok) { st.reason = r.notFound ? 'file not found (HTTP error: check the name/path in data-version.json)' : ('failed to load/parse: ' + (r.error || 'unknown error')); console.warn('[city overlays] ' + entry.file + ': ' + st.reason); continue; }
         overlayRows = r.cityDB;
       } else {
         const res = await fetch(entry.file);
-        if (!res.ok) continue;
+        if (!res.ok) { st.reason = 'file not found (HTTP ' + res.status + ')'; console.warn('[city overlays] ' + entry.file + ': ' + st.reason); continue; }
         overlayRows = parseCityRows(await res.text()).cityDB;
       }
+      st.rows = overlayRows.length;
+      st.used = (entry.countries && entry.countries.length) ? overlayRows.filter(c => entry.countries.includes(c.country)).length : overlayRows.length;
+      if (!st.rows) { st.reason = 'file loaded but no valid rows were parsed (check the columns / tab separators)'; console.warn('[city overlays] ' + entry.file + ': ' + st.reason); continue; }
+      if (!st.used) { st.reason = 'no rows match countries ' + JSON.stringify(entry.countries) + ' (check the country-code column)'; console.warn('[city overlays] ' + entry.file + ': ' + st.reason); continue; }
       result = mergeCountryOverlay(result, overlayRows, entry.countries);
-    } catch (e) { /* skip this file, keep base data for its countries */ }
+      st.ok = true;
+      console.info('[city overlays] ' + entry.file + ': merged ' + st.used + ' rows');
+    } catch (e) { st.reason = 'error: ' + ((e && e.message) || e); console.warn('[city overlays] ' + entry.file + ': ' + st.reason); /* skip this file, keep base data for its countries */ }
   }
   return result;
 }
@@ -9828,14 +9855,14 @@ async function applyCountryOverlays(baseRows, countryFiles) {
 // the cache in the background for the next visit. It touches no UI.
 // Bump this whenever the way city rows are parsed changes (aliases etc.), so
 // copies parsed by older code are discarded instead of being reused forever.
-const CACHE_SCHEMA = 's6';
+const CACHE_SCHEMA = 's7';
 
 // The IndexedDB cache is keyed on this instead of the bare version string,
 // so that changing data-version.json's countryFiles list (even without
 // bumping "version") is enough to make a stale cached copy get rebuilt —
 // same as any other data change.
 function cacheKeyFor(version, countryFiles) {
-  return version + '::cf=' + JSON.stringify(countryFiles || []) + '|' + CACHE_SCHEMA;
+  return version + '::cf=' + JSON.stringify(effectiveCountryFiles(countryFiles)) + '|' + CACHE_SCHEMA;
 }
 
 function prefetchCityData() {
@@ -11645,7 +11672,7 @@ window.openCityAdmin=async function(){const d=$('cadm');d.style.display='block';
  $('cao').value=$('cao').value||'geniote';$('car').value=$('car').value||'geniote.github.io';$('cab').value=$('cab').value||'main';
  if(loaded){filt();return}$('cast').textContent='Loading…';
  try{let t=await getText('data.txt.gz');let n='data.txt.gz';if(t==null){t=await getText('data.txt');n='data.txt'}if(t==null)throw new Error('data file not found');addFile(n,t);
-  try{const v=await (await fetch('data-version.json?t='+Date.now())).json();for(const c of (v.countryFiles||[])){const x=await getText(c.file);if(x)addFile(c.file,x)}}catch(e){}
+  try{const v=await (await fetch('data-version.json?t='+Date.now())).json();for(const c of effectiveCountryFiles(v.countryFiles)){const x=await getText(c.file);if(x)addFile(c.file,x)}}catch(e){}
   loaded=true;filt()}catch(e){$('cast').textContent='Error: '+e.message}};
 })();
 </script>
