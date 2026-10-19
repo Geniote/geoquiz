@@ -7070,6 +7070,13 @@ const QUIZ_CFG = {
   },
 };
 
+// Value understood by scApplyValue() for a Top-N card/row: a country on world/continent maps,
+// a state/prefecture ('a:'+raw admin1, same key the stats picker options use) on the US/Japan maps.
+function statsValueFor(mode, item) {
+  if (mode === 'country') return 'c:' + item.code;
+  return item.admin1 ? 'a:' + item.admin1 : '';
+}
+
 function renderBestCountries() {
   const mode = currentRegion === 'usa' ? 'usa' : currentRegion === 'japan' ? 'japan' : 'country';
   const listEl  = document.getElementById('bestList');
@@ -7102,12 +7109,12 @@ function renderBestCountries() {
       code = city.country;
       name = fmtCountry(code);
     }
-    if (!counts[code]) counts[code] = { name, count: 0 };
+    if (!counts[code]) counts[code] = { name, count: 0, admin1: mode === 'country' ? undefined : city.admin1 };
     counts[code].count++;
   });
 
   const sorted = Object.entries(counts)
-    .map(([code, v]) => ({ code, name: v.name, count: v.count }))
+    .map(([code, v]) => ({ code, name: v.name, count: v.count, admin1: v.admin1 }))
     .sort((a,b) => b.count - a.count);
 
   listEl.innerHTML = '';
@@ -7116,12 +7123,12 @@ function renderBestCountries() {
     const row = document.createElement('div');
     row.className = 'best-row';
     row.innerHTML = `<span class="best-rank">${i+6}.</span><span class="best-name">${item.name} — ${item.count}</span>`;
-    if (mode === 'country') {
+    if (statsValueFor(mode, item)) {
       row.classList.add('stats-country-link');
       row.tabIndex = 0;
       row.setAttribute('role', 'button');
       row.title = 'Show stats for ' + item.name;
-      const selectStats = () => scApplyValue('c:' + item.code);
+      const selectStats = () => scApplyValue(statsValueFor(mode, item));
       row.addEventListener('click', selectStats);
       row.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectStats(); } });
     }
@@ -7239,12 +7246,12 @@ async function renderTopShapes(top5, mode) {
     }
     const card = document.createElement('div');
     card.className = 'shape-card';
-    if (mode === 'country') {
+    if (statsValueFor(mode, item)) {
       card.classList.add('stats-country-link');
       card.tabIndex = 0;
       card.setAttribute('role', 'button');
       card.title = 'Show stats for ' + item.name;
-      const selectStats = () => scApplyValue('c:' + item.code);
+      const selectStats = () => scApplyValue(statsValueFor(mode, item));
       card.addEventListener('click', selectStats);
       card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectStats(); } });
     }
@@ -7887,6 +7894,8 @@ function syncStatsCountryPicker() {
     const o = regionOptions(REGIONS[currentRegion]);
     scCodes = o.items.map(i => i.val);
     scUnit = o.unit;
+    scEl('statsCountryLbl').textContent = 'Show stats for a ' + o.unit + '\u2026';
+    scEl('scBtn').title = 'Show the stats (and missing cities) for one ' + o.unit + ' only';
     fillOptionList(scEl('scCountryList'), o.items);
     scEl('scPanel').querySelector('.cf-sep').textContent = 'Specific ' + o.unit;
     scEl('scPanel').querySelector('[data-val="any"]').textContent = 'All ' + unitPlural(o.unit);
@@ -7985,6 +7994,12 @@ scEl('scBtn').onclick = e => {
   scScrollToActive();
   scEl('scSearch').focus({ preventScroll: true });
 };
+// Clicking anywhere on the bar (not just on the right-hand button) opens the list.
+scEl('statsCountryWrap').addEventListener('click', e => {
+  if (e.target.closest('#scBtn') || e.target.closest('#scPanel')) return;
+  e.stopPropagation();   // otherwise the document-level click handler would close the list straight away
+  scEl('scBtn').click();
+});
 scEl('scSearch').addEventListener('input', scApplyTyped);
 scEl('scSearch').addEventListener('keydown', e => {
   if (e.key === 'Enter') {
@@ -11622,6 +11637,14 @@ body.skin-nasa #saveSetMapBtn{left:8px;bottom:80px;width:22px;height:22px;paddin
 body.skin-nasa #saveSetMapBtn:hover{border-color:#dfb368;background:#494538;color:#ffd27a}
 body.skin-nasa #saveSetMapBtn svg{width:14px;height:14px}
 @media(max-width:640px){#saveSetMapBtn{left:calc(10px + env(safe-area-inset-left));bottom:calc(104px + env(safe-area-inset-bottom))}body.skin-sky:not(.night-mode) #saveSetMapBtn,body.skin-sky.night-mode #saveSetMapBtn{left:calc(16px + env(safe-area-inset-left));bottom:calc(96px + env(safe-area-inset-bottom))}body.skin-nasa #saveSetMapBtn{left:calc(8px + env(safe-area-inset-left));bottom:calc(80px + env(safe-area-inset-bottom))}}
+/* Stats picker: the dropdown must paint above (and receive clicks before) the stat pills below it.
+   The Glossy Blue skin gives every #bestVisual child z-index:1, which trapped the list under #otherStatsList,
+   and #bestVisual's overflow:hidden could clip it. */
+#bestVisual>#statsCountryRow{position:relative !important;z-index:30 !important}
+#bestVisual>#otherStatsList{z-index:1 !important}
+body.skin-sky #bestVisual{overflow:visible !important}
+#statsCountryWrap{cursor:pointer}
+#scPanel{z-index:80 !important}
 </style>
 <div id="cadm"><div class="w">
 <div class="bar"><b>City data editor</b>
