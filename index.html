@@ -538,6 +538,7 @@ body.night-mode #circleBoardBtn{background:rgba(20,24,32,.85)}
 #foundGrid .cp-actions{position:sticky;bottom:0;margin-top:auto;display:flex;gap:8px;padding:10px 12px;background:var(--surface);border-top:1px solid var(--border);z-index:1;flex-shrink:0}
 #foundGrid .cp-actions button{flex:1;padding:9px 6px;font-size:13px;font-weight:700;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);cursor:pointer}
 #foundGrid .cp-actions button.primary{background:var(--accent2);border-color:var(--accent2);color:#fff}
+#foundGrid .cp-actions button.cp-reload{flex:0 0 46px;min-width:0;padding-left:0;padding-right:0;font-size:20px;line-height:1}
 #foundGrid .cp-head{position:sticky;top:0;z-index:1;padding:8px 12px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
 #foundGrid .cp-score{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}
 #foundGrid .cp-max{font-size:13px;font-weight:600;color:var(--text3)}
@@ -6045,13 +6046,24 @@ function circleGuess() {
   S.countryMode = 'every';
   let results = [];
   try { results = lookupCity(raw); } finally { S.countryMode = prevMode; }
+  // lookupCity() applies its own filters (e.g. it skips cities with no population figure), which the circle's city list does not.
+  // So a city that is really inside the circle could be missed and a same-named one elsewhere (Trenton, NC) judged instead.
+  // Add every city of the circle whose name matches what was typed, so those are always considered first.
+  if (raw.indexOf(',') < 0) {
+    const cq = fold(raw);
+    circle.cities.forEach(c => {
+      if (results.some(r => circleKey(r) === circleKey(c))) return;
+      if (c.nameF === cq || c.asciiF === cq || (c.aliasesF && c.aliasesF.some(a => a === cq)) || isPreferredShortName(c, cq)) results.push(c);
+    });
+  }
   if (!results.length) { setMsg(`"${raw}" not found.`, 'err'); return; }
   const inside = results.filter(c => circle.cities.has(circleKey(c))).sort((a, b) => (b.pop || 0) - (a.pop || 0));
   if (!inside.length) {
     // A real city outside the circle costs points by how far outside it is, not by how big the city is: just past the edge costs
     // the minimum (10), and the penalty grows in a straight line up to 250 for a city a whole radius (or more) beyond the edge.
     // The round score and the game total can drop below 0.
-    const wrongCity = results.reduce((a, c) => (Number(c.pop) || 0) > (Number(a.pop) || 0) ? c : a, results[0]);
+    const cDist = c => circleKm(c.lon, c.lat, circle.center[0], circle.center[1]);   // several cities share the typed name (Springfield…): judge the one closest to the circle, so the penalty is as small as it can be
+    const wrongCity = results.reduce((a, c) => cDist(c) < cDist(a) ? c : a, results[0]);
     // Typing the same wrong city again in this round costs nothing (no points, no strike): only the first time counts.
     const wKey = circleKey(wrongCity);
     if (circle.wrongSeen.has(wKey)) { setMsg(`${_chName(wrongCity)} is not inside the circle (already tried, no extra penalty).`, 'err'); return; }
@@ -6154,7 +6166,7 @@ function renderCircleFoundGrid(grid) {
     ? `<button data-act="results" title="Show your final score">Results</button><button class="primary" data-act="newgame" title="Start a new ${totalRounds}-circle game">New game ↻</button>`
     : (circle.revealed
       ? `<button class="primary" data-act="next" title="${last ? 'Finish the game and see your final score' : 'Go to the next circle'}">${last ? 'Finish 🏁' : 'Next circle ▶'}</button>`
-      : `<button class="primary" data-act="endround" title="End this round and see the cities you missed">End round <span class="cp-stop" aria-hidden="true"></span></button>`);
+      : `<button class="primary" data-act="endround" title="End this round and see the cities you missed">End round <span class="cp-stop" aria-hidden="true"></span></button><button class="cp-reload" data-act="reload" title="Start a new game" aria-label="Start a new game">↻</button>`);
   grid.appendChild(actions);
   _justAddedId = null; _scoreDelta = null;
   circleUpdateTimer();
@@ -6187,6 +6199,7 @@ document.getElementById('foundGrid').addEventListener('click', e => {
   else if (act === 'next') circleAdvance();
   else if (act === 'results') openCircleEnd();
   else if (act === 'newgame') circleNewGame();
+  else if (act === 'reload') guardLeaveZones(circleNewGame);   // same "are you sure?" window as leaving Zones: the session's score isn't saved
 });
 document.getElementById('circleBoardBtn').onclick = () => openCircleBoard();
 
