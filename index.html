@@ -2793,6 +2793,33 @@ function getMapSize() {
 // ─── MAP DATA (multiple resolutions) ─────────────────────────────────────────
 // 50m  = detailed coastlines, used for the world view and all regional views
 // 110m = lightweight fallback if 50m fails to load
+// Great Lakes outlines (lon, lat) — simplified shorelines, enough for world / continent scale. The first ring of each
+// lake is its water; any further ring is an island inside it (Manitoulin), cut out as a hole.
+const GREAT_LAKES = [
+  // Superior
+  [[-92.1,46.78],[-91.67,47.02],[-91.4,47.1],[-90.6,47.5],[-89.7,47.95],[-89.6,48.0],[-88.9,48.3],[-88.4,48.3],[-88.0,48.95],[-87.1,48.8],[-86.4,48.7],[-85.9,48.15],[-84.9,47.95],[-84.85,47.3],[-84.65,46.9],[-84.95,46.77],[-85.0,46.75],[-86.5,46.5],[-87.4,46.5],[-88.5,46.95],[-87.9,47.45],[-88.2,47.4],[-89.0,46.85],[-90.4,46.6],[-91.0,46.9],[-92.1,46.78]],
+  // Michigan (with Green Bay)
+  [[-87.6,41.85],[-87.2,41.62],[-86.9,41.72],[-86.5,42.12],[-86.28,42.4],[-86.2,42.78],[-86.35,43.23],[-86.45,43.95],[-86.25,44.63],[-86.0,44.9],[-85.55,45.2],[-85.4,45.05],[-85.5,44.78],[-85.4,45.15],[-85.25,45.32],[-84.95,45.37],[-84.73,45.78],[-84.72,45.87],[-85.4,46.0],[-85.45,46.1],[-86.25,45.95],[-86.55,45.68],[-87.05,45.75],[-87.6,45.1],[-88.0,44.55],[-87.5,44.85],[-87.0,45.3],[-87.3,44.85],[-87.65,44.1],[-87.7,43.75],[-87.9,43.04],[-87.78,42.72],[-87.82,42.36],[-87.67,42.05],[-87.6,41.85]],
+  // Huron (with Georgian Bay and the North Channel) + Manitoulin Island as a hole
+  [[-82.42,43.0],[-82.5,43.27],[-82.95,44.07],[-83.9,43.65],[-83.3,44.3],[-83.45,44.25],[-83.4,45.05],[-83.8,45.42],[-84.73,45.78],[-84.8,45.82],[-84.72,45.87],[-84.35,45.98],[-83.9,45.98],[-83.95,46.22],[-83.55,46.27],[-82.95,46.2],[-82.35,46.25],[-81.9,46.27],[-81.4,46.0],[-80.95,46.0],[-80.05,45.33],[-79.85,44.75],[-80.2,44.5],[-80.95,44.55],[-81.65,45.25],[-81.4,44.5],[-81.65,44.17],[-81.72,43.75],[-81.75,43.3],[-82.42,43.0]],
+  [[-83.1,45.95],[-82.5,46.08],[-81.93,46.17],[-81.5,45.9],[-81.7,45.62],[-82.0,45.57],[-82.6,45.65],[-83.1,45.95]],
+  // Erie
+  [[-83.45,41.7],[-82.95,41.52],[-82.7,41.45],[-82.18,41.47],[-81.7,41.5],[-80.8,41.9],[-80.1,42.15],[-79.35,42.5],[-78.88,42.88],[-79.25,42.87],[-79.9,42.75],[-80.2,42.78],[-80.45,42.62],[-81.2,42.65],[-81.85,42.27],[-82.5,41.93],[-83.1,42.1],[-83.45,41.7]],
+  // Ontario
+  [[-79.07,43.26],[-79.8,43.3],[-79.38,43.63],[-78.85,43.85],[-78.15,43.95],[-77.15,43.95],[-76.7,44.05],[-76.5,44.12],[-76.3,44.1],[-76.2,43.85],[-76.45,43.45],[-77.0,43.3],[-77.6,43.27],[-78.3,43.38],[-79.07,43.26]]
+];
+// One GeoJSON geometry for all of them. d3 wants exterior rings small-side and holes the other way round, so each ring's
+// direction is checked by its spherical area and flipped when needed.
+function greatLakesGeometry() {
+  const orient = (r, small) => (d3.geoArea({type:'Polygon', coordinates:[r]}) < 2*Math.PI) === small ? r : r.slice().reverse();
+  const polys = [];
+  GREAT_LAKES.forEach((ring, i) => {
+    const isHole = i === 3; // Manitoulin Island, the ring right after Huron
+    if (isHole) polys[polys.length-1].push(orient(ring, false));
+    else polys.push([orient(ring, true)]);
+  });
+  return { type:'MultiPolygon', coordinates: polys };
+}
 const geoCache = { '110m': null, '50m': null, 'us-states': null, 'us-counties': null, 'japan-prefs': null, 'ru-regions': null, 'br-states': null };
 
 async function getGeoData(res) {
@@ -3963,6 +3990,11 @@ async function drawMap(regionKey) {
       .attr('stroke', S.borderColor)
       .attr('stroke-width', isWorld ? 0.25 : 0.3);
 
+    // Great Lakes: drawn as water (sea colour) over the land, under the border lines, so they read as lakes
+    // whether or not the country shapes already have them cut out. Follows the Sea colour / skins / night mode.
+    g.append('path').attr('id','lakes-path').datum(greatLakesGeometry()).attr('d', path)
+      .attr('fill', S.physicalMode ? 'none' : S.seaColor).attr('stroke','none').style('pointer-events','none');
+
     g.append('path').attr('id','borders-path').datum(borders).attr('d', path)
       .attr('fill','none').attr('stroke', S.borderColor)
       .attr('stroke-width', isWorld ? 0.18 : 0.25);
@@ -4601,6 +4633,7 @@ async function updatePhysicalLayer(g, W, H) {
   svg.select('#physical-g').select('#physicalImg').remove();
   if (!S.physicalMode) {
     g.select('#sphere').attr('fill', S.seaColor);
+    g.select('#lakes-path').attr('fill', S.seaColor);
     g.select('#countries-g').selectAll('path').attr('fill', S.landColor).attr('stroke', S.borderColor);
     g.select('#borders-path').attr('stroke', S.borderColor);
     g.select('#state-borders').attr('stroke', S.borderColor);
@@ -4613,6 +4646,7 @@ async function updatePhysicalLayer(g, W, H) {
     return;
   }
   g.select('#sphere').attr('fill', 'none');
+  g.select('#lakes-path').attr('fill', 'none');
   g.select('#countries-g').selectAll('path').attr('fill', 'none').attr('stroke', 'none');
   g.select('#borders-path').attr('stroke', 'none');
   g.select('#state-borders').attr('stroke', 'none');
@@ -4633,6 +4667,7 @@ async function updatePhysicalLayer(g, W, H) {
     const chk = document.getElementById('physicalMode');
     if (chk) chk.checked = false;
     g.select('#sphere').attr('fill', S.seaColor);
+    g.select('#lakes-path').attr('fill', S.seaColor);
     g.select('#countries-g').selectAll('path').attr('fill', S.landColor).attr('stroke', S.borderColor);
     g.select('#borders-path').attr('stroke', S.borderColor);
     g.select('#state-borders').attr('stroke', S.borderColor);
@@ -8873,6 +8908,7 @@ function applyMapColors() {
   svg.select('#nation-border-jp').attr('stroke', borderStroke);
   svg.selectAll('.region-outline').attr('stroke', borderStroke);
   svg.select('#sphere').attr('fill', S.physicalMode ? 'none' : S.seaColor);
+  svg.select('#lakes-path').attr('fill', S.physicalMode ? 'none' : S.seaColor);
   document.getElementById('mapWrap').style.background = S.physicalMode ? '#05070c' : S.seaColor;
   syncSkyMap();
 }
