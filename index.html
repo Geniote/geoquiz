@@ -6419,12 +6419,27 @@ function resizeNightCanvas() {
   nightCanvas.height = Math.max(1, Math.round(H * nightDPR));
 }
 
+// The SVG map is laid out with viewBox="0 0 W H" (W,H = size of #mapWrap when the map was
+// last drawn) and preserveAspectRatio "meet". If #mapWrap's size has changed since (scrollbar
+// appearing, list panel, window resize before the redraw fires...) the SVG is uniformly scaled
+// and centred, while the canvas used to draw in raw CSS pixels - so the lights ended up
+// slightly shifted (typically to the right). Mirror the SVG's viewBox->screen mapping here.
+function nightViewMap() {
+  const svgEl = document.getElementById('map');
+  const vb = svgEl && svgEl.viewBox && svgEl.viewBox.baseVal;
+  const cw = svgEl ? svgEl.clientWidth : 0, ch = svgEl ? svgEl.clientHeight : 0;
+  if (!vb || !vb.width || !vb.height || !cw || !ch) return { s: 1, ox: 0, oy: 0 };
+  const s = Math.min(cw / vb.width, ch / vb.height);
+  return { s, ox: (cw - vb.width * s) / 2, oy: (ch - vb.height * s) / 2 };
+}
+
 function drawNightCanvas() {
   if (!S.nightMode) return;
-  const [W, H] = getMapSize();
-  nctx.setTransform(nightDPR, 0, 0, nightDPR, 0, 0);
-  nctx.clearRect(0, 0, W, H);
+  nctx.setTransform(1, 0, 0, 1, 0, 0);
+  nctx.clearRect(0, 0, nightCanvas.width, nightCanvas.height);
   if (quizMode) return; // Prefectures quiz: previously typed cities are hidden, so draw no lights
+  const vm = nightViewMap();
+  nctx.setTransform(nightDPR * vm.s, 0, 0, nightDPR * vm.s, nightDPR * vm.ox, nightDPR * vm.oy);
   const t = currentTransform;
   nctx.save();
   nctx.translate(t.x, t.y);
@@ -6444,7 +6459,7 @@ function drawNightCanvas() {
     // zoom (t.k) and pixel ratio (nightDPR) already baked into the canvas
     // transform above — this is what pickGlowSprite needs to avoid an
     // over-aggressive downscale.
-    const targetDevicePx = glowR * 2 * t.k * nightDPR;
+    const targetDevicePx = glowR * 2 * t.k * nightDPR * vm.s;
     nctx.drawImage(pickGlowSprite(targetDevicePx), cx - glowR, cy - glowR, glowR * 2, glowR * 2);
   }
   nctx.restore();
@@ -6456,7 +6471,8 @@ function cityScreenPos(city) {
   const p = projection([city.lon, city.lat]);
   if (!p) return null;
   const t = currentTransform;
-  return [p[0] * t.k + t.x, p[1] * t.k + t.y, dotR(city.pop) * t.k];
+  const vm = nightViewMap();
+  return [(p[0] * t.k + t.x) * vm.s + vm.ox, (p[1] * t.k + t.y) * vm.s + vm.oy, dotR(city.pop) * t.k * vm.s];
 }
 
 function findCityAtScreenPos(sx, sy) {
@@ -6535,6 +6551,10 @@ function onNightClick(ev) {
     document.getElementById('tooltip').style.display = 'none';
     highlightCity(city);
   }
+}
+// Keep the canvas bitmap in step with #mapWrap whenever its size changes
+if (window.ResizeObserver) {
+  new ResizeObserver(() => { resizeNightCanvas(); drawNightCanvas(); }).observe(document.getElementById('mapWrap'));
 }
 document.getElementById('mapWrap').addEventListener('mousemove', onNightMouseMove);
 document.getElementById('mapWrap').addEventListener('click', onNightClick);
