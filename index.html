@@ -711,7 +711,7 @@ input[type=checkbox]{accent-color:var(--accent2);cursor:pointer;width:14px;heigh
      collapsed, hide the panel + top-countries panel entirely and let the
      map grow to fill almost the whole screen. */
   #panelToggleBtn{display:block;bottom:calc(108px + env(safe-area-inset-bottom));right:calc(10px + env(safe-area-inset-right));font-size:12px;padding:7px 12px}
-  body.panel-collapsed #main{height:88dvh;max-height:none;min-height:420px}
+  body.panel-collapsed #main{height:100vh;height:100dvh;max-height:none;min-height:420px}
   body.panel-collapsed #panel{display:none}
   body.panel-collapsed #bottomPanels{display:none}
 
@@ -1882,6 +1882,28 @@ body.skin-nasa #msg{font-size:8.5px}
 /* map + city list start closer to the (now thinner) toolbar */
 body.skin-nasa #mapWrap,body.skin-nasa #panel{top:calc(var(--bar-h,20px) + 12px)}
 </style>
+<style id="mobileTopMenuToggle">
+/* Mobile: a chevron button beside the type bar hides the whole top menu (session name, map picker,
+   Find / Clear all / Sessions, found-cities strip), leaving only the type bar at the top of the screen. */
+#topMenuToggle{display:none}
+@media (max-width:860px){
+  #topMenuToggle{display:flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;height:44px;padding:0;border:2px solid var(--border);border-radius:9px;background:var(--surface);color:var(--text);cursor:pointer;-webkit-tap-highlight-color:transparent}
+  #topMenuToggle svg{transition:transform .2s ease}
+  body.topmenu-hidden #topMenuToggle svg{transform:rotate(180deg)}
+  #inputControls{flex-wrap:wrap}
+  #inputControls #cityInputWrap{flex:1 1 calc(100% - 60px);width:auto;min-width:0}
+  body.topmenu-hidden:not(.quiz-typing-hidden) #sessionBar>*:not(#inputControls),
+  body.topmenu-hidden:not(.quiz-typing-hidden) #guessBtn,
+  body.topmenu-hidden:not(.quiz-typing-hidden) #clearBtn,
+  body.topmenu-hidden:not(.quiz-typing-hidden) #statusRow{display:none!important}
+  body.topmenu-hidden:not(.quiz-typing-hidden) #sessionBar{height:auto!important;padding:6px 10px!important;gap:0!important;margin:0!important;border-radius:0!important}
+}
+body.quiz-typing-hidden #topMenuToggle{display:none}
+/* Mobile: park the "Hide/Show list" button bottom-centre so it no longer covers the zoom % */
+@media (max-width:860px){
+  #panelToggleBtn{left:50%!important;right:auto!important;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom))!important}
+}
+</style>
 </head>
 <body>
 <div id="nasaShell" role="group" aria-label="Nasapunk control panel">
@@ -1944,6 +1966,7 @@ body.skin-nasa #mapWrap,body.skin-nasa #panel{top:calc(var(--bar-h,20px) + 12px)
       </optgroup>
     </select>
     <div id="inputControls">
+      <button type="button" id="topMenuToggle" aria-expanded="true" aria-label="Hide top menu" title="Hide top menu"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <div id="cityInputWrap">
         <input id="cityInput" type="text" placeholder="Type a city name and press Enter…" autocomplete="off" spellcheck="false" enterkeyhint="go"/>
         <button type="button" id="countryFilterBtn" title="Country filter — which country a guessed city must belong to">
@@ -9389,7 +9412,14 @@ function setMsg(text,cls){
 
 // Handle window resize — redraw with correct dimensions
 let resizeTimer;
-window.addEventListener('resize', ()=>{ clearTimeout(resizeTimer); resizeTimer=setTimeout(()=>drawMap(currentRegion),200); });
+let _lastResizeW = window.innerWidth;
+window.addEventListener('resize', ()=>{
+  // On mobile, the on-screen keyboard / collapsing URL bar only change the height — redrawing then would reset the map zoom.
+  const wChanged = window.innerWidth !== _lastResizeW;
+  _lastResizeW = window.innerWidth;
+  if (!wChanged && window.innerWidth <= 860) return;
+  clearTimeout(resizeTimer); resizeTimer=setTimeout(()=>drawMap(currentRegion),200);
+});
 // Persist session on page unload as safety net
 window.addEventListener('beforeunload', ()=>persistSession());
 
@@ -11924,6 +11954,38 @@ window.openCityAdmin=async function(){const d=$('cadm');d.style.display='block';
   }
   new MutationObserver(place).observe(document.body,{attributes:true,attributeFilter:['class']});
   window.addEventListener('resize',place); place();
+})();
+</script>
+<script>
+(function(){
+  var b=document.getElementById('topMenuToggle'); if(!b) return;
+  b.addEventListener('click',function(){
+    var h=document.body.classList.toggle('topmenu-hidden');
+    b.setAttribute('aria-expanded',h?'false':'true');
+    var t=h?'Show top menu':'Hide top menu'; b.setAttribute('aria-label',t); b.title=t;
+  });
+})();
+</script>
+<script>
+/* Mobile: the on-screen keyboard shrinks the viewport, which shrank the map box and made the SVG re-scale and re-centre
+   (meet). Freeze the map block's height while the type bar is focused so the map stays exactly where it was left. */
+(function(){
+  var main=document.getElementById('main'), inp=document.getElementById('cityInput'), t=0;
+  if(!main||!inp) return;
+  function freeze(){
+    clearTimeout(t);
+    if(window.innerWidth>860) return;
+    var h=main.offsetHeight+'px';
+    main.style.setProperty('height',h,'important');
+    main.style.setProperty('min-height',h,'important');
+    main.style.setProperty('max-height',h,'important');
+  }
+  function release(){
+    clearTimeout(t);
+    t=setTimeout(function(){ ['height','min-height','max-height'].forEach(function(k){main.style.removeProperty(k);}); },400);
+  }
+  inp.addEventListener('focus',freeze);
+  inp.addEventListener('blur',release);
 })();
 </script>
 </body>
