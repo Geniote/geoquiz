@@ -226,7 +226,7 @@ body.skin-sky:not(.night-mode) #mapBoxHead .mb-ico svg{display:block}
 .map-opt-check{margin-left:auto;color:var(--accent2);font-size:12px}
 /* Notification / transient guess feedback — floats over the top-left corner
    of the map instead of taking up space in the status strip. */
-.overlayMsg{font-size:11px;font-family:'Nunito','Varela Round','Trebuchet MS',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity .3s;text-align:left;line-height:1.3;letter-spacing:.01em;font-weight:500}
+.overlayMsg{font-size:11px;font-family:'Nunito','Varela Round','Trebuchet MS',sans-serif;white-space:normal;overflow-wrap:break-word;overflow:visible;opacity:0;transition:opacity .3s;text-align:left;line-height:1.3;letter-spacing:.01em;font-weight:500}
 #msg{position:absolute;top:80px;left:10px;z-index:6;max-width:70%;background:rgba(255,255,255,.85);border:1px solid var(--border);border-radius:6px;padding:4px 10px;pointer-events:none}
 body.night-mode #msg{background:rgba(20,24,32,.85)}
 #summaryBar{font-size:17px;font-weight:500;color:var(--text2);text-align:center;display:block;padding:1px 12px 0;align-self:center}
@@ -9322,14 +9322,22 @@ document.getElementById('skinClose').onclick = closeSkinModal;
     const left = parseFloat(getComputedStyle(msg).left) || 6;
     const msgOn = msg.textContent.trim() !== '' && getComputedStyle(msg).display !== 'none';
     msg.style.maxWidth = 'none';
+    let below = false;
     if (msgOn) {
-      const mw = msg.getBoundingClientRect().width;                    // natural width
+      const mw = msg.getBoundingClientRect().width;                    // natural (one-line) width
       const par = row.parentElement, parR = par.getBoundingClientRect();
       const pillLeft = parR.left + par.clientWidth / 2 - bar.offsetWidth / 2;   // pill's final left edge (screen-centred), independent of the slide transition
       const avail = pillLeft - (pr.left + left) - GAP;                 // space to the pill's left
-      msg.style.maxWidth = mw > avail ? Math.max(80, avail) + 'px' : '';
+      if (mw <= avail) msg.style.maxWidth = '';                        // fits beside the pill on one line
+      else {                                                           // too long / too narrow: show it in full on its own line under the pill instead of squeezing it
+        below = true;
+        const rowR = row.getBoundingClientRect();
+        msg.style.maxWidth = Math.max(120, rowR.right - (pr.left + left) - 6) + 'px';
+      }
     } else msg.style.maxWidth = '';
-    msg.style.top = (r0.top - pr.top + (r0.height - msg.offsetHeight) / 2) + 'px';
+    msg.style.top = below
+      ? (r0.bottom - pr.top + 8) + 'px'
+      : (r0.top - pr.top + (r0.height - msg.offsetHeight) / 2) + 'px';
   }
   const queue = () => { if (!raf) raf = requestAnimationFrame(place); };
   // the city panel slides in/out with a CSS transition on the row's margin: keep re-placing for its duration
@@ -11014,7 +11022,7 @@ body.skin-sky:not(.night-mode) #msg,body.skin-sky.night-mode #msg{top:calc(var(-
 body.skin-sky.night-mode #msg{box-shadow:0 2px 6px rgba(0,8,30,.4),inset 0 1px 0 rgba(255,255,255,.1)}
 body.skin-sky:not(.night-mode) #msg::before,body.skin-sky.night-mode #msg::before{left:5px;width:17px;height:17px;background-size:11px}
 /* keep it clear of the centred summary pill: it may only use the space to the left of it (wraps onto more lines if needed); a script (placeInfoMsg) measures the pill and keeps the message vertically centred on it with a gap */
-body.skin-sky:not(.night-mode) #msg,body.skin-sky.night-mode #msg{max-width:calc((100vw - var(--list-w,0px)) / 2 - 225px);line-height:1.15}
+body.skin-sky:not(.night-mode) #msg,body.skin-sky.night-mode #msg{max-width:calc(100% - 12px);line-height:1.15}
 
 /* Glossy Blue — Circle challenge "how do you want to play?" dialog: same frosted card / pill header / soft pill options as the Map selection dialog. */
 body.skin-sky:not(.night-mode) #circleTimerModal{background:rgba(110,168,232,.38);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
