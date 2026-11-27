@@ -404,6 +404,28 @@ body.map-zooming #map-g path{shape-rendering:optimizeSpeed}
 /* TOP SHAPES PANEL — fills the space between the settings and found-cities columns */
 #bestVisual{flex:1 1 300px;min-width:280px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:20px 24px;gap:16px;background:var(--surface)}
 #bestVisualTitle{font-size:14px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;text-align:center}
+/* "+" button beside the Top Countries/States title → opens the sortable places table */
+#bestVisualTitleRow{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;flex-wrap:nowrap}
+#bestTableBtn{flex:0 0 auto;width:30px;height:30px;padding:0;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--accent2);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+#bestTableBtn svg{display:block}
+#bestTableBtn:hover{background:var(--accent2);color:var(--surface);border-color:var(--accent2)}
+#bestTableBtn:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+#bestTableOverlay{position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.45);padding:12px}
+#bestTableOverlay.open{display:flex}
+#bestTableBox{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:12px;width:460px;max-width:96vw;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.3);overflow:hidden}
+#bestTableHead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);font-weight:800;font-size:14px;text-transform:uppercase;letter-spacing:.05em}
+#bestTableClose{border:0;background:none;color:var(--text2);font-size:20px;line-height:1;cursor:pointer;padding:2px 6px}
+#bestTableClose:hover{color:var(--text)}
+#bestTableScroll{overflow:auto;flex:1 1 auto}
+#bestTable{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
+#bestTable th,#bestTable td{border:1px solid var(--border);padding:5px 10px;text-align:left}
+#bestTable td.num,#bestTable th.num{text-align:right}
+#bestTable thead th{position:sticky;top:0;z-index:1;background:var(--bg);color:var(--text);cursor:pointer;user-select:none;white-space:nowrap}
+#bestTable thead th:hover{color:var(--accent2)}
+#bestTable th.rown,#bestTable td.rown{width:34px;text-align:center;background:var(--bg);color:var(--text3);cursor:default;font-size:12px}
+#bestTable thead th .arr{display:inline-block;width:1em;color:var(--accent2)}
+#bestTable tbody tr:hover td:not(.rown){background:rgba(120,150,200,.12)}
+#bestTableEmpty{padding:20px;text-align:center;color:var(--text3);font-style:italic;font-size:14px}
 #topShapesList{display:flex;flex-direction:row;flex-wrap:nowrap;gap:14px;justify-content:center;align-items:flex-start;width:100%}
 .shape-card{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1 1 0;min-width:0;max-width:240px;padding:16px 10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:14px;position:relative}
 .stats-country-link{cursor:pointer}
@@ -2137,7 +2159,10 @@ body.quiz-typing-hidden #topMenuToggle{display:none}
 
   <div id="bottomPanels">
   <div id="bestVisual">
-    <div id="bestVisualTitle">Top Countries</div>
+    <div id="bestVisualTitleRow">
+      <div id="bestVisualTitle">Top Countries</div>
+      <button type="button" id="bestTableBtn" title="Show a table of every place guessed this session" aria-label="Show table of places guessed" aria-haspopup="dialog"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"/></svg></button>
+    </div>
     <div id="topShapesList"></div>
     <button type="button" id="toggleBestListBtn" class="toggle-best-list-btn" style="display:none">Show full list ▾</button>
     <div id="bestList" style="width:100%;margin-top:4px;display:none"></div>
@@ -7278,6 +7303,7 @@ function renderBestCountries() {
     listEl.innerHTML = '';
     listEl.style.display = 'none';
     if (toggleBtn) toggleBtn.style.display = 'none';
+    bestTableState.mode = mode; bestTableState.rows = []; bestTableRefresh();
     renderTopShapes([], mode);
     return;
   }
@@ -7310,6 +7336,8 @@ function renderBestCountries() {
   const sorted = Object.entries(counts)
     .map(([code, v]) => ({ code, name: v.name, count: v.count, admin1: v.admin1, complete: doneCodes.has(keyOfCode(code)) }))
     .sort((a,b) => b.count - a.count);
+
+  bestTableState.mode = mode; bestTableState.rows = sorted; bestTableRefresh();
 
   listEl.innerHTML = '';
   const rest = sorted.slice(5);
@@ -7349,6 +7377,60 @@ function renderBestCountries() {
     bestListExpanded = !bestListExpanded;
     renderBestCountries();
   });
+})();
+
+// ─── PLACES TABLE ("+" beside the Top … title) ─────────────────────────────
+// Spreadsheet-style table of every country/state/prefecture guessed this session
+// with how many places were guessed in each; click a column header to sort it.
+var bestTableState = { mode: 'country', rows: [], sortKey: 'count', sortDir: 'desc' };
+
+function bestTableRefresh() {
+  const ov = document.getElementById('bestTableOverlay');
+  if (ov && ov.classList.contains('open')) bestTableRender();
+}
+
+function bestTableRender() {
+  const { mode, rows, sortKey, sortDir } = bestTableState;
+  const label = { usa: 'State', japan: 'Prefecture', country: 'Country' }[mode] || 'Country';
+  const titleEl = document.getElementById('bestTableTitle');
+  if (titleEl) titleEl.textContent = (label === 'Country' ? 'Countries' : label + 's') + ' guessed this session';
+  const sign = sortDir === 'asc' ? 1 : -1;
+  const data = rows.slice().sort((a, b) => {
+    if (sortKey === 'count') return (a.count - b.count) * sign || a.name.localeCompare(b.name);
+    return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }) * sign;
+  });
+  const arrow = k => k === sortKey ? (sortDir === 'asc' ? '▲' : '▼') : '';
+  const host = document.getElementById('bestTableScroll');
+  if (!host) return;
+  if (!data.length) { host.innerHTML = '<div id="bestTableEmpty">Nothing guessed yet in this session.</div>'; return; }
+  const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  host.innerHTML = `<table id="bestTable"><thead><tr>
+      <th class="rown">#</th>
+      <th data-key="name" title="Sort alphabetically">${label} <span class="arr">${arrow('name')}</span></th>
+      <th data-key="count" class="num" title="Sort by number">Places guessed <span class="arr">${arrow('count')}</span></th>
+    </tr></thead><tbody>${data.map((r, i) => `<tr><td class="rown">${i + 1}</td><td>${esc(r.name)}</td><td class="num">${r.count}</td></tr>`).join('')}</tbody></table>`;
+  host.querySelectorAll('th[data-key]').forEach(th => th.addEventListener('click', () => {
+    const k = th.dataset.key;
+    if (bestTableState.sortKey === k) bestTableState.sortDir = bestTableState.sortDir === 'asc' ? 'desc' : 'asc';
+    else { bestTableState.sortKey = k; bestTableState.sortDir = k === 'count' ? 'desc' : 'asc'; }
+    bestTableRender();
+  }));
+}
+
+(function setupBestTable() {
+  const btn = document.getElementById('bestTableBtn');
+  if (!btn) return;
+  const ov = document.createElement('div');
+  ov.id = 'bestTableOverlay';
+  ov.innerHTML = `<div id="bestTableBox" role="dialog" aria-modal="true" aria-labelledby="bestTableTitle">
+      <div id="bestTableHead"><span id="bestTableTitle"></span><button type="button" id="bestTableClose" aria-label="Close">✕</button></div>
+      <div id="bestTableScroll"></div></div>`;
+  document.body.appendChild(ov);
+  const close = () => { ov.classList.remove('open'); btn.focus(); };
+  btn.addEventListener('click', () => { bestTableRender(); ov.classList.add('open'); ov.querySelector('#bestTableClose').focus(); });
+  ov.querySelector('#bestTableClose').addEventListener('click', close);
+  ov.addEventListener('mousedown', e => { if (e.target === ov) close(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && ov.classList.contains('open')) close(); });
 })();
 
 // ─── TOP COUNTRIES/STATES/PREFECTURES SILHOUETTE PANEL ───────────────────────
